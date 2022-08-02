@@ -195,13 +195,7 @@ namespace RyzenTuner
 
         private void button1_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
-            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            startInfo.FileName = "SCHTASKS.exe";
-            startInfo.Arguments = "/Create /TN \"Ryzen Tuner\" /TR \"" + Application.ExecutablePath + " -hide\" /RU " + Environment.UserName + " /RL HIGHEST /SC ONLOGON /IT";
-            process.StartInfo = startInfo;
-            process.Start();
-            MessageBox.Show("计划任务已添加，如需取消请自己到计划任务面板删除“Ryzen Tuner”任务。");
+            MessageBox.Show("请自己到计划任务面板添加任务。");
         }
     }
 }
