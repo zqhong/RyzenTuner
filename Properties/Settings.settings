@@ -1,0 +1,33 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="RyzenTuner.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="EnergyStar" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="CloseToTray" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="CustomMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">5-15</Value>
+    </Setting>
+    <Setting Name="WeakMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">2.5-4</Value>
+    </Setting>
+    <Setting Name="ExtendedBatteryLifeMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">4-8</Value>
+    </Setting>
+    <Setting Name="BatteryLifeMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">6-11</Value>
+    </Setting>
+    <Setting Name="GamingMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">15-20</Value>
+    </Setting>
+    <Setting Name="FactoryDefaultMode" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">100-100</Value>
+    </Setting>
+    <Setting Name="CurrentMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">FactoryDefaultMode</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
