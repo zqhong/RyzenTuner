@@ -27,6 +27,13 @@ namespace RyzenTuner
             checkBox1.Checked = Properties.Settings.Default.EnergyStar;
             checkBox3.Checked = Properties.Settings.Default.CloseToTray;
             textBox1.Text = Properties.Settings.Default.CustomMode;
+            TaskService.Instance.RootFolder.GetTasks().ToList().ForEach(t =>
+            {
+                if (t.Name == "RyzenTuner")
+                {
+                    checkBox2.Checked = true;
+                }
+            });
             SyncEnergyModeSelection();
             
         }
