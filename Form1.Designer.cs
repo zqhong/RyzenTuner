@@ -43,7 +43,7 @@
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.卡顿模式25WCtrlAltShiftF1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.自动模式25WCtrlAltShiftF1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.极致续航模式4WToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.续航模式6WToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.游戏模式15WToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -152,8 +152,8 @@
             this.radioButton1.Name = "radioButton1";
             this.radioButton1.Size = new System.Drawing.Size(197, 28);
             this.radioButton1.TabIndex = 0;
-            this.radioButton1.Tag = "WeakMode";
-            this.radioButton1.Text = "卡顿模式-2.5W";
+            this.radioButton1.Tag = "AutoMode";
+            this.radioButton1.Text = "自动模式";
             this.radioButton1.UseVisualStyleBackColor = true;
             this.radioButton1.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             // 
@@ -203,7 +203,7 @@
             // 
             this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.卡顿模式25WCtrlAltShiftF1ToolStripMenuItem,
+            this.自动模式25WCtrlAltShiftF1ToolStripMenuItem,
             this.极致续航模式4WToolStripMenuItem,
             this.续航模式6WToolStripMenuItem,
             this.游戏模式15WToolStripMenuItem,
@@ -215,14 +215,14 @@
             this.contextMenuStrip1.Size = new System.Drawing.Size(281, 276);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
-            // 卡顿模式25WCtrlAltShiftF1ToolStripMenuItem
+            // 自动模式25WCtrlAltShiftF1ToolStripMenuItem
             // 
-            this.卡顿模式25WCtrlAltShiftF1ToolStripMenuItem.CheckOnClick = true;
-            this.卡顿模式25WCtrlAltShiftF1ToolStripMenuItem.Name = "卡顿模式25WCtrlAltShiftF1ToolStripMenuItem";
-            this.卡顿模式25WCtrlAltShiftF1ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.卡顿模式25WCtrlAltShiftF1ToolStripMenuItem.Tag = "WeakMode";
-            this.卡顿模式25WCtrlAltShiftF1ToolStripMenuItem.Text = "卡顿模式-2.5W";
-            this.卡顿模式25WCtrlAltShiftF1ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
+            this.自动模式25WCtrlAltShiftF1ToolStripMenuItem.CheckOnClick = true;
+            this.自动模式25WCtrlAltShiftF1ToolStripMenuItem.Name = "自动模式25WCtrlAltShiftF1ToolStripMenuItem";
+            this.自动模式25WCtrlAltShiftF1ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.自动模式25WCtrlAltShiftF1ToolStripMenuItem.Tag = "AutoMode";
+            this.自动模式25WCtrlAltShiftF1ToolStripMenuItem.Text = "自动模式";
+            this.自动模式25WCtrlAltShiftF1ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
             // 
             // 极致续航模式4WToolStripMenuItem
             // 
@@ -336,7 +336,7 @@
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem 卡顿模式25WCtrlAltShiftF1ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 自动模式25WCtrlAltShiftF1ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 极致续航模式4WToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 续航模式6WToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 游戏模式15WToolStripMenuItem;

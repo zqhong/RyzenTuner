@@ -126,12 +126,19 @@ namespace RyzenTuner
                 float low = float.Parse(ModeSetting[0]);
                 float high = float.Parse(ModeSetting[1]);
                 if (high < low) throw new Exception();
+                
                 notifyIcon1.Text = "RyzenTuner [" + Properties.Settings.Default.CurrentMode + "]\n持续功率：" + low + "W，最高功率：" + high + "W";
+                
                 System.Diagnostics.Process process = new System.Diagnostics.Process();
                 System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
                 startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                startInfo.FileName = System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\ryzenadj\\ryzenadj.exe";
-                startInfo.Arguments = "-a " + low * 1000 + " -b " + low * 1000 + " -c " + high * 1000;
+                
+                // --stapm-limit：持续功率限制
+                // --fast-limit：实际功率限制
+                // --slow-limit：平均功率限制
+                startInfo.FileName = System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
+                                     "\\ryzenadj\\ryzenadj.exe";
+                startInfo.Arguments = "--stapm-limit " + low * 1000 + " --fast-limit " + low * 1000 + " --slow-limit " + high * 1000;
                 process.StartInfo = startInfo;
                 process.Start();
             }
