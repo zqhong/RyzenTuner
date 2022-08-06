@@ -133,10 +133,47 @@ namespace RyzenTuner
                     .Split('-');
                 float low = float.Parse(ModeSetting[0]);
                 float high = float.Parse(ModeSetting[1]);
-                if (high < low) throw new Exception();
+                
+                // 自动模式下，根据系统状态自动调整
+                if (Properties.Settings.Default.CurrentMode == "AutoMode")
+                {
+                    var powerLimit = 16;
 
+                    switch (currentCPUUsage)
+                    {
+                        case float n when (n >= 80):
+                            powerLimit = 30;
+                            break;
+
+                        case float n when (n < 80 && n >= 20):
+                            powerLimit = 16;
+                            break;
+
+                        case float n when (n < 20 && n >= 10):
+                            powerLimit = 5;
+                            break;
+
+                        case float n when (n < 10):
+                            powerLimit = 1;
+                            break;
+                    }
+
+                    low = high = powerLimit;
+                }
+
+                // 数值修正
+                if (high < low)
+                {
+                    high = low;
+                }
+
+                if (low < 0)
+                {
+                    low = 1;
+                }
+                
                 var noticeText = string.Format(@"[{0}]
-持续功率：{1}，最高功率：{2}%",
+持续功率：{1}W，最高功率：{2}W",
                     Properties.Settings.Default.CurrentMode,
                     low,
                     high
