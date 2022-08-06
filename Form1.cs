@@ -1,9 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.Win32.TaskScheduler;
 
 namespace RyzenTuner
 {
@@ -23,13 +21,6 @@ namespace RyzenTuner
             checkBox1.Checked = Properties.Settings.Default.EnergyStar;
             checkBox3.Checked = Properties.Settings.Default.CloseToTray;
             textBox1.Text = Properties.Settings.Default.CustomMode;
-            TaskService.Instance.RootFolder.GetTasks().ToList().ForEach(t =>
-            {
-                if (t.Name == "RyzenTuner")
-                {
-                    checkBox2.Checked = true;
-                }
-            });
             SyncEnergyModeSelection();
         }
 
@@ -208,38 +199,6 @@ namespace RyzenTuner
             if (Environment.GetCommandLineArgs().Length > 1 && Environment.GetCommandLineArgs()[1] == "-hide")
             {
                 this.Hide();
-            }
-        }
-
-
-        private void checkBox2_CheckedChanged(object sender, EventArgs e)
-        {
-            if (checkBox2.Checked)
-            {
-                // check if ryzentuner already registered in scheduled tasks
-                TaskService.Instance.RootFolder.GetTasks().ToList().ForEach(t =>
-                {
-                    if (t.Name == "RyzenTuner")
-                    {
-                        TaskService.Instance.RootFolder.DeleteTask("RyzenTuner");
-                    }
-                });
-                TaskDefinition td = TaskService.Instance.NewTask();
-                td.RegistrationInfo.Description = "RyzenTuner 开机自启动任务";
-                // use current user
-                td.Principal.UserId = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-                td.Principal.RunLevel = TaskRunLevel.Highest;
-                td.Settings.DisallowStartIfOnBatteries = false;
-                td.Settings.StopIfGoingOnBatteries = false;
-                td.Settings.ExecutionTimeLimit = TimeSpan.Zero;
-                td.Triggers.Add(new LogonTrigger());
-                td.Actions.Add(new ExecAction(
-                    System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\ryzentuner.exe", "-hide"));
-                TaskService.Instance.RootFolder.RegisterTaskDefinition("RyzenTuner", td);
-            }
-            else
-            {
-                TaskService.Instance.RootFolder.DeleteTask("RyzenTuner");
             }
         }
     }
