@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -84,7 +85,17 @@ namespace RyzenTuner
             ApplyEnergyMode();
         }
 
-        public static void StartEnergyStar()
+        private void metricTimer_Tick(object sender, EventArgs e)
+        {
+            if (currentCPUUsage != 0)
+            {
+                previousCPUUsage = currentCPUUsage;
+            }
+
+            currentCPUUsage = new CommonUtils().CpuUsage();
+        }
+
+        private static void StartEnergyStar()
         {
             if (!System.Diagnostics.Process.GetProcessesByName("energystar").Any())
             {
@@ -124,11 +135,21 @@ namespace RyzenTuner
                 float high = float.Parse(ModeSetting[1]);
                 if (high < low) throw new Exception();
 
-                notifyIcon1.Text = "RyzenTuner [" + Properties.Settings.Default.CurrentMode + "]\n持续功率：" + low +
-                                   "W，最高功率：" + high + "W";
+                var noticeText = string.Format(@"[{0}]
+持续功率：{1}，最高功率：{2}%",
+                    Properties.Settings.Default.CurrentMode,
+                    low,
+                    high
+                );
+                if (noticeText.Length > 64)
+                {
+                    noticeText = noticeText.Substring(0, 64);
+                }
 
-                System.Diagnostics.Process process = new System.Diagnostics.Process();
-                System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+                notifyIcon1.Text = noticeText;
+
+                Process process = new System.Diagnostics.Process();
+                ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
                 startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
 
                 // --stapm-limit：持续功率限制
@@ -141,9 +162,9 @@ namespace RyzenTuner
                 process.StartInfo = startInfo;
                 process.Start();
             }
-            catch
+            catch (Exception e)
             {
-                MessageBox.Show("本模式功率范围设置有误，将恢复默认设置。");
+                MessageBox.Show(e.Message);
                 radioButton5.Checked = true;
                 ChangeEnergyMode(radioButton5, new EventArgs());
             }
