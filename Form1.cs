@@ -9,7 +9,6 @@ namespace RyzenTuner
 {
     public partial class Form1 : Form
     {
-        
         public Form1()
         {
             InitializeComponent();
@@ -17,13 +16,10 @@ namespace RyzenTuner
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
-
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            
-
             checkBox1.Checked = Properties.Settings.Default.EnergyStar;
             checkBox3.Checked = Properties.Settings.Default.CloseToTray;
             textBox1.Text = Properties.Settings.Default.CustomMode;
@@ -35,7 +31,6 @@ namespace RyzenTuner
                 }
             });
             SyncEnergyModeSelection();
-            
         }
 
 
@@ -43,7 +38,7 @@ namespace RyzenTuner
         {
             Properties.Settings.Default.EnergyStar = checkBox1.Checked;
             Properties.Settings.Default.Save();
-            timer1_Tick(sender,e);
+            timer1_Tick(sender, e);
         }
 
         private void checkBox3_CheckedChanged(object sender, EventArgs e)
@@ -65,6 +60,7 @@ namespace RyzenTuner
                 {
                     ChangeEnergyMode(radioButton6, e);
                 }
+
                 e.Cancel = true;
                 this.Hide();
             }
@@ -78,14 +74,22 @@ namespace RyzenTuner
         private void timer1_Tick(object sender, EventArgs e)
         {
             // check energystar.exe is running, if not, start it
+            // EnergyStar 需要 OS Build 版本大于等于 22000，即 Windows 11 21H2。EnergyStar 开发者建议使用 22H2
+            // 参考：
+            // https://github.com/imbushuo/EnergyStar/blob/master/EnergyStar/Program.cs#L29-L39
+            // https://github.com/imbushuo/EnergyStar/issues/10
             if (checkBox1.Checked)
             {
-                StartEnergyStar();
+                if (Environment.OSVersion.Version.Build >= 22000)
+                {
+                    StartEnergyStar();
+                }
             }
             else
             {
                 StopEnergyStar();
             }
+
             ApplyEnergyMode();
         }
 
@@ -93,7 +97,8 @@ namespace RyzenTuner
         {
             if (!System.Diagnostics.Process.GetProcessesByName("energystar").Any())
             {
-                System.Diagnostics.Process.Start(System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\energystar\\EnergyStar.exe");
+                System.Diagnostics.Process.Start(System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
+                                                 "\\energystar\\EnergyStar.exe");
             }
         }
 
@@ -107,38 +112,41 @@ namespace RyzenTuner
 
         private void ChangeEnergyMode(object sender, EventArgs e)
         {
-            if (((RadioButton)sender).Checked )
+            if (((RadioButton)sender).Checked)
             {
-                string checkedMode = ((RadioButton)sender).Tag.ToString() ;
+                string checkedMode = ((RadioButton)sender).Tag.ToString();
                 Properties.Settings.Default.CurrentMode = checkedMode;
                 Properties.Settings.Default.Save();
                 SyncEnergyModeSelection();
 
                 ApplyEnergyMode();
-                
             }
         }
+
         private void ApplyEnergyMode()
         {
             try
             {
-                string[] ModeSetting = Properties.Settings.Default[Properties.Settings.Default.CurrentMode].ToString().Split('-');
+                string[] ModeSetting = Properties.Settings.Default[Properties.Settings.Default.CurrentMode].ToString()
+                    .Split('-');
                 float low = float.Parse(ModeSetting[0]);
                 float high = float.Parse(ModeSetting[1]);
                 if (high < low) throw new Exception();
-                
-                notifyIcon1.Text = "RyzenTuner [" + Properties.Settings.Default.CurrentMode + "]\n持续功率：" + low + "W，最高功率：" + high + "W";
-                
+
+                notifyIcon1.Text = "RyzenTuner [" + Properties.Settings.Default.CurrentMode + "]\n持续功率：" + low +
+                                   "W，最高功率：" + high + "W";
+
                 System.Diagnostics.Process process = new System.Diagnostics.Process();
                 System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
                 startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                
+
                 // --stapm-limit：持续功率限制
                 // --fast-limit：实际功率限制
                 // --slow-limit：平均功率限制
                 startInfo.FileName = System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
                                      "\\ryzenadj\\ryzenadj.exe";
-                startInfo.Arguments = "--stapm-limit " + low * 1000 + " --fast-limit " + low * 1000 + " --slow-limit " + high * 1000;
+                startInfo.Arguments = "--stapm-limit " + low * 1000 + " --fast-limit " + low * 1000 + " --slow-limit " +
+                                      high * 1000;
                 process.StartInfo = startInfo;
                 process.Start();
             }
@@ -148,8 +156,8 @@ namespace RyzenTuner
                 radioButton5.Checked = true;
                 ChangeEnergyMode(radioButton5, new EventArgs());
             }
-            
         }
+
         private void SyncEnergyModeSelection()
         {
             foreach (Control c in groupBox1.Controls)
@@ -159,8 +167,8 @@ namespace RyzenTuner
                     RadioButton rb = (RadioButton)c;
                     rb.Checked = true;
                 }
-
             }
+
             foreach (ToolStripItem tsmi in contextMenuStrip1.Items)
             {
                 if (tsmi.Tag != null && tsmi.Tag.ToString() == Properties.Settings.Default.CurrentMode)
@@ -168,7 +176,7 @@ namespace RyzenTuner
                     ToolStripMenuItem tsmi2 = (ToolStripMenuItem)tsmi;
                     tsmi2.Checked = true;
                 }
-                else if(tsmi is ToolStripMenuItem)
+                else if (tsmi is ToolStripMenuItem)
                 {
                     ToolStripMenuItem tsmi2 = (ToolStripMenuItem)tsmi;
                     tsmi2.Checked = false;
@@ -225,7 +233,8 @@ namespace RyzenTuner
                 td.Settings.StopIfGoingOnBatteries = false;
                 td.Settings.ExecutionTimeLimit = TimeSpan.Zero;
                 td.Triggers.Add(new LogonTrigger());
-                td.Actions.Add(new ExecAction(System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\ryzentuner.exe","-hide"));
+                td.Actions.Add(new ExecAction(
+                    System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\ryzentuner.exe", "-hide"));
                 TaskService.Instance.RootFolder.RegisterTaskDefinition("RyzenTuner", td);
             }
             else
