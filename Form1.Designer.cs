@@ -1,4 +1,7 @@
 ﻿using System.Timers;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using System;
 
 namespace RyzenTuner
 {
@@ -54,17 +57,32 @@ namespace RyzenTuner
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
-            // energyTimer：定期调整系统电源参数
-            this.energyTimer = new System.Timers.Timer();
-            this.energyTimer.Enabled = true;
-            this.energyTimer.Interval = 1024; // 毫秒
-            this.energyTimer.Elapsed += new ElapsedEventHandler(this.energyTimerTick);
+            // 定期调整系统电源参数
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    doEnergy();
+                    await Task.Delay(1024);
+                }
+            });
             
-            // metricTimer：定时获取系统信息
-            this.metricTimer = new System.Timers.Timer();
-            this.metricTimer.Enabled = true;
-            this.metricTimer.Interval = 1024; 
-            this.energyTimer.Elapsed += new ElapsedEventHandler(this.metricTimerTick);
+            // 定时获取系统信息
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    SystemInfo.GetCpuUsage();
+                    SystemInfo.GetGpuUsage();
+
+                    System.Threading.Thread.Sleep(1000);
+
+                    currentCPUUsage = SystemInfo.GetCpuUsage();
+                    currentGPUUsage = SystemInfo.GetGpuUsage();
+                    
+                    await Task.Delay(1024);
+                }
+            });
             
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -341,8 +359,6 @@ namespace RyzenTuner
         private System.Windows.Forms.ToolStripMenuItem 恢复默认设置ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 自定义ToolStripMenuItem;
         private System.Windows.Forms.CheckBox checkBox3;
-        private System.Timers.Timer energyTimer;
-        private System.Timers.Timer metricTimer;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 

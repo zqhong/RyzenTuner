@@ -64,6 +64,11 @@ namespace RyzenTuner
 
         private void energyTimerTick(object sender, EventArgs e)
         {
+            this.doEnergy();
+        }
+        
+        private void doEnergy()
+        {
             // check energystar.exe is running, if not, start it
             // EnergyStar 需要 OS Build 版本大于等于 22000，即 Windows 11 21H2。EnergyStar 开发者建议使用 22H2
             // 参考：
@@ -82,17 +87,6 @@ namespace RyzenTuner
             }
 
             ApplyEnergyMode();
-        }
-
-        private void metricTimerTick(object sender, EventArgs e)
-        {
-            SystemInfo.GetCpuUsage();
-            SystemInfo.GetGpuUsage();
-
-            System.Threading.Thread.Sleep(1000);
-
-            currentCPUUsage = SystemInfo.GetCpuUsage();
-            currentGPUUsage = SystemInfo.GetGpuUsage();
         }
 
         private static void StartEnergyStar()
