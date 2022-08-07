@@ -29,7 +29,7 @@ namespace RyzenTuner
         {
             Properties.Settings.Default.EnergyStar = checkBox1.Checked;
             Properties.Settings.Default.Save();
-            timer1_Tick(sender, e);
+            EnergyTimerTick(sender, e);
         }
 
         private void checkBox3_CheckedChanged(object sender, EventArgs e)
@@ -62,7 +62,7 @@ namespace RyzenTuner
             this.Show();
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void EnergyTimerTick(object sender, EventArgs e)
         {
             // check energystar.exe is running, if not, start it
             // EnergyStar 需要 OS Build 版本大于等于 22000，即 Windows 11 21H2。EnergyStar 开发者建议使用 22H2
@@ -84,7 +84,7 @@ namespace RyzenTuner
             ApplyEnergyMode();
         }
 
-        private void metricTimer_Tick(object sender, EventArgs e)
+        private void metricTimerTick(object sender, EventArgs e)
         {
             if (currentCPUUsage != 0)
             {

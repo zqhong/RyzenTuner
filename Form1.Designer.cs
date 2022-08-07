@@ -52,8 +52,8 @@
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.metricTimer = new System.Windows.Forms.Timer(this.components);
+            this.energyTimer = new System.Timers.Timer();
+            this.metricTimer = new System.Timers.Timer();
             
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -283,18 +283,18 @@
             this.退出ToolStripMenuItem.Text = "退出";
             this.退出ToolStripMenuItem.Click += new System.EventHandler(this.退出ToolStripMenuItem_Click);
             
-            // 
-            // timer1
-            // 
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 1024;        // 单位：毫秒
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // energyTimer：定期调整系统电源参数
+            this.energyTimer.Enabled = true;
+            this.energyTimer.Interval = 1024; // 毫秒
+            this.energyTimer.AutoReset = true;
+            this.energyTimer.Elapsed += this.EnergyTimerTick;
             
             // metricTimer：定时获取系统信息
             this.metricTimer.Enabled = true;
             this.metricTimer.Interval = 512; 
-            this.metricTimer.Tick += new System.EventHandler(this.metricTimer_Tick);
-            
+            this.energyTimer.AutoReset = true;
+            this.energyTimer.Elapsed += this.metricTimerTick;
+
             // 
             // Form1
             // 
@@ -341,8 +341,8 @@
         private System.Windows.Forms.ToolStripMenuItem 恢复默认设置ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 自定义ToolStripMenuItem;
         private System.Windows.Forms.CheckBox checkBox3;
-        private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.Timer metricTimer;
+        private System.Timers.Timer energyTimer;
+        private System.Timers.Timer metricTimer;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 
