@@ -11,14 +11,22 @@ namespace RyzenTuner
         [STAThread]
         static void Main()
         {
-            if (Environment.OSVersion.Version.Major >= 6)
+            try
             {
-                SetProcessDPIAware();
-            }
+                if (Environment.OSVersion.Version.Major >= 6)
+                {
+                    SetProcessDPIAware();
+                }
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new Form1());
+            }
+            catch (Exception e)
+            {
+                new CommonUtils().LogInfo(e.Message);
+                throw;
+            }
         }
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]

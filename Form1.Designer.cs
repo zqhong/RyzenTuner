@@ -58,28 +58,6 @@ namespace RyzenTuner
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
-            // 定期调整系统电源参数
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    doEnergy();
-                    await Task.Delay(1024);
-                }
-            });
-            
-            // 定时获取系统信息
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    currentCPUUsage = SystemInfo.GetCpuUsage();
-                    currentGPUUsage = await SystemInfo.GetGpuUsage();
-                    
-                    await Task.Delay(1024);
-                }
-            });
-            
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -221,7 +199,7 @@ namespace RyzenTuner
             // notifyIcon1
             // 
             this.notifyIcon1.ContextMenuStrip = this.contextMenuStrip1;
-            this.notifyIcon1.Icon = new System.Drawing.Icon(resources.GetStream("pack://application:,,,/YourReferencedAssembly;component/resources/appicon_128.ico"));
+            // this.notifyIcon1.Icon = new System.Drawing.Icon(resources.GetStream("pack://application:,,,/YourReferencedAssembly;component/resources/appicon_128.ico"));
             this.notifyIcon1.Text = "Tuner For Ryzen 运行中";
             this.notifyIcon1.Visible = true;
             this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
@@ -317,7 +295,7 @@ namespace RyzenTuner
             this.ClientSize = new System.Drawing.Size(757, 291);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox1);
-            this.Icon = new System.Drawing.Icon(resources.GetStream("pack://application:,,,/YourReferencedAssembly;component/resources/appicon_128.ico"));
+            // this.Icon = new System.Drawing.Icon(resources.GetStream("pack://application:,,,/YourReferencedAssembly;component/resources/appicon_128.ico"));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Form1";
@@ -331,7 +309,6 @@ namespace RyzenTuner
             this.groupBox3.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
-
         }
 
         #endregion

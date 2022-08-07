@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace RyzenTuner
@@ -11,6 +13,26 @@ namespace RyzenTuner
         public Form1()
         {
             InitializeComponent();
+
+            // 定期调整系统电源参数，1秒后执行，之后每秒执行1次
+            var aTimer =
+                new System.Threading.Timer(value =>
+                {
+                    new CommonUtils().LogInfo("定期调整系统电源参数");
+                    DoEnergy();
+                }, null, 1000, 1000);
+
+            // 定时获取系统信息，2秒后执行，之后每秒执行1次
+            var bTimer =
+                new System.Threading.Timer(value =>
+                {
+                    currentCPUUsage = currentGPUUsage = 1;
+
+                    new CommonUtils().LogInfo("定时获取系统信息");
+
+                    currentCPUUsage = SystemInfo.GetCpuUsage();
+                    currentGPUUsage = SystemInfo.GetGpuUsage();
+                }, null, 2000, 1000);
         }
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
@@ -64,10 +86,10 @@ namespace RyzenTuner
 
         private void energyTimerTick(object sender, EventArgs e)
         {
-            this.doEnergy();
+            this.DoEnergy();
         }
-        
-        private void doEnergy()
+
+        private void DoEnergy()
         {
             // check energystar.exe is running, if not, start it
             // EnergyStar 需要 OS Build 版本大于等于 22000，即 Windows 11 21H2。EnergyStar 开发者建议使用 22H2

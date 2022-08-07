@@ -16,7 +16,7 @@ namespace RyzenTuner
          * 参考：
          * https://github.com/rocksdanister/lively/blob/d4972447531a0a670ad8f8c4724c7faf7c619d8b/src/livelywpf/livelywpf/Helpers/HWUsageMonitor.cs#L143-L185
          */
-        public static async Task<float> GetGpuUsage()
+        public static float GetGpuUsage()
         {
             try
             {
@@ -41,14 +41,15 @@ namespace RyzenTuner
 
                 gpuCounters.ForEach(x => { _ = x.NextValue(); });
 
-                await Task.Delay(1000);
+                System.Threading.Thread.Sleep(1000);
 
                 gpuCounters.ForEach(x => { result += x.NextValue(); });
 
                 return result;
             }
-            catch
+            catch (Exception e)
             {
+                new CommonUtils().LogInfo(e.Message);
                 return 0f;
             }
         }
@@ -67,6 +68,8 @@ namespace RyzenTuner
 
             foreach (var obj in searcher.Get())
             {
+                new CommonUtils().LogInfo("GetCpuUsage: " + obj.ToString());
+
                 // uint16
                 object loadObj = obj["LoadPercentage"];
                 if (loadObj != null)
