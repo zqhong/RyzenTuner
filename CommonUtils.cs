@@ -25,7 +25,7 @@ namespace RyzenTuner
         /**
          * 检查提供的日期是否出于晚上
          */
-        private bool isNight(DateTime now)
+        private bool IsNight(DateTime now)
         {
             TimeSpan nightShiftStart = new TimeSpan(23, 59, 0); // 23:59pm 
             TimeSpan nightShiftEnd = new TimeSpan(7, 0, 0); // 7am
@@ -83,7 +83,7 @@ namespace RyzenTuner
         public int AutoModePowerLimit(float cpuUsage)
         {
             // 参考变量：当前 CPU 占用、5 分钟内 CPU 占用、白天/晚上
-            var isNight = this.isNight(DateTime.Now);
+            var isNight = this.IsNight(DateTime.Now);
 
             // 三个档位：low（待机）、medium（平衡）、high（高性能）
             // 插电模式下
@@ -108,8 +108,6 @@ namespace RyzenTuner
             }
 
             // 默认使用 medium（平衡）
-            // CPU 超过某个占用后，使用 high（高性能）
-            // CPU x 分钟内占用低于 x，使用 low（待机）
             var powerLimit = medium;
 
             // 符合下面条件的情况下，使用 low（待机）
@@ -124,6 +122,7 @@ namespace RyzenTuner
                 powerLimit = low;
             }
 
+            // CPU 超过 50% 占用后，使用 high（高性能）
             if (cpuUsage >= 50)
             {
                 powerLimit = high;
