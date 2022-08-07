@@ -1,4 +1,6 @@
-﻿namespace RyzenTuner
+﻿using System.Timers;
+
+namespace RyzenTuner
 {
     partial class Form1
     {
@@ -52,13 +54,23 @@
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
+            // energyTimer：定期调整系统电源参数
             this.energyTimer = new System.Timers.Timer();
+            this.energyTimer.Enabled = true;
+            this.energyTimer.Interval = 1024; // 毫秒
+            this.energyTimer.Elapsed += new ElapsedEventHandler(this.energyTimerTick);
+            
+            // metricTimer：定时获取系统信息
             this.metricTimer = new System.Timers.Timer();
+            this.metricTimer.Enabled = true;
+            this.metricTimer.Interval = 1024; 
+            this.energyTimer.Elapsed += new ElapsedEventHandler(this.metricTimerTick);
             
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
+            
             // 
             // groupBox1
             // 
@@ -283,18 +295,6 @@
             this.退出ToolStripMenuItem.Text = "退出";
             this.退出ToolStripMenuItem.Click += new System.EventHandler(this.退出ToolStripMenuItem_Click);
             
-            // energyTimer：定期调整系统电源参数
-            this.energyTimer.Enabled = true;
-            this.energyTimer.Interval = 1024; // 毫秒
-            this.energyTimer.AutoReset = true;
-            this.energyTimer.Elapsed += this.EnergyTimerTick;
-            
-            // metricTimer：定时获取系统信息
-            this.metricTimer.Enabled = true;
-            this.metricTimer.Interval = 512; 
-            this.energyTimer.AutoReset = true;
-            this.energyTimer.Elapsed += this.metricTimerTick;
-
             // 
             // Form1
             // 
@@ -346,8 +346,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 
-        private float previousCPUUsage;
         private float currentCPUUsage;
+        private float currentGPUUsage;
     }
 }
 
