@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System;
+using System.Drawing;
 
 namespace RyzenTuner
 {
@@ -225,7 +226,7 @@ namespace RyzenTuner
             // notifyIcon1
             // 
             this.notifyIcon1.ContextMenuStrip = this.contextMenuStrip1;
-            this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
+            this.notifyIcon1.Icon = new System.Drawing.Icon(resources.GetStream("pack://application:,,,/YourReferencedAssembly;component/resources/appicon_128.ico"));
             this.notifyIcon1.Text = "Tuner For Ryzen 运行中";
             this.notifyIcon1.Visible = true;
             this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
@@ -321,7 +322,7 @@ namespace RyzenTuner
             this.ClientSize = new System.Drawing.Size(757, 291);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox1);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Icon = new System.Drawing.Icon(resources.GetStream("pack://application:,,,/YourReferencedAssembly;component/resources/appicon_128.ico"));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Form1";
