@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -132,11 +133,13 @@ namespace RyzenTuner
                 powerLimit = high;
             }
 
-            this.LogInfo(string.Format(@"power limit: {0}, last input time: {1}, isNight: {2}, cpu usage: {3}",
+            this.LogInfo(string.Format(
+                @"power limit: {0}, last input time: {1}, isNight: {2}, CPU usage: {3}, GPU Usage: {4}",
                 powerLimit,
                 this.GetIdleSecond(),
                 isNight,
-                cpuUsage
+                cpuUsage,
+                SystemInfo.GetGPUUsage()
             ));
 
             return powerLimit;
@@ -162,7 +165,5 @@ namespace RyzenTuner
             var cpuUsage = cpuCounter.NextValue();
             return cpuUsage;
         }
-        
-        
     }
 }
