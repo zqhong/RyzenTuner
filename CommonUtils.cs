@@ -115,10 +115,10 @@ namespace RyzenTuner
             // 符合下面条件的情况下，使用 low（待机）
             var idleSecond = this.GetIdleSecond();
             if (
-                // 条件1、白天 && 非活跃时间超过5分钟 && CPU 占用小于 10%
-                (!isNight && idleSecond >= 5 * 60 && cpuUsage < 10) ||
-                // 条件2、夜晚 && 非活跃时间超过1分钟 && CPU 占用小于 10%
-                (isNight && idleSecond >= 1 * 60 && cpuUsage < 10)
+                // 条件1、白天 && 非活跃时间超过5分钟 && CPU 占用小于 13%
+                (!isNight && idleSecond >= 5 * 60 && cpuUsage < 13) ||
+                // 条件2、夜晚 && 非活跃时间超过1分钟 && CPU 占用小于 15%
+                (isNight && idleSecond >= 1 * 60 && cpuUsage < 15)
             )
             {
                 powerLimit = low;
@@ -129,10 +129,11 @@ namespace RyzenTuner
                 powerLimit = high;
             }
 
-            this.LogInfo(string.Format(@"power line status: {0}, power limit: {1}, last input time: {2}",
-                SystemInformation.PowerStatus.PowerLineStatus,
+            this.LogInfo(string.Format(@"power limit: {0}, last input time: {1}, isNight: {2}, cpu usage: {3}",
                 powerLimit,
-                this.GetIdleSecond()
+                this.GetIdleSecond(),
+                isNight,
+                cpuUsage
             ));
 
             return powerLimit;
