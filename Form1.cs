@@ -133,32 +133,11 @@ namespace RyzenTuner
                     .Split('-');
                 float low = float.Parse(ModeSetting[0]);
                 float high = float.Parse(ModeSetting[1]);
-                
+
                 // 自动模式下，根据系统状态自动调整
                 if (Properties.Settings.Default.CurrentMode == "AutoMode")
                 {
-                    var powerLimit = 16;
-
-                    switch (currentCPUUsage)
-                    {
-                        case float n when (n >= 80):
-                            powerLimit = 30;
-                            break;
-
-                        case float n when (n < 80 && n >= 20):
-                            powerLimit = 16;
-                            break;
-
-                        case float n when (n < 20 && n >= 10):
-                            powerLimit = 5;
-                            break;
-
-                        case float n when (n < 10):
-                            powerLimit = 1;
-                            break;
-                    }
-
-                    low = high = powerLimit;
+                    low = high = new CommonUtils().AutoModePowerLimit(currentCPUUsage);
                 }
 
                 // 数值修正
@@ -171,7 +150,7 @@ namespace RyzenTuner
                 {
                     low = 1;
                 }
-                
+
                 var noticeText = string.Format(@"[{0}]
 持续功率：{1}W，最高功率：{2}W",
                     Properties.Settings.Default.CurrentMode,
@@ -189,6 +168,8 @@ namespace RyzenTuner
                 ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
                 startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
 
+                // TODO：与上次参数一致的情况下，不调用 ryzenadj.exe
+                
                 // --stapm-limit：持续功率限制
                 // --fast-limit：实际功率限制
                 // --slow-limit：平均功率限制
