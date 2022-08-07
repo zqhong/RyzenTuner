@@ -16,7 +16,7 @@ namespace RyzenTuner
          * https://github.com/rocksdanister/lively/blob/d4972447531a0a670ad8f8c4724c7faf7c619d8b/src/livelywpf/livelywpf/Helpers/HWUsageMonitor.cs#L143
          * https://stackoverflow.com/questions/56830434/c-sharp-get-total-usage-of-gpu-in-percentage
          */
-        public static float GetGPUUsage()
+        public static float GetGpuUsage()
         {
             try
             {

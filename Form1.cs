@@ -25,7 +25,6 @@ namespace RyzenTuner
             SyncEnergyModeSelection();
         }
 
-
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.EnergyStar = checkBox1.Checked;
@@ -169,7 +168,7 @@ namespace RyzenTuner
                 startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
 
                 // TODO：与上次参数一致的情况下，不调用 ryzenadj.exe
-                
+
                 // --stapm-limit：持续功率限制
                 // --fast-limit：实际功率限制
                 // --slow-limit：平均功率限制

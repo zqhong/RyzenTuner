@@ -139,7 +139,7 @@ namespace RyzenTuner
                 this.GetIdleSecond(),
                 isNight,
                 cpuUsage,
-                SystemInfo.GetGPUUsage()
+                SystemInfo.GetGpuUsage()
             ));
 
             return powerLimit;
