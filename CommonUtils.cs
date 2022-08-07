@@ -74,6 +74,9 @@ namespace RyzenTuner
         /**
          * 计算自动模式下的限制功率（单位：瓦）
          *
+         * 改进：
+         * 1、适配不同型号 CPU
+         * 
          * 参考：
          * https://github.com/slimbook/slimbookbattery/blob/main/src/configuration/slimbookbattery.conf
          *
@@ -114,7 +117,8 @@ namespace RyzenTuner
             var idleSecond = this.GetIdleSecond();
             if (
                 // 条件1、白天 && 非活跃时间超过5分钟 && CPU 占用小于 13%
-                (!isNight && idleSecond >= 5 * 60 && cpuUsage < 13) ||
+                // TODO：测试
+                (!isNight && idleSecond >= 3 && cpuUsage < 13) ||
                 // 条件2、夜晚 && 非活跃时间超过1分钟 && CPU 占用小于 15%
                 (isNight && idleSecond >= 1 * 60 && cpuUsage < 15)
             )
@@ -139,10 +143,15 @@ namespace RyzenTuner
         }
 
         /**
-         * 返回当前 CPU 占用
+         * 返回当前 CPU 1W 下的占用
+         *
+         * 1瓦：10%
+         * 16瓦：10%，0.625%
+         * 30瓦：10%，0.33%
          * 
          * 参考：
          * https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.performancecounter
+         * https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc780836(v=ws.10)?redirectedfrom=MSDN
          * https://stackoverflow.com/a/4711455
          */
         public float CpuUsage()
@@ -153,5 +162,7 @@ namespace RyzenTuner
             var cpuUsage = cpuCounter.NextValue();
             return cpuUsage;
         }
+        
+        
     }
 }
