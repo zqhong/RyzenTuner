@@ -4,21 +4,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace RyzenTuner
 {
-    public class SystemInfo
+    public static class SystemInfo
     {
         /**
          * 获取 GPU 占用
          *
-         * 注意：需要间隔1秒后调用，参考 GetCpuUsage
-         * 
          * 参考：
-         * https://github.com/rocksdanister/lively/blob/d4972447531a0a670ad8f8c4724c7faf7c619d8b/src/livelywpf/livelywpf/Helpers/HWUsageMonitor.cs#L143
-         * https://stackoverflow.com/questions/56830434/c-sharp-get-total-usage-of-gpu-in-percentage
+         * https://github.com/rocksdanister/lively/blob/d4972447531a0a670ad8f8c4724c7faf7c619d8b/src/livelywpf/livelywpf/Helpers/HWUsageMonitor.cs#L143-L185
          */
-        public static float GetGpuUsage()
+        public static async Task<float> GetGpuUsage()
         {
             try
             {
@@ -43,6 +41,8 @@ namespace RyzenTuner
 
                 gpuCounters.ForEach(x => { _ = x.NextValue(); });
 
+                await Task.Delay(1000);
+
                 gpuCounters.ForEach(x => { result += x.NextValue(); });
 
                 return result;
@@ -55,25 +55,27 @@ namespace RyzenTuner
 
 
         /**
-         * 返回当前 CPU 1W 下的占用
-         *
-         * 需要间隔1秒后调用，示例：
-         * ```csharp
-         * SystemInfo.CpuUsage();
-         * System.Threading.Thread.Sleep(1000);
-         * var cpuUsage = SystemInfo.CpuUsage();
-         * ```
+         * 返回当前 CPU 的占用
          * 
          * 参考：
-         * https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.performancecounter
-         * https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc780836(v=ws.10)?redirectedfrom=MSDN
-         * https://stackoverflow.com/a/4711455
+         * https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-processor
          */
         public static float GetCpuUsage()
         {
-            var cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-            var cpuUsage = cpuCounter.NextValue();
-            return cpuUsage;
+            ManagementObjectSearcher searcher =
+                new ManagementObjectSearcher("SELECT `LoadPercentage` FROM Win32_Processor");
+
+            foreach (var obj in searcher.Get())
+            {
+                // uint16
+                object loadObj = obj["LoadPercentage"];
+                if (loadObj != null)
+                {
+                    return Int16.Parse(loadObj.ToString());
+                }
+            }
+
+            return 0f;
         }
     }
 }

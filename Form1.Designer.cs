@@ -73,13 +73,8 @@ namespace RyzenTuner
             {
                 while (true)
                 {
-                    SystemInfo.GetCpuUsage();
-                    SystemInfo.GetGpuUsage();
-
-                    System.Threading.Thread.Sleep(1000);
-
                     currentCPUUsage = SystemInfo.GetCpuUsage();
-                    currentGPUUsage = SystemInfo.GetGpuUsage();
+                    currentGPUUsage = await SystemInfo.GetGpuUsage();
                     
                     await Task.Delay(1024);
                 }
