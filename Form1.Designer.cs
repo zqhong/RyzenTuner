@@ -1,10 +1,4 @@
-﻿using System.Timers;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using System;
-using System.Drawing;
-
-namespace RyzenTuner
+﻿namespace RyzenTuner
 {
     partial class Form1
     {
@@ -58,11 +52,13 @@ namespace RyzenTuner
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.metricTimer = new System.Windows.Forms.Timer(this.components);
+            
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
-            
             // 
             // groupBox1
             // 
@@ -288,6 +284,18 @@ namespace RyzenTuner
             this.退出ToolStripMenuItem.Click += new System.EventHandler(this.退出ToolStripMenuItem_Click);
             
             // 
+            // timer1
+            // 
+            this.timer1.Enabled = true;
+            this.timer1.Interval = 1024;        // 单位：毫秒
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            
+            // metricTimer：定时获取系统信息
+            this.metricTimer.Enabled = true;
+            this.metricTimer.Interval = 1024; 
+            this.metricTimer.Tick += new System.EventHandler(this.metricTimer_Tick);
+            
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 24F);
@@ -309,6 +317,7 @@ namespace RyzenTuner
             this.groupBox3.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
+
         }
 
         #endregion
@@ -332,11 +341,13 @@ namespace RyzenTuner
         private System.Windows.Forms.ToolStripMenuItem 恢复默认设置ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 自定义ToolStripMenuItem;
         private System.Windows.Forms.CheckBox checkBox3;
+        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer metricTimer;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 
+        private float previousCPUUsage;
         private float currentCPUUsage;
-        private float currentGPUUsage;
     }
 }
 
