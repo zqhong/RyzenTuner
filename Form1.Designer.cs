@@ -349,7 +349,6 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 
-        // 当前 CPU 和显卡在 1W 下的占用（估算）
         private float currentCPUUsage;
         private float currentVideoCarkUsage;
         

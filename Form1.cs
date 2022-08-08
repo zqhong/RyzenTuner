@@ -86,8 +86,8 @@ namespace RyzenTuner
 
         private void metricTimer_Tick(object sender, EventArgs e)
         {
-            currentCPUUsage = SystemInfo.GetCpuUsage() * currentPowerLimit;
-            currentVideoCarkUsage = SystemInfo.GetVideoCardUsage() * currentPowerLimit;
+            currentCPUUsage = SystemInfo.GetCpuUsage();
+            currentVideoCarkUsage = SystemInfo.GetVideoCardUsage();
         }
 
         private static void StartEnergyStar()
@@ -95,7 +95,7 @@ namespace RyzenTuner
             if (!Process.GetProcessesByName("energystar").Any())
             {
                 Process.Start(System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
-                                                 "\\energystar\\EnergyStar.exe");
+                              "\\energystar\\EnergyStar.exe");
             }
         }
 
@@ -147,9 +147,8 @@ namespace RyzenTuner
                 }
 
                 var noticeText = string.Format(@"[{0}]
-持续功率：{1}W，最高功率：{2}W",
+限制功率：{1}W",
                     Properties.Settings.Default.CurrentMode,
-                    low,
                     high
                 );
                 if (noticeText.Length > 64)
@@ -184,7 +183,7 @@ namespace RyzenTuner
             {
                 MessageBox.Show(e.Message);
                 radioButton5.Checked = true;
-                ChangeEnergyMode(radioButton5, new EventArgs());
+                ChangeEnergyMode(radioButton5, EventArgs.Empty);
             }
         }
 
@@ -203,6 +202,7 @@ namespace RyzenTuner
         private int AutoModePowerLimit()
         {
             var cpuUsage = currentCPUUsage;
+            var videoCardUsage = currentVideoCarkUsage;
 
             // 参考变量：当前 CPU 占用、5 分钟内 CPU 占用、白天/晚上
             var isNight = CommonUtils.IsNight(DateTime.Now);
@@ -235,18 +235,18 @@ namespace RyzenTuner
             // 符合下面条件的情况下，使用 low（待机）
             var idleSecond = CommonUtils.GetIdleSecond();
             if (
-                // 条件1、白天 && 非活跃时间超过5分钟 && CPU 占用小于 13%
+                // 条件1、白天 && 非活跃时间超过5分钟 && CPU 占用小于 13% && 显卡占用小于 13%
                 // TODO：测试
-                (!isNight && idleSecond >= 3 && cpuUsage < 13) ||
-                // 条件2、夜晚 && 非活跃时间超过1分钟 && CPU 占用小于 15%
-                (isNight && idleSecond >= 1 * 60 && cpuUsage < 15)
+                (!isNight && idleSecond >= 2 && cpuUsage < 13 && videoCardUsage < 13) ||
+                // 条件2、夜晚 && 非活跃时间超过1分钟 && CPU 占用小于 15% && 显卡占用小于 15%
+                (isNight && idleSecond >= 1 * 60 && cpuUsage < 15 && videoCardUsage < 15)
             )
             {
                 powerLimit = low;
             }
 
-            // CPU 超过 50% 占用后，使用 high（高性能）
-            if (cpuUsage >= 50)
+            // CPU 超过 80% 占用后，使用 high（高性能）
+            if (cpuUsage >= 80)
             {
                 powerLimit = high;
             }
