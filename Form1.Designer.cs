@@ -54,6 +54,9 @@
             
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.metricTimer = new System.Windows.Forms.Timer(this.components);
+
+            // 设置初始化 power limit
+            this.currentPowerLimit = 16;
             
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -292,7 +295,7 @@
             
             // metricTimer：定时获取系统信息
             this.metricTimer.Enabled = true;
-            this.metricTimer.Interval = 1024; 
+            this.metricTimer.Interval = 2048; 
             this.metricTimer.Tick += new System.EventHandler(this.metricTimer_Tick);
             
             // 
@@ -346,8 +349,11 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 
-        private float previousCPUUsage;
+        // 当前 CPU 和显卡在 1W 下的占用（估算）
         private float currentCPUUsage;
+        private float currentVideoCarkUsage;
+        
+        private float currentPowerLimit;
     }
 }
 

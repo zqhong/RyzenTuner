@@ -86,12 +86,8 @@ namespace RyzenTuner
 
         private void metricTimer_Tick(object sender, EventArgs e)
         {
-            if (currentCPUUsage != 0)
-            {
-                previousCPUUsage = currentCPUUsage;
-            }
-
-            currentCPUUsage = new CommonUtils().CpuUsage();
+            currentCPUUsage = SystemInfo.GetCpuUsage() * currentPowerLimit;
+            currentVideoCarkUsage = SystemInfo.GetVideoCardUsage() * currentPowerLimit;
         }
 
         private static void StartEnergyStar()
@@ -178,6 +174,11 @@ namespace RyzenTuner
                                       high * 1000;
                 process.StartInfo = startInfo;
                 process.Start();
+
+                if (low > 0)
+                {
+                    currentPowerLimit = low;
+                }
             }
             catch (Exception e)
             {

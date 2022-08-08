@@ -139,31 +139,10 @@ namespace RyzenTuner
                 this.GetIdleSecond(),
                 isNight,
                 cpuUsage,
-                SystemInfo.GetGpuUsage()
+                SystemInfo.GetVideoCardUsage()
             ));
 
             return powerLimit;
-        }
-
-        /**
-         * 返回当前 CPU 1W 下的占用
-         *
-         * 1瓦：10%
-         * 16瓦：10%，0.625%
-         * 30瓦：10%，0.33%
-         * 
-         * 参考：
-         * https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.performancecounter
-         * https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc780836(v=ws.10)?redirectedfrom=MSDN
-         * https://stackoverflow.com/a/4711455
-         */
-        public float CpuUsage()
-        {
-            var cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-            cpuCounter.NextValue();
-            System.Threading.Thread.Sleep(1000);
-            var cpuUsage = cpuCounter.NextValue();
-            return cpuUsage;
         }
     }
 }
