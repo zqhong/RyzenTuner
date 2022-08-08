@@ -6,10 +6,19 @@ namespace RyzenTuner
 {
     public class CommonUtils
     {
-        // https://www.pinvoke.net/default.aspx/user32.GetLastInputInfo
         [DllImport("user32.dll")]
         static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+
+        // http://www.pinvoke.net/default.aspx/kernel32/GetSystemTimes.html
+        static extern bool GetSystemTimes(
+            out FILETIME lpIdleTime,
+            out FILETIME lpKernelTime,
+            out FILETIME lpUserTime
+        );
+
+        // https://www.pinvoke.net/default.aspx/user32.GetLastInputInfo
         // https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-lastinputinfo
         [StructLayout(LayoutKind.Sequential)]
         struct LASTINPUTINFO
@@ -18,6 +27,30 @@ namespace RyzenTuner
 
             [MarshalAs(UnmanagedType.U4)] public int cbSize;
             [MarshalAs(UnmanagedType.U4)] public UInt32 dwTime;
+        }
+
+        // https://github.com/zhongyang219/TrafficMonitor/blob/master/TrafficMonitor/CPUUsage.cpp#L23-L49
+        public static float GetCpuUsageByK32()
+        {
+            FILETIME idleTime, kernelTime, userTime;
+            GetSystemTimes(out idleTime, out kernelTime, out userTime);
+
+            ulong idleTimeLong = ((ulong)idleTime.dwHighDateTime << 32) + (uint)idleTime.dwLowDateTime;
+            ulong kernelTimeLong = ((ulong)kernelTime.dwHighDateTime << 32) + (uint)kernelTime.dwLowDateTime;
+            ulong userTimeLong = ((ulong)userTime.dwHighDateTime << 32) + (uint)userTime.dwLowDateTime;
+
+            float cpuUsage;
+            if (kernelTimeLong + userTimeLong == 0)
+            {
+                cpuUsage = 0;
+            }
+            else
+            {
+                //（总的时间-空闲时间）/总的时间=占用cpu的时间就是使用率
+                cpuUsage = (kernelTimeLong + userTimeLong - idleTimeLong) / (kernelTimeLong + userTimeLong);
+            }
+
+            return cpuUsage;
         }
 
         /**

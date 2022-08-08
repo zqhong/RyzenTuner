@@ -54,9 +54,6 @@
             
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.metricTimer = new System.Windows.Forms.Timer(this.components);
-
-            // 设置初始化 power limit
-            this.currentPowerLimit = 16;
             
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -290,12 +287,12 @@
             // timer1
             // 
             this.timer1.Enabled = true;
-            this.timer1.Interval = 1024;        // 单位：毫秒
+            this.timer1.Interval = 2048;        // 单位：毫秒
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             
             // metricTimer：定时获取系统信息
             this.metricTimer.Enabled = true;
-            this.metricTimer.Interval = 2048; 
+            this.metricTimer.Interval = 4096; 
             this.metricTimer.Tick += new System.EventHandler(this.metricTimer_Tick);
             
             // 
@@ -351,8 +348,6 @@
 
         private float currentCPUUsage;
         private float currentVideoCarkUsage;
-        
-        private float currentPowerLimit;
     }
 }
 

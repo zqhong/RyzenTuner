@@ -173,11 +173,6 @@ namespace RyzenTuner
                                       high * 1000;
                 process.StartInfo = startInfo;
                 process.Start();
-
-                if (low > 0)
-                {
-                    currentPowerLimit = low;
-                }
             }
             catch (Exception e)
             {
@@ -234,10 +229,10 @@ namespace RyzenTuner
             // 符合下面条件的情况下，使用 low（待机）
             var idleSecond = CommonUtils.GetIdleSecond();
             if (
-                // 条件1、白天 && 非活跃时间超过16分钟 && CPU 占用小于 15% && 显卡占用小于 15%
-                (!isNight && idleSecond >= 16 * 60 && cpuUsage < 15 && videoCardUsage < 15) ||
-                // 条件2、夜晚 && 非活跃时间超过1分钟 && CPU 占用小于 20% && 显卡占用小于 20%
-                (isNight && idleSecond >= 1 * 60 && cpuUsage < 20 && videoCardUsage < 20)
+                // 条件1：白天 && 非活跃时间超过16分钟 && CPU 占用小于 10% && 显卡占用小于 10%
+                (!isNight && idleSecond >= 16 * 60 && cpuUsage < 10 && videoCardUsage < 10) ||
+                // 条件2：夜晚 && 非活跃时间超过4分钟 && CPU 占用小于 20% && 显卡占用小于 20%
+                (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCardUsage < 20)
             )
             {
                 powerLimit = low;
@@ -250,12 +245,13 @@ namespace RyzenTuner
             }
 
             CommonUtils.LogInfo(string.Format(
-                @"power limit: {0}, last input time: {1}, isNight: {2}, CPU usage: {3}, GPU Usage: {4}",
+                @"power limit: {0}, last input time: {1}, isNight: {2}, CPU usage: {3}, GPU Usage: {4}, Cpu Usage(K32.dll)：{5}",
                 powerLimit,
                 CommonUtils.GetIdleSecond(),
                 isNight,
                 cpuUsage,
-                SystemInfo.GetVideoCardUsage()
+                SystemInfo.GetVideoCardUsage(),
+                CommonUtils.GetCpuUsageByK32()
             ));
 
             return powerLimit;
