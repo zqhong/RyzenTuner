@@ -73,7 +73,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonUtils.cs" />
-    <Compile Include="CPUUsage.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

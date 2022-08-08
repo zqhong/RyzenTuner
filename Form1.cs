@@ -133,9 +133,13 @@ namespace RyzenTuner
                 }
 
                 var noticeText = string.Format(@"[{0}]
-限制功率：{1}W",
+限制功率：{1:0}W，实际功率：{2:0}W
+CPU: {3:0}%, GPU: {4:0}%",
                     Properties.Settings.Default.CurrentMode,
-                    powerLimit
+                    powerLimit,
+                    _hardwareMonitor.CpuPackagePower,
+                    _hardwareMonitor.CpuUsage,
+                    _hardwareMonitor.VideoCard3DUsage
                 );
                 if (noticeText.Length > 64)
                 {
@@ -180,6 +184,7 @@ namespace RyzenTuner
             _hardwareMonitor.Monitor();
 
             var cpuUsage = _hardwareMonitor.CpuUsage;
+            var videoCard3DUsage = _hardwareMonitor.VideoCard3DUsage;
 
             var isNight = CommonUtils.IsNight(DateTime.Now);
 
@@ -211,10 +216,10 @@ namespace RyzenTuner
             // 符合下面条件的情况下，使用 low（待机）
             var idleSecond = CommonUtils.GetIdleSecond();
             if (
-                // 条件1：白天 && 非活跃时间超过16分钟 && CPU 占用小于 10%
-                (!isNight && idleSecond >= 16 * 60 && cpuUsage < 10) ||
-                // 条件2：夜晚 && 非活跃时间超过4分钟 && CPU 占用小于 20%
-                (isNight && idleSecond >= 4 * 60 && cpuUsage < 20)
+                // 条件1：白天 && 非活跃时间超过16分钟 && CPU 占用小于 10% && 显卡占用小于 10%
+                (!isNight && idleSecond >= 16 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
+                // 条件2：夜晚 && 非活跃时间超过4分钟 && CPU 占用小于 20% && 显卡占用小于 20%
+                (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20)
             )
             {
                 powerLimit = low;
