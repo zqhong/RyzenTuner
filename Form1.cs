@@ -204,21 +204,20 @@ namespace RyzenTuner
             var cpuUsage = currentCPUUsage;
             var videoCardUsage = currentVideoCarkUsage;
 
-            // 参考变量：当前 CPU 占用、5 分钟内 CPU 占用、白天/晚上
             var isNight = CommonUtils.IsNight(DateTime.Now);
 
             // 三个档位：low（待机）、medium（平衡）、high（高性能）
             // 插电模式下
             var low = 1;
-            var medium = 16;
+            var medium = 20;
             var high = 30;
 
             // 电池模式下
             if (SystemInformation.PowerStatus.PowerLineStatus == PowerLineStatus.Offline)
             {
                 low = 1;
-                medium = 8;
-                high = 16;
+                medium = 16;
+                high = 25;
             }
 
             // 夜晚
@@ -235,11 +234,10 @@ namespace RyzenTuner
             // 符合下面条件的情况下，使用 low（待机）
             var idleSecond = CommonUtils.GetIdleSecond();
             if (
-                // 条件1、白天 && 非活跃时间超过5分钟 && CPU 占用小于 13% && 显卡占用小于 13%
-                // TODO：测试
-                (!isNight && idleSecond >= 2 && cpuUsage < 13 && videoCardUsage < 13) ||
-                // 条件2、夜晚 && 非活跃时间超过1分钟 && CPU 占用小于 15% && 显卡占用小于 15%
-                (isNight && idleSecond >= 1 * 60 && cpuUsage < 15 && videoCardUsage < 15)
+                // 条件1、白天 && 非活跃时间超过16分钟 && CPU 占用小于 15% && 显卡占用小于 15%
+                (!isNight && idleSecond >= 16 * 60 && cpuUsage < 15 && videoCardUsage < 15) ||
+                // 条件2、夜晚 && 非活跃时间超过1分钟 && CPU 占用小于 20% && 显卡占用小于 20%
+                (isNight && idleSecond >= 1 * 60 && cpuUsage < 20 && videoCardUsage < 20)
             )
             {
                 powerLimit = low;
