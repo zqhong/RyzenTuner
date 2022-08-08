@@ -48,7 +48,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5-15")]
+        [global::System.Configuration.DefaultSettingValueAttribute("16-16")]
         public string CustomMode {
             get {
                 return ((string)(this["CustomMode"]));
@@ -60,7 +60,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("16-30")]
+        [global::System.Configuration.DefaultSettingValueAttribute("25-25")]
         public string AutoMode {
             get {
                 return ((string)(this["AutoMode"]));
@@ -72,7 +72,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("4-8")]
+        [global::System.Configuration.DefaultSettingValueAttribute("4-4")]
         public string ExtendedBatteryLifeMode {
             get {
                 return ((string)(this["ExtendedBatteryLifeMode"]));
@@ -84,7 +84,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("6-11")]
+        [global::System.Configuration.DefaultSettingValueAttribute("6-6")]
         public string BatteryLifeMode {
             get {
                 return ((string)(this["BatteryLifeMode"]));
@@ -96,7 +96,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("15-20")]
+        [global::System.Configuration.DefaultSettingValueAttribute("16-16")]
         public string GamingMode {
             get {
                 return ((string)(this["GamingMode"]));
@@ -108,7 +108,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("41-41")]
+        [global::System.Configuration.DefaultSettingValueAttribute("30-30")]
         public string FactoryDefaultMode {
             get {
                 return ((string)(this["FactoryDefaultMode"]));

@@ -122,7 +122,7 @@
             this.radioButton4.Size = new System.Drawing.Size(185, 28);
             this.radioButton4.TabIndex = 3;
             this.radioButton4.Tag = "GamingMode";
-            this.radioButton4.Text = "游戏模式-15W";
+            this.radioButton4.Text = "游戏模式";
             this.radioButton4.UseVisualStyleBackColor = true;
             this.radioButton4.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             // 
@@ -134,7 +134,7 @@
             this.radioButton3.Size = new System.Drawing.Size(173, 28);
             this.radioButton3.TabIndex = 2;
             this.radioButton3.Tag = "BatteryLifeMode";
-            this.radioButton3.Text = "续航模式-6W";
+            this.radioButton3.Text = "续航模式";
             this.radioButton3.UseVisualStyleBackColor = true;
             this.radioButton3.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             // 
@@ -146,7 +146,7 @@
             this.radioButton2.Size = new System.Drawing.Size(221, 28);
             this.radioButton2.TabIndex = 1;
             this.radioButton2.Tag = "ExtendedBatteryLifeMode";
-            this.radioButton2.Text = "极致续航模式-4W";
+            this.radioButton2.Text = "极致续航模式";
             this.radioButton2.UseVisualStyleBackColor = true;
             this.radioButton2.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             // 
@@ -234,7 +234,7 @@
             this.极致续航模式4WToolStripMenuItem.Name = "极致续航模式4WToolStripMenuItem";
             this.极致续航模式4WToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.极致续航模式4WToolStripMenuItem.Tag = "ExtendedBatteryLifeMode";
-            this.极致续航模式4WToolStripMenuItem.Text = "极致续航模式-4W";
+            this.极致续航模式4WToolStripMenuItem.Text = "极致续航模式";
             this.极致续航模式4WToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
             // 
             // 续航模式6WToolStripMenuItem
@@ -243,7 +243,7 @@
             this.续航模式6WToolStripMenuItem.Name = "续航模式6WToolStripMenuItem";
             this.续航模式6WToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.续航模式6WToolStripMenuItem.Tag = "BatteryLifeMode";
-            this.续航模式6WToolStripMenuItem.Text = "续航模式-6W";
+            this.续航模式6WToolStripMenuItem.Text = "续航模式";
             this.续航模式6WToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
             // 
             // 游戏模式15WToolStripMenuItem
@@ -252,7 +252,7 @@
             this.游戏模式15WToolStripMenuItem.Name = "游戏模式15WToolStripMenuItem";
             this.游戏模式15WToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.游戏模式15WToolStripMenuItem.Tag = "GamingMode";
-            this.游戏模式15WToolStripMenuItem.Text = "游戏模式-15W";
+            this.游戏模式15WToolStripMenuItem.Text = "游戏模式";
             this.游戏模式15WToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
             
             // 
