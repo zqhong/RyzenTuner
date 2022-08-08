@@ -53,7 +53,8 @@ namespace RyzenTuner
             _computer.Open();
         }
 
-        public void Deconstruct()
+        // Finalizers / destructor
+        ~HardwareMonitor()
         {
             _computer.Close();
         }
@@ -120,15 +121,6 @@ namespace RyzenTuner
             {
                 _videoCardDecodeUsage = linqVideoCardDecode.Value;
             }
-
-            CommonUtils.LogInfo(String.Format(@"[Cpu] Usage: {0}, Power: {1}
-[Video Card] 3D Usage: {2}, Decode Usage: {3}
-",
-                _cpuUsage,
-                _cpuPackagePower,
-                _videoCard3DUsage,
-                _videoCardDecodeUsage
-            ));
         }
     }
 }
