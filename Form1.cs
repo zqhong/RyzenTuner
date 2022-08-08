@@ -229,7 +229,10 @@ namespace RyzenTuner
             {
                 powerLimit = high;
             }
-
+            
+            // TODO: test
+            _hardwareMonitor.Monitor();
+            
             return powerLimit;
         }
 
@@ -286,7 +289,7 @@ namespace RyzenTuner
             }
         }
 
-        public float GetPowerLimitByMode(string mode)
+        private float GetPowerLimitByMode(string mode)
         {
             return float.Parse(Properties.Settings.Default[mode].ToString());
         }
