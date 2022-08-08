@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace RyzenTuner
 {
-    public class SystemInfo
+    public static class SystemInfo
     {
         /**
          * 返回当前 CPU 的占用

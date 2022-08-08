@@ -92,16 +92,16 @@ namespace RyzenTuner
 
         private static void StartEnergyStar()
         {
-            if (!System.Diagnostics.Process.GetProcessesByName("energystar").Any())
+            if (!Process.GetProcessesByName("energystar").Any())
             {
-                System.Diagnostics.Process.Start(System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
+                Process.Start(System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
                                                  "\\energystar\\EnergyStar.exe");
             }
         }
 
         public static void StopEnergyStar()
         {
-            foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcessesByName("energystar"))
+            foreach (Process p in Process.GetProcessesByName("energystar"))
             {
                 p.Kill();
             }
@@ -124,15 +124,15 @@ namespace RyzenTuner
         {
             try
             {
-                string[] ModeSetting = Properties.Settings.Default[Properties.Settings.Default.CurrentMode].ToString()
+                string[] modeSetting = Properties.Settings.Default[Properties.Settings.Default.CurrentMode].ToString()
                     .Split('-');
-                float low = float.Parse(ModeSetting[0]);
-                float high = float.Parse(ModeSetting[1]);
+                float low = float.Parse(modeSetting[0]);
+                float high = float.Parse(modeSetting[1]);
 
                 // 自动模式下，根据系统状态自动调整
                 if (Properties.Settings.Default.CurrentMode == "AutoMode")
                 {
-                    low = high = new CommonUtils().AutoModePowerLimit(currentCPUUsage);
+                    low = high = this.AutoModePowerLimit();
                 }
 
                 // 数值修正
@@ -159,9 +159,9 @@ namespace RyzenTuner
 
                 notifyIcon1.Text = noticeText;
 
-                Process process = new System.Diagnostics.Process();
-                ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-                startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                Process process = new Process();
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
 
                 // TODO：与上次参数一致的情况下，不调用 ryzenadj.exe
 
@@ -186,6 +186,81 @@ namespace RyzenTuner
                 radioButton5.Checked = true;
                 ChangeEnergyMode(radioButton5, new EventArgs());
             }
+        }
+
+        /**
+         * 计算自动模式下的限制功率（单位：瓦）
+         *
+         * 改进：
+         * 1、适配不同型号 CPU
+         * 
+         * 参考：
+         * https://github.com/slimbook/slimbookbattery/blob/main/src/configuration/slimbookbattery.conf
+         *
+         * TLP - Optimize Linux Laptop Battery Life
+         * https://github.com/linrunner/TLP/blob/main/defaults.conf
+         */
+        private int AutoModePowerLimit()
+        {
+            var cpuUsage = currentCPUUsage;
+
+            // 参考变量：当前 CPU 占用、5 分钟内 CPU 占用、白天/晚上
+            var isNight = CommonUtils.IsNight(DateTime.Now);
+
+            // 三个档位：low（待机）、medium（平衡）、high（高性能）
+            // 插电模式下
+            var low = 1;
+            var medium = 16;
+            var high = 30;
+
+            // 电池模式下
+            if (SystemInformation.PowerStatus.PowerLineStatus == PowerLineStatus.Offline)
+            {
+                low = 1;
+                medium = 8;
+                high = 16;
+            }
+
+            // 夜晚
+            if (isNight)
+            {
+                low = 1;
+                medium = 8;
+                high = 16;
+            }
+
+            // 默认使用 medium（平衡）
+            var powerLimit = medium;
+
+            // 符合下面条件的情况下，使用 low（待机）
+            var idleSecond = CommonUtils.GetIdleSecond();
+            if (
+                // 条件1、白天 && 非活跃时间超过5分钟 && CPU 占用小于 13%
+                // TODO：测试
+                (!isNight && idleSecond >= 3 && cpuUsage < 13) ||
+                // 条件2、夜晚 && 非活跃时间超过1分钟 && CPU 占用小于 15%
+                (isNight && idleSecond >= 1 * 60 && cpuUsage < 15)
+            )
+            {
+                powerLimit = low;
+            }
+
+            // CPU 超过 50% 占用后，使用 high（高性能）
+            if (cpuUsage >= 50)
+            {
+                powerLimit = high;
+            }
+
+            CommonUtils.LogInfo(string.Format(
+                @"power limit: {0}, last input time: {1}, isNight: {2}, CPU usage: {3}, GPU Usage: {4}",
+                powerLimit,
+                CommonUtils.GetIdleSecond(),
+                isNight,
+                cpuUsage,
+                SystemInfo.GetVideoCardUsage()
+            ));
+
+            return powerLimit;
         }
 
         private void SyncEnergyModeSelection()
