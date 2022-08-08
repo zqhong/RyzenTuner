@@ -333,6 +333,7 @@ namespace RyzenTuner
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
 
+            this._hardwareMonitor = new HardwareMonitor();
         }
 
         #endregion
@@ -360,6 +361,8 @@ namespace RyzenTuner
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 
+        private HardwareMonitor _hardwareMonitor; 
+        
         private CpuUsage _cpuUsage;
     }
 }
