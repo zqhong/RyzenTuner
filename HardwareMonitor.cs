@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using LibreHardwareMonitor.Hardware;
 
@@ -33,7 +32,6 @@ namespace RyzenTuner
         private float _cpuPackagePower;
 
         private float _videoCard3DUsage;
-        private float _videoCardDecodeUsage;
 
         private readonly Computer _computer;
 
@@ -64,9 +62,7 @@ namespace RyzenTuner
         public float CpuPackagePower => _cpuPackagePower;
 
         public float VideoCard3DUsage => _videoCard3DUsage;
-
-        public float VideoCardDecodeUsage => _videoCardDecodeUsage;
-
+        
         public void Monitor()
         {
             // Triggers the IVisitor.VisitComputer method for the given observer.
@@ -117,17 +113,6 @@ namespace RyzenTuner
             if (linqVideoCard3D != null)
             {
                 _videoCard3DUsage = linqVideoCard3D.Value;
-            }
-
-            var linqVideoCardDecode = videoCardList
-                .Where(s => s.SensorType == SensorType.Load)
-                .Where(s => s.Name == "D3D Video Decode")
-                .Where(s => s.Value != null)
-                .Select(s => s.Value)
-                .First();
-            if (linqVideoCardDecode != null)
-            {
-                _videoCardDecodeUsage = linqVideoCardDecode.Value;
             }
         }
     }
