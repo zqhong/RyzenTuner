@@ -84,12 +84,6 @@ namespace RyzenTuner
             ApplyEnergyMode();
         }
 
-        private void metricTimer_Tick(object sender, EventArgs e)
-        {
-            currentCPUUsage = SystemInfo.GetCpuUsage();
-            currentVideoCarkUsage = SystemInfo.GetVideoCardUsage();
-        }
-
         private static void StartEnergyStar()
         {
             if (!Process.GetProcessesByName("energystar").Any())
@@ -196,8 +190,7 @@ namespace RyzenTuner
          */
         private int AutoModePowerLimit()
         {
-            var cpuUsage = currentCPUUsage;
-            var videoCardUsage = currentVideoCarkUsage;
+            var cpuUsage = this._cpuUsage.GetCpuUsage();
 
             var isNight = CommonUtils.IsNight(DateTime.Now);
 
@@ -229,30 +222,20 @@ namespace RyzenTuner
             // 符合下面条件的情况下，使用 low（待机）
             var idleSecond = CommonUtils.GetIdleSecond();
             if (
-                // 条件1：白天 && 非活跃时间超过16分钟 && CPU 占用小于 10% && 显卡占用小于 10%
-                (!isNight && idleSecond >= 16 * 60 && cpuUsage < 10 && videoCardUsage < 10) ||
-                // 条件2：夜晚 && 非活跃时间超过4分钟 && CPU 占用小于 20% && 显卡占用小于 20%
-                (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCardUsage < 20)
+                // 条件1：白天 && 非活跃时间超过16分钟 && CPU 占用小于 10%
+                (!isNight && idleSecond >= 16 * 60 && cpuUsage < 10) ||
+                // 条件2：夜晚 && 非活跃时间超过4分钟 && CPU 占用小于 20%
+                (isNight && idleSecond >= 4 * 60 && cpuUsage < 20)
             )
             {
                 powerLimit = low;
             }
 
-            // CPU 超过 80% 占用后，使用 high（高性能）
-            if (cpuUsage >= 80)
+            // CPU 超过 60% 占用后，使用 high（高性能）
+            if (cpuUsage >= 60)
             {
                 powerLimit = high;
             }
-
-            CommonUtils.LogInfo(string.Format(
-                @"power limit: {0}, last input time: {1}, isNight: {2}, CPU usage: {3}, GPU Usage: {4}, Cpu Usage(K32.dll)：{5}",
-                powerLimit,
-                CommonUtils.GetIdleSecond(),
-                isNight,
-                cpuUsage,
-                SystemInfo.GetVideoCardUsage(),
-                this._cpuUsage.GetCpuUsage()
-            ));
 
             return powerLimit;
         }

@@ -53,7 +53,6 @@
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.metricTimer = new System.Windows.Forms.Timer(this.components);
 
             this._cpuUsage = new CpuUsage();
             this._cpuUsage.GetCpuUsage();
@@ -293,11 +292,6 @@
             this.timer1.Interval = 2048;        // 单位：毫秒
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             
-            // metricTimer：定时获取系统信息
-            this.metricTimer.Enabled = true;
-            this.metricTimer.Interval = 4096; 
-            this.metricTimer.Tick += new System.EventHandler(this.metricTimer_Tick);
-            
             // 
             // Form1
             // 
@@ -345,14 +339,10 @@
         private System.Windows.Forms.ToolStripMenuItem 自定义ToolStripMenuItem;
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.Timer metricTimer;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 
         private CpuUsage _cpuUsage;
-        
-        private float currentCPUUsage;
-        private float currentVideoCarkUsage;
     }
 }
 
