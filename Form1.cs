@@ -80,7 +80,7 @@ namespace RyzenTuner
             {
                 StopEnergyStar();
             }
-
+            
             ApplyEnergyMode();
         }
 
