@@ -118,32 +118,24 @@ namespace RyzenTuner
         {
             try
             {
-                string[] modeSetting = Properties.Settings.Default[Properties.Settings.Default.CurrentMode].ToString()
-                    .Split('-');
-                float low = float.Parse(modeSetting[0]);
-                float high = float.Parse(modeSetting[1]);
+                var powerLimit = this.GetPowerLimitByMode(Properties.Settings.Default.CurrentMode);
 
                 // 自动模式下，根据系统状态自动调整
                 if (Properties.Settings.Default.CurrentMode == "AutoMode")
                 {
-                    low = high = this.AutoModePowerLimit();
+                    powerLimit = this.AutoModePowerLimit();
                 }
 
                 // 数值修正
-                if (high < low)
+                if (powerLimit < 0)
                 {
-                    high = low;
-                }
-
-                if (low < 0)
-                {
-                    low = 1;
+                    powerLimit = 1;
                 }
 
                 var noticeText = string.Format(@"[{0}]
 限制功率：{1}W",
                     Properties.Settings.Default.CurrentMode,
-                    high
+                    powerLimit
                 );
                 if (noticeText.Length > 64)
                 {
@@ -163,8 +155,9 @@ namespace RyzenTuner
                 // --slow-limit：平均功率限制
                 startInfo.FileName = System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
                                      "\\ryzenadj\\ryzenadj.exe";
-                startInfo.Arguments = "--stapm-limit " + low * 1000 + " --fast-limit " + low * 1000 + " --slow-limit " +
-                                      high * 1000;
+                startInfo.Arguments = "--stapm-limit " + powerLimit * 1000 + " --fast-limit " + powerLimit * 1000 +
+                                      " --slow-limit " +
+                                      powerLimit * 1000;
                 process.StartInfo = startInfo;
                 process.Start();
             }
@@ -291,6 +284,11 @@ namespace RyzenTuner
             {
                 this.Hide();
             }
+        }
+
+        public float GetPowerLimitByMode(string mode)
+        {
+            return float.Parse(Properties.Settings.Default[Properties.Settings.Default.CurrentMode].ToString());
         }
     }
 }
