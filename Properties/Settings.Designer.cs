@@ -84,7 +84,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10-10")]
+        [global::System.Configuration.DefaultSettingValueAttribute("16-16")]
         public string BatteryLifeMode {
             get {
                 return ((string)(this["BatteryLifeMode"]));
