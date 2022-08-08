@@ -44,12 +44,5 @@ namespace RyzenTuner.Properties {
                 resourceCulture = value;
             }
         }
-        
-        internal static System.Drawing.Icon icon_Icon {
-            get {
-                object obj = ResourceManager.GetObject("icon.Icon", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
-            }
-        }
     }
 }
