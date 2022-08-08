@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 
 namespace RyzenTuner
 {
@@ -31,16 +30,16 @@ namespace RyzenTuner
         }
 
         // https://github.com/zhongyang219/TrafficMonitor/blob/master/TrafficMonitor/CPUUsage.cpp#L23-L49
-        public static float GetCpuUsageByK32()
+        public static double GetCpuUsageByK32()
         {
             System.Runtime.InteropServices.ComTypes.FILETIME idleTime, kernelTime, userTime;
             GetSystemTimes(out idleTime, out kernelTime, out userTime);
 
-            ulong idleTimeLong = ((ulong)idleTime.dwHighDateTime << 32) + (uint)idleTime.dwLowDateTime;
-            ulong kernelTimeLong = ((ulong)kernelTime.dwHighDateTime << 32) + (uint)kernelTime.dwLowDateTime;
-            ulong userTimeLong = ((ulong)userTime.dwHighDateTime << 32) + (uint)userTime.dwLowDateTime;
+            var idleTimeLong = ((ulong)idleTime.dwHighDateTime << 32) + (uint)idleTime.dwLowDateTime;
+            var kernelTimeLong = ((ulong)kernelTime.dwHighDateTime << 32) + (uint)kernelTime.dwLowDateTime;
+            var userTimeLong = ((ulong)userTime.dwHighDateTime << 32) + (uint)userTime.dwLowDateTime;
 
-            float cpuUsage;
+            double cpuUsage;
             if (kernelTimeLong + userTimeLong == 0)
             {
                 cpuUsage = 0;
@@ -48,8 +47,7 @@ namespace RyzenTuner
             else
             {
                 //（总的时间-空闲时间）/总的时间=占用cpu的时间就是使用率
-                cpuUsage = (kernelTimeLong + userTimeLong - idleTimeLong) * 100 / (kernelTimeLong + userTimeLong);
-                cpuUsage = Math.Abs(cpuUsage);
+                cpuUsage = (kernelTimeLong + userTimeLong - idleTimeLong) * 100.0 / (kernelTimeLong + userTimeLong);
             }
 
             return cpuUsage;
