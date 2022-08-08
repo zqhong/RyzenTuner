@@ -6,16 +6,11 @@ namespace RyzenTuner
 {
     public class HardwareMonitor
     {
-        private float _cpuUsage;
-        private float _cpuPackagePower;
-
-        private float _videoCard3DUsage;
-        private float _videoCardDecodeUsage;
-
         class UpdateVisitor : IVisitor
         {
             public void VisitComputer(IComputer computer)
             {
+                // Triggers the "IElement.Accept" method with the given visitor for each device in each group.
                 computer.Traverse(this);
             }
 
@@ -34,9 +29,17 @@ namespace RyzenTuner
             }
         }
 
-        public void Monitor()
+        private float _cpuUsage;
+        private float _cpuPackagePower;
+
+        private float _videoCard3DUsage;
+        private float _videoCardDecodeUsage;
+
+        private readonly Computer _computer;
+
+        public HardwareMonitor()
         {
-            var computer = new Computer
+            _computer = new Computer
             {
                 IsCpuEnabled = true,
                 IsGpuEnabled = true,
@@ -47,11 +50,21 @@ namespace RyzenTuner
                 IsStorageEnabled = false
             };
 
-            computer.Open();
-            computer.Accept(new UpdateVisitor());
+            _computer.Open();
+        }
+
+        public void Deconstruct()
+        {
+            _computer.Close();
+        }
+
+        public void Monitor()
+        {
+            // Triggers the IVisitor.VisitComputer method for the given observer.
+            _computer.Accept(new UpdateVisitor());
 
             // CPU
-            var hardwareCpu = computer
+            var hardwareCpu = _computer
                 .Hardware
                 .Where(i => i.Name.StartsWith("AMD Ryzen"))
                 .SelectMany(s => s.Sensors);
@@ -80,9 +93,9 @@ namespace RyzenTuner
             }
 
             // 显卡
-            var hardwareVideoCard = computer
+            var hardwareVideoCard = _computer
                 .Hardware
-                .Where(i => i.Name.StartsWith(" Graphics"))
+                .Where(i => i.Name.EndsWith(" Graphics"))
                 .SelectMany(s => s.Sensors);
             var videoCardList = hardwareVideoCard.ToList();
 
@@ -108,17 +121,6 @@ namespace RyzenTuner
                 _videoCardDecodeUsage = linqVideoCardDecode.Value;
             }
 
-            // foreach (IHardware hardware in computer.Hardware)
-            // {
-            //     CommonUtils.LogInfo(String.Format("Hardware: {0}", hardware.Name));
-            //
-            //     foreach (ISensor sensor in hardware.Sensors)
-            //     {
-            //         CommonUtils.LogInfo(String.Format("\tSensor[{2}]: {0}, value: {1}", sensor.Name, sensor.Value,
-            //             sensor.SensorType));
-            //     }
-            // }
-
             CommonUtils.LogInfo(String.Format(@"[Cpu] Usage: {0}, Power: {1}
 [Video Card] 3D Usage: {2}, Decode Usage: {3}
 ",
@@ -127,8 +129,6 @@ namespace RyzenTuner
                 _videoCard3DUsage,
                 _videoCardDecodeUsage
             ));
-
-            computer.Close();
         }
     }
 }
