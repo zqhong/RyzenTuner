@@ -59,6 +59,14 @@ namespace RyzenTuner
             _computer.Close();
         }
 
+        public float CpuUsage => _cpuUsage;
+
+        public float CpuPackagePower => _cpuPackagePower;
+
+        public float VideoCard3DUsage => _videoCard3DUsage;
+
+        public float VideoCardDecodeUsage => _videoCardDecodeUsage;
+
         public void Monitor()
         {
             // Triggers the IVisitor.VisitComputer method for the given observer.

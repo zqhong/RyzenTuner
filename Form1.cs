@@ -174,16 +174,12 @@ namespace RyzenTuner
          *
          * 改进：
          * 1、适配不同型号 CPU
-         * 
-         * 参考：
-         * https://github.com/slimbook/slimbookbattery/blob/main/src/configuration/slimbookbattery.conf
-         *
-         * TLP - Optimize Linux Laptop Battery Life
-         * https://github.com/linrunner/TLP/blob/main/defaults.conf
          */
         private int AutoModePowerLimit()
         {
-            var cpuUsage = this._cpuUsage.GetCpuUsage();
+            _hardwareMonitor.Monitor();
+
+            var cpuUsage = _hardwareMonitor.CpuUsage;
 
             var isNight = CommonUtils.IsNight(DateTime.Now);
 
@@ -229,10 +225,7 @@ namespace RyzenTuner
             {
                 powerLimit = high;
             }
-            
-            // TODO: test
-            _hardwareMonitor.Monitor();
-            
+
             return powerLimit;
         }
 
