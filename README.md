@@ -1,4 +1,4 @@
-## Tuner for Ryzen
+## RyzenTuner
 
 一个方便调节 Ryzen 处理器功率限制的工具，Fork 自项目 [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner)。
 

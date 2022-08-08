@@ -18,7 +18,7 @@
       <Value Profile="(Default)">1-1</Value>
     </Setting>
     <Setting Name="BatteryLifeMode" Type="System.String" Scope="User">
-      <Value Profile="(Default)">10-10</Value>
+      <Value Profile="(Default)">16-16</Value>
     </Setting>
     <Setting Name="GamingMode" Type="System.String" Scope="User">
       <Value Profile="(Default)">20-20</Value>
