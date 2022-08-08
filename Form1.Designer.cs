@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace RyzenTuner
 {
@@ -113,6 +114,7 @@ namespace RyzenTuner
             this.radioButton6.Text = "自定义";
             this.radioButton6.UseVisualStyleBackColor = true;
             this.radioButton6.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
+            
             // 
             // radioButton5
             // 
@@ -124,9 +126,10 @@ namespace RyzenTuner
             this.radioButton5.TabIndex = 4;
             this.radioButton5.TabStop = true;
             this.radioButton5.Tag = "FactoryDefaultMode";
-            this.radioButton5.Text = "工厂模式-30W";
+            this.radioButton5.Text = String.Format("工厂模式-{0}W", this.GetPowerLimitByMode("FactoryDefaultMode"));
             this.radioButton5.UseVisualStyleBackColor = true;
             this.radioButton5.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
+            
             // 
             // radioButton4
             // 
@@ -148,7 +151,7 @@ namespace RyzenTuner
             this.radioButton3.Size = new System.Drawing.Size(173, 28);
             this.radioButton3.TabIndex = 2;
             this.radioButton3.Tag = "BatteryLifeMode";
-            this.radioButton3.Text = "平衡模式-16W";
+            this.radioButton3.Text = String.Format("平衡模式-{0}W", this.GetPowerLimitByMode("BatteryLifeMode"));
             this.radioButton3.UseVisualStyleBackColor = true;
             this.radioButton3.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             // 
@@ -160,7 +163,7 @@ namespace RyzenTuner
             this.radioButton2.Size = new System.Drawing.Size(221, 28);
             this.radioButton2.TabIndex = 1;
             this.radioButton2.Tag = "ExtendedBatteryLifeMode";
-            this.radioButton2.Text = "续航模式-1W";
+            this.radioButton2.Text = String.Format("续航模式-{0}W", this.GetPowerLimitByMode("ExtendedBatteryLifeMode"));
             this.radioButton2.UseVisualStyleBackColor = true;
             this.radioButton2.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             // 
