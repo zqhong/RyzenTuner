@@ -80,7 +80,7 @@ namespace RyzenTuner
             {
                 StopEnergyStar();
             }
-            
+
             ApplyEnergyMode();
         }
 
@@ -251,7 +251,7 @@ namespace RyzenTuner
                 isNight,
                 cpuUsage,
                 SystemInfo.GetVideoCardUsage(),
-                CommonUtils.GetCpuUsageByK32()
+                this._cpuUsage.GetCpuUsage()
             ));
 
             return powerLimit;

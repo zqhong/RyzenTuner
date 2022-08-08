@@ -54,6 +54,9 @@
             
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.metricTimer = new System.Windows.Forms.Timer(this.components);
+
+            this._cpuUsage = new CpuUsage();
+            this._cpuUsage.GetCpuUsage();
             
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -346,6 +349,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 
+        private CpuUsage _cpuUsage;
+        
         private float currentCPUUsage;
         private float currentVideoCarkUsage;
     }
