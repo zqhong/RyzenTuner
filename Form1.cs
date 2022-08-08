@@ -288,7 +288,7 @@ namespace RyzenTuner
 
         public float GetPowerLimitByMode(string mode)
         {
-            return float.Parse(Properties.Settings.Default[Properties.Settings.Default.CurrentMode].ToString());
+            return float.Parse(Properties.Settings.Default[mode].ToString());
         }
     }
 }
