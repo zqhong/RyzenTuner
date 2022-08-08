@@ -17,8 +17,6 @@
   * 符合以下条件，切换到高性能模式
     * CPU 超过 60% 占用
 
-相关代码：https://github.com/zqhong/RyzenTuner/blob/56c941ca73374e14250d4d10ba0525a0cd0be598/Form1.cs#L191-L241
-
 > 备注：非特殊需求，建议使用自带的睡眠功能。
 
 ## 使用
