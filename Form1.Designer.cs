@@ -124,7 +124,7 @@ namespace RyzenTuner
             this.radioButton5.TabIndex = 4;
             this.radioButton5.TabStop = true;
             this.radioButton5.Tag = "FactoryDefaultMode";
-            this.radioButton5.Text = "恢复默认设置";
+            this.radioButton5.Text = "恢复默认设置（30W）";
             this.radioButton5.UseVisualStyleBackColor = true;
             this.radioButton5.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             // 
@@ -136,7 +136,7 @@ namespace RyzenTuner
             this.radioButton4.Size = new System.Drawing.Size(185, 28);
             this.radioButton4.TabIndex = 3;
             this.radioButton4.Tag = "GamingMode";
-            this.radioButton4.Text = "游戏模式";
+            this.radioButton4.Text = "游戏模式（20W）";
             this.radioButton4.UseVisualStyleBackColor = true;
             this.radioButton4.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             // 
@@ -148,7 +148,7 @@ namespace RyzenTuner
             this.radioButton3.Size = new System.Drawing.Size(173, 28);
             this.radioButton3.TabIndex = 2;
             this.radioButton3.Tag = "BatteryLifeMode";
-            this.radioButton3.Text = "续航模式";
+            this.radioButton3.Text = "续航模式（10W）";
             this.radioButton3.UseVisualStyleBackColor = true;
             this.radioButton3.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             // 
@@ -160,7 +160,7 @@ namespace RyzenTuner
             this.radioButton2.Size = new System.Drawing.Size(221, 28);
             this.radioButton2.TabIndex = 1;
             this.radioButton2.Tag = "ExtendedBatteryLifeMode";
-            this.radioButton2.Text = "极致续航模式";
+            this.radioButton2.Text = "极致续航模式（1W）";
             this.radioButton2.UseVisualStyleBackColor = true;
             this.radioButton2.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             // 
