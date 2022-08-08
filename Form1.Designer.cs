@@ -69,9 +69,6 @@ namespace RyzenTuner
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-
-            this._cpuUsage = new CpuUsage();
-            this._cpuUsage.GetCpuUsage();
             
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -361,9 +358,7 @@ namespace RyzenTuner
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 
-        private HardwareMonitor _hardwareMonitor; 
-        
-        private CpuUsage _cpuUsage;
+        private HardwareMonitor _hardwareMonitor;
     }
 }
 
