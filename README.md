@@ -2,7 +2,7 @@
 
 一个方便调节 Ryzen 处理器功率限制的工具，Fork 自项目 [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner)。
 
-![preview.jpg](https://s2.loli.net/2022/08/08/94YopjVSXyQNFt8.jpg)
+![preview.jpg](https://s2.loli.net/2022/08/09/6lcTD5U93g2y4Am.jpg)
 
 ## 添加内容
 
