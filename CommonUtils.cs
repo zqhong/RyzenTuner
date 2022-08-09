@@ -74,12 +74,25 @@ namespace RyzenTuner
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.OSVersion.Version.Build >= 22000;
         }
 
+        /**
+         * 检查当前是否出于【待机模式】
+         */
+        public static bool IsSleepMode(float powerLimit)
+        {
+            return Math.Abs(powerLimit - GetPowerLimitByMode("SleepMode")) < 0.01;
+        }
+
         public static void LogInfo(string content)
         {
             var filePath = AppDomain.CurrentDomain.BaseDirectory + "\\runtime\\ryzen-tuner.log.txt";
             File.AppendAllText(filePath,
                 string.Format(@"[INFO]{0:yyyy-MM-dd hh:mm:ss} {1}{2}", DateTime.Now, content,
                     Environment.NewLine));
+        }
+
+        public static float GetPowerLimitByMode(string mode)
+        {
+            return float.Parse(Properties.Settings.Default[mode].ToString());
         }
     }
 }

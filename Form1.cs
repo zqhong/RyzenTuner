@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -114,50 +115,14 @@ namespace RyzenTuner
         {
             try
             {
-                var powerLimit = this.GetPowerLimitByMode(Properties.Settings.Default.CurrentMode);
-
-                // 自动模式下，根据系统状态自动调整
-                if (Properties.Settings.Default.CurrentMode == "AutoMode")
-                {
-                    powerLimit = this.AutoModePowerLimit();
-                }
-
-                // 数值修正
-                if (powerLimit < 0)
-                {
-                    powerLimit = 1;
-                }
-
-                var noticeText = string.Format(@"[{0}]
-限制功率：{1:0}W，实际功率：{2:0}W
-CPU: {3:0}%, GPU: {4:0}%",
-                    Properties.Settings.Default.CurrentMode,
-                    powerLimit,
-                    _hardwareMonitor.CpuPackagePower,
-                    _hardwareMonitor.CpuUsage,
-                    _hardwareMonitor.VideoCard3DUsage
-                );
-                if (noticeText.Length > 64)
-                {
-                    noticeText = noticeText.Substring(0, 64);
-                }
-
-                notifyIcon1.Text = noticeText;
+                notifyIcon1.Text = this.GetNoticeText();
 
                 Process process = new Process();
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-
-                // TODO：与上次参数一致的情况下，不调用 ryzenadj.exe
-
-                // --stapm-limit：持续功率限制
-                // --fast-limit：实际功率限制
-                // --slow-limit：平均功率限制
                 startInfo.FileName = System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
                                      "\\ryzenadj\\ryzenadj.exe";
-                startInfo.Arguments = "--stapm-limit " + powerLimit * 1000 + " --fast-limit " + powerLimit * 1000 +
-                                      " --slow-limit " +
-                                      powerLimit * 1000;
+                startInfo.Arguments = this.CalcRyzenAdjArg();
                 process.StartInfo = startInfo;
                 process.Start();
             }
@@ -175,7 +140,7 @@ CPU: {3:0}%, GPU: {4:0}%",
          * 改进：
          * 1、适配不同型号 CPU
          */
-        private int AutoModePowerLimit()
+        private float AutoModePowerLimit()
         {
             _hardwareMonitor.Monitor();
 
@@ -184,32 +149,29 @@ CPU: {3:0}%, GPU: {4:0}%",
 
             var isNight = CommonUtils.IsNight(DateTime.Now);
 
-            // 三个档位：low（待机）、medium（平衡）、high（高性能）
+            // 四个档位：待机、省电、平衡、性能
             // 插电模式下
-            var low = 1;
-            var medium = 20;
-            var high = 30;
+            var sleepPower = CommonUtils.GetPowerLimitByMode("SleepMode");
+            var powerSavePower = CommonUtils.GetPowerLimitByMode("PowerSaveMode");
+            var balancedPower = CommonUtils.GetPowerLimitByMode("BalancedMode");
+            var performancePower = CommonUtils.GetPowerLimitByMode("PerformanceMode");
 
-            // 电池模式下
+            // 电池模式下，最高性能为【平衡】
             if (SystemInformation.PowerStatus.PowerLineStatus == PowerLineStatus.Offline)
             {
-                low = 1;
-                medium = 16;
-                high = 25;
+                performancePower = CommonUtils.GetPowerLimitByMode("BalancedMode");
             }
 
-            // 夜晚
+            // 夜晚，最高性能为【平衡】
             if (isNight)
             {
-                low = 1;
-                medium = 8;
-                high = 16;
+                performancePower = CommonUtils.GetPowerLimitByMode("BalancedMode");
             }
 
-            // 默认使用 medium（平衡）
-            var powerLimit = medium;
+            // 默认使用【省电】
+            var powerLimit = powerSavePower;
 
-            // 符合下面条件之一的情况下，使用 low（待机）
+            // 符合下面条件之一的情况下，使用【待机】
             var idleSecond = CommonUtils.GetIdleSecond();
             if (
                 // 条件1：白天 && 非活跃时间超过16分钟 && CPU 占用小于 10% && 显卡占用小于 10%
@@ -218,13 +180,19 @@ CPU: {3:0}%, GPU: {4:0}%",
                 (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20)
             )
             {
-                powerLimit = low;
+                powerLimit = sleepPower;
             }
 
-            // CPU 超过 60% 占用后，使用 high（高性能）
+            // CPU 超过 30% 占用后，使用【平衡】
+            if (cpuUsage >= 30)
+            {
+                powerLimit = balancedPower;
+            }
+
+            // CPU 超过 60% 占用后，使用【性能】
             if (cpuUsage >= 60)
             {
-                powerLimit = high;
+                powerLimit = performancePower;
             }
 
             return powerLimit;
@@ -283,17 +251,76 @@ CPU: {3:0}%, GPU: {4:0}%",
             }
         }
 
-        private float GetPowerLimitByMode(string mode)
-        {
-            return float.Parse(Properties.Settings.Default[mode].ToString());
-        }
-
         private string GetModeDetailText(string mode)
         {
             return String.Format("{0}-{1}W",
                 Properties.Strings.ResourceManager.GetString(mode),
-                GetPowerLimitByMode(mode)
+                CommonUtils.GetPowerLimitByMode(mode)
             );
+        }
+
+        private float GetPowerLimit()
+        {
+            var powerLimit = CommonUtils.GetPowerLimitByMode(Properties.Settings.Default.CurrentMode);
+
+            // 自动模式下，根据系统状态自动调整
+            if (Properties.Settings.Default.CurrentMode == "AutoMode")
+            {
+                powerLimit = this.AutoModePowerLimit();
+            }
+
+            // 数值修正
+            if (powerLimit < 0)
+            {
+                powerLimit = 1;
+            }
+
+            return powerLimit;
+        }
+
+        private string GetNoticeText()
+        {
+            var powerLimit = this.GetPowerLimit();
+
+            var noticeText = string.Format(@"[{0}]
+限制功率：{1:0}W，实际功率：{2:0}W
+CPU: {3:0}%, GPU: {4:0}%",
+                Properties.Settings.Default.CurrentMode,
+                powerLimit,
+                _hardwareMonitor.CpuPackagePower,
+                _hardwareMonitor.CpuUsage,
+                _hardwareMonitor.VideoCard3DUsage
+            );
+            if (noticeText.Length > 64)
+            {
+                noticeText = noticeText.Substring(0, 64);
+            }
+
+            return noticeText;
+        }
+
+        private string CalcRyzenAdjArg()
+        {
+            var powerLimit = this.GetPowerLimit();
+            var argArr = new List<string>
+            {
+                // 持续功率限制
+                $"--stapm-limit {powerLimit * 1000}",
+                // 实际功率限制
+                $"--fast-limit {powerLimit * 1000}",
+                // 平均功率限制
+                $"--slow-limit {powerLimit * 1000}"
+            };
+
+            if (CommonUtils.IsSleepMode(powerLimit))
+            {
+                // DC-Mode-Tune with boost delay，延迟超频
+                argArr.Add("--power-saving");
+            }
+
+            var argText = string.Join(" ", argArr.ToArray());
+
+            return argText;
         }
     }
 }
