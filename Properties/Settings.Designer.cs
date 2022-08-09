@@ -73,45 +73,45 @@ namespace RyzenTuner.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public string ExtendedBatteryLifeMode {
+        public string SleepMode {
             get {
-                return ((string)(this["ExtendedBatteryLifeMode"]));
+                return ((string)(this["SleepMode"]));
             }
             set {
-                this["ExtendedBatteryLifeMode"] = value;
+                this["SleepMode"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("16")]
-        public string BatteryLifeMode {
+        public string PowerSaveMode {
             get {
-                return ((string)(this["BatteryLifeMode"]));
+                return ((string)(this["PowerSaveMode"]));
             }
             set {
-                this["BatteryLifeMode"] = value;
+                this["PowerSaveMode"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20")]
-        public string GamingMode {
+        [global::System.Configuration.DefaultSettingValueAttribute("22")]
+        public string BalancedMode {
             get {
-                return ((string)(this["GamingMode"]));
+                return ((string)(this["BalancedMode"]));
             }
             set {
-                this["GamingMode"] = value;
+                this["BalancedMode"] = value;
             }
         }
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("30")]
-        public string FactoryDefaultMode {
+        public string PerformanceMode {
             get {
-                return ((string)(this["FactoryDefaultMode"]));
+                return ((string)(this["PerformanceMode"]));
             }
         }
         
