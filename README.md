@@ -56,7 +56,7 @@
 
 * [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner)：基于该项目开发
 * [FlyGoat/RyzenAdj](https://github.com/FlyGoat/RyzenAdj)：Ryzen 移动处理器电源管理工具
-  * 使用版本：v0.11.0
+  * 使用版本：v0.11.1
 * [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar)：Windows 进程管理，可能有增加续航的效果（未测试）
   * 需要 Windows 11 21H1 以上版本
   * 使用版本：v1.0.0（https://github.com/JasonWei512/EnergyStar/actions/runs/2773330296）
