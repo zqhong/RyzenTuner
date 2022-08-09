@@ -27,7 +27,6 @@
 
 ## 计划
 
-- [ ] 预设各个模式下的配置参数
 - [ ] 多语言支持
 - [ ] GitHub Action 自动编译
 - [ ] .NET MAUI 重写，支持 Windows 和 Linux

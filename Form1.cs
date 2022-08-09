@@ -190,6 +190,7 @@ namespace RyzenTuner
             }
 
             // CPU 超过 60% 占用后，使用【性能】
+            // TODO：超过 60% CPU 占用超过 x 分钟之后才切换
             if (cpuUsage >= 60)
             {
                 powerLimit = performancePower;
@@ -319,6 +320,7 @@ CPU: {3:0}%, GPU: {4:0}%",
             }
 
             var argText = string.Join(" ", argArr.ToArray());
+            argText = argText.Trim();
 
             return argText;
         }
