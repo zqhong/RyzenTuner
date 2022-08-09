@@ -5,12 +5,6 @@ namespace RyzenTuner
 {
     partial class Form1
     {
-        // private string _sleepMode = "SleepMode";
-        // private string _powerSaveMode = "PowerSaveMode";
-        // private string _balancedMode = "BalancedMode";
-        // private string _performanceMode = "PerformanceMode";
-        // private string _customMode = "CustomMode";
-
         /// <summary>
         /// 必需的设计器变量。
         /// </summary>
@@ -206,12 +200,17 @@ namespace RyzenTuner
             this.checkBox1.Text = "启用 EnergyStar";
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            // 仅在支持 EnergyStar 的时候显示方框
+            if (!CommonUtils.IsSupportEnergyStar())
+            {
+                this.checkBox1.Enabled = false;
+            }
+            
             // 
             // notifyIcon1
             // 
             this.notifyIcon1.ContextMenuStrip = this.contextMenuStrip1;
             this.notifyIcon1.Icon = this.getIcon();
-            this.notifyIcon1.Text = "RyzenTuner 运行中";
             this.notifyIcon1.Visible = true;
             this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
             // 
@@ -304,7 +303,8 @@ namespace RyzenTuner
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Form1";
-            this.Text = "RyzenTuner";
+            // Form 标题
+            this.Text = String.Format("RyzenTuner {0}", Properties.Strings.Version);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);

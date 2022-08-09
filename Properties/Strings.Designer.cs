@@ -80,5 +80,11 @@ namespace RyzenTuner.Properties {
                 return ResourceManager.GetString("SleepMode", resourceCulture);
             }
         }
+        
+        internal static string Version {
+            get {
+                return ResourceManager.GetString("Version", resourceCulture);
+            }
+        }
     }
 }
