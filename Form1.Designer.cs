@@ -128,7 +128,7 @@ namespace RyzenTuner
             this.radioButton5.TabIndex = 4;
             this.radioButton5.TabStop = true;
             this.radioButton5.Tag = "PerformanceMode";
-            this.radioButton5.Text = Properties.Strings.PerformanceMode;
+            this.radioButton5.Text = GetModeDetailText("PerformanceMode");
             this.radioButton5.UseVisualStyleBackColor = true;
             this.radioButton5.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             
@@ -139,7 +139,7 @@ namespace RyzenTuner
             this.radioButton4.Size = new System.Drawing.Size(185, 28);
             this.radioButton4.TabIndex = 3;
             this.radioButton4.Tag = "BalancedMode";
-            this.radioButton4.Text = Properties.Strings.BalancedMode;
+            this.radioButton4.Text = GetModeDetailText("BalancedMode");
             this.radioButton4.UseVisualStyleBackColor = true;
             this.radioButton4.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
@@ -150,7 +150,7 @@ namespace RyzenTuner
             this.radioButton3.Size = new System.Drawing.Size(173, 28);
             this.radioButton3.TabIndex = 2;
             this.radioButton3.Tag = "PowerSaveMode";
-            this.radioButton3.Text = Properties.Strings.PowerSaveMode;
+            this.radioButton3.Text = GetModeDetailText("PowerSaveMode");
             this.radioButton3.UseVisualStyleBackColor = true;
             this.radioButton3.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
@@ -161,7 +161,7 @@ namespace RyzenTuner
             this.radioButton2.Size = new System.Drawing.Size(221, 28);
             this.radioButton2.TabIndex = 1;
             this.radioButton2.Tag = "SleepMode";
-            this.radioButton2.Text = Properties.Strings.SleepMode;
+            this.radioButton2.Text = GetModeDetailText("SleepMode");
             this.radioButton2.UseVisualStyleBackColor = true;
             this.radioButton2.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
