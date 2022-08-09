@@ -22,6 +22,30 @@
 
 你可以直接到 [Release](https://github.com/zqhong/RyzenTuner/releases) 下载编译好的程序使用。
 
+## FAQ
+
+### 如何修改待机模式等其他模式的功率
+
+关闭 `RyzenTuner`。打开 `RyzenTuner.exe.config` 文件，修改对应的参数。比如 `SleepMode` 就是 睡眠模式，修改其中的 value 值。
+
+示例：将睡眠模式从 1 W 改为 2 W
+
+修改前
+
+```xml
+<setting name="SleepMode" serializeAs="String">
+  <value>1</value>
+</setting>
+```
+
+修改后
+
+```xml
+<setting name="SleepMode" serializeAs="String">
+  <value>2</value>
+</setting>
+```
+
 ## 计划
 
 - [ ] 多语言支持
