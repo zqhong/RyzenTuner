@@ -100,17 +100,16 @@ namespace RyzenTuner
             this.groupBox1.Text = "功率限制";
             
             // textBox1
-            this.textBox1.Location = new System.Drawing.Point(583, 87);
+            this.textBox1.Location = new System.Drawing.Point(596, 87);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(82, 35);
+            this.textBox1.Size = new System.Drawing.Size(62, 35);
             this.textBox1.TabIndex = 6;
-            this.textBox1.Text = "5-15";
+            this.textBox1.Text = "20";
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
 
             // radioButton6
             this.radioButton6.AutoSize = true;
-            // TODO：这里需要调整下
-            this.radioButton6.Location = new System.Drawing.Point(467, 88);
+            this.radioButton6.Location = new System.Drawing.Point(464, 88);
             this.radioButton6.Name = "radioButton6";
             this.radioButton6.Size = new System.Drawing.Size(113, 28);
             this.radioButton6.TabIndex = 5;
