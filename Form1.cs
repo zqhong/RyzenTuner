@@ -291,5 +291,13 @@ CPU: {3:0}%, GPU: {4:0}%",
         {
             return float.Parse(Properties.Settings.Default[mode].ToString());
         }
+
+        private string GetModeDetailText(string mode)
+        {
+            return String.Format("{0}-{1}W",
+                Properties.Strings.ResourceManager.GetString(mode),
+                GetPowerLimitByMode(mode)
+            );
+        }
     }
 }
