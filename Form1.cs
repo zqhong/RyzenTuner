@@ -65,13 +65,9 @@ namespace RyzenTuner
         private void timer1_Tick(object sender, EventArgs e)
         {
             // check energystar.exe is running, if not, start it
-            // EnergyStar 需要 OS Build 版本大于等于 22000，即 Windows 11 21H2。EnergyStar 开发者建议使用 22H2
-            // 参考：
-            // https://github.com/imbushuo/EnergyStar/blob/master/EnergyStar/Program.cs#L29-L39
-            // https://github.com/imbushuo/EnergyStar/issues/10
             if (checkBox1.Checked)
             {
-                if (Environment.OSVersion.Version.Build >= 22000)
+                if (CommonUtils.IsSupportEnergyStar())
                 {
                     StartEnergyStar();
                 }
