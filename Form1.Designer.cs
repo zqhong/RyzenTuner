@@ -5,6 +5,12 @@ namespace RyzenTuner
 {
     partial class Form1
     {
+        private string _sleepMode = "SleepMode";
+        private string _powerSaveMode = "PowerSaveMode";
+        private string _balancedMode = "BalancedMode";
+        private string _performanceMode = "PerformanceMode";
+        private string _customMode = "CustomMode";
+
         /// <summary>
         /// 必需的设计器变量。
         /// </summary>
@@ -59,12 +65,16 @@ namespace RyzenTuner
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.自动模式CtrlAltShiftF1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.续航模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.平衡模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.游戏模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.出厂模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.手动模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            
+            this.AutoModeCtrlAltShiftF1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            
+            // Mode 1 到 4，依次是：待机模式、省电模式、平衡模式、性能模式
+            this.Mode1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Mode2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Mode3ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Mode4ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            
+            this.CustomModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
@@ -90,18 +100,16 @@ namespace RyzenTuner
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "功率限制";
-            // 
+            
             // textBox1
-            // 
             this.textBox1.Location = new System.Drawing.Point(583, 87);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(82, 35);
             this.textBox1.TabIndex = 6;
             this.textBox1.Text = "5-15";
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            // 
+
             // radioButton6
-            // 
             this.radioButton6.AutoSize = true;
             this.radioButton6.Location = new System.Drawing.Point(464, 88);
             this.radioButton6.Name = "radioButton6";
@@ -112,9 +120,7 @@ namespace RyzenTuner
             this.radioButton6.UseVisualStyleBackColor = true;
             this.radioButton6.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             
-            // 
             // radioButton5
-            // 
             this.radioButton5.AutoSize = true;
             this.radioButton5.Checked = true;
             this.radioButton5.Location = new System.Drawing.Point(227, 88);
@@ -123,49 +129,44 @@ namespace RyzenTuner
             this.radioButton5.TabIndex = 4;
             this.radioButton5.TabStop = true;
             this.radioButton5.Tag = "FactoryDefaultMode";
-            this.radioButton5.Text = String.Format("工厂模式-{0}W", this.GetPowerLimitByMode("FactoryDefaultMode"));
+            this.radioButton5.Text = String.Format("性能模式-{0}W", this.GetPowerLimitByMode("FactoryDefaultMode"));
             this.radioButton5.UseVisualStyleBackColor = true;
             this.radioButton5.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             
-            // 
             // radioButton4
-            // 
             this.radioButton4.AutoSize = true;
             this.radioButton4.Location = new System.Drawing.Point(24, 88);
             this.radioButton4.Name = "radioButton4";
             this.radioButton4.Size = new System.Drawing.Size(185, 28);
             this.radioButton4.TabIndex = 3;
             this.radioButton4.Tag = "GamingMode";
-            this.radioButton4.Text = "游戏模式-20W";
+            this.radioButton4.Text = String.Format("平衡模式-{0}W", this.GetPowerLimitByMode("GamingMode"));
             this.radioButton4.UseVisualStyleBackColor = true;
             this.radioButton4.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
-            // 
+
             // radioButton3
-            // 
             this.radioButton3.AutoSize = true;
             this.radioButton3.Location = new System.Drawing.Point(464, 37);
             this.radioButton3.Name = "radioButton3";
             this.radioButton3.Size = new System.Drawing.Size(173, 28);
             this.radioButton3.TabIndex = 2;
             this.radioButton3.Tag = "BatteryLifeMode";
-            this.radioButton3.Text = String.Format("平衡模式-{0}W", this.GetPowerLimitByMode("BatteryLifeMode"));
+            this.radioButton3.Text = String.Format("省电模式-{0}W", this.GetPowerLimitByMode("BatteryLifeMode"));
             this.radioButton3.UseVisualStyleBackColor = true;
             this.radioButton3.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
-            // 
+
             // radioButton2
-            // 
             this.radioButton2.AutoSize = true;
             this.radioButton2.Location = new System.Drawing.Point(227, 38);
             this.radioButton2.Name = "radioButton2";
             this.radioButton2.Size = new System.Drawing.Size(221, 28);
             this.radioButton2.TabIndex = 1;
             this.radioButton2.Tag = "ExtendedBatteryLifeMode";
-            this.radioButton2.Text = String.Format("续航模式-{0}W", this.GetPowerLimitByMode("ExtendedBatteryLifeMode"));
+            this.radioButton2.Text = String.Format("待机模式-{0}W", this.GetPowerLimitByMode("ExtendedBatteryLifeMode"));
             this.radioButton2.UseVisualStyleBackColor = true;
             this.radioButton2.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
-            // 
+
             // radioButton1
-            // 
             this.radioButton1.AutoSize = true;
             this.radioButton1.Location = new System.Drawing.Point(24, 38);
             this.radioButton1.Name = "radioButton1";
@@ -175,9 +176,8 @@ namespace RyzenTuner
             this.radioButton1.Text = "自动模式";
             this.radioButton1.UseVisualStyleBackColor = true;
             this.radioButton1.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
-            // 
+
             // groupBox3
-            // 
             this.groupBox3.Controls.Add(this.checkBox3);
             this.groupBox3.Controls.Add(this.checkBox1);
             this.groupBox3.Location = new System.Drawing.Point(29, 180);
@@ -221,74 +221,62 @@ namespace RyzenTuner
             // 
             this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.自动模式CtrlAltShiftF1ToolStripMenuItem,
-            this.续航模式ToolStripMenuItem,
-            this.平衡模式ToolStripMenuItem,
-            this.游戏模式ToolStripMenuItem,
-            this.出厂模式ToolStripMenuItem,
-            this.手动模式ToolStripMenuItem,
+            this.AutoModeCtrlAltShiftF1ToolStripMenuItem,
+            this.Mode1ToolStripMenuItem,
+            this.Mode2ToolStripMenuItem,
+            this.Mode3ToolStripMenuItem,
+            this.Mode4ToolStripMenuItem,
+            this.CustomModeToolStripMenuItem,
             this.toolStripSeparator1,
             this.退出ToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(281, 276);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
-            // 
-            // 自动模式25WCtrlAltShiftF1ToolStripMenuItem
-            // 
-            this.自动模式CtrlAltShiftF1ToolStripMenuItem.CheckOnClick = true;
-            this.自动模式CtrlAltShiftF1ToolStripMenuItem.Name = "自动模式CtrlAltShiftF1ToolStripMenuItem";
-            this.自动模式CtrlAltShiftF1ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.自动模式CtrlAltShiftF1ToolStripMenuItem.Tag = "AutoMode";
-            this.自动模式CtrlAltShiftF1ToolStripMenuItem.Text = "自动模式";
-            this.自动模式CtrlAltShiftF1ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-            // 
-            // 极致续航模式4WToolStripMenuItem
-            // 
-            this.续航模式ToolStripMenuItem.CheckOnClick = true;
-            this.续航模式ToolStripMenuItem.Name = "续航模式ToolStripMenuItem";
-            this.续航模式ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.续航模式ToolStripMenuItem.Tag = "ExtendedBatteryLifeMode";
-            this.续航模式ToolStripMenuItem.Text = "续航模式";
-            this.续航模式ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-            // 
-            // 续航模式6WToolStripMenuItem
-            // 
-            this.平衡模式ToolStripMenuItem.CheckOnClick = true;
-            this.平衡模式ToolStripMenuItem.Name = "平衡模式ToolStripMenuItem";
-            this.平衡模式ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.平衡模式ToolStripMenuItem.Tag = "BatteryLifeMode";
-            this.平衡模式ToolStripMenuItem.Text = "平衡模式";
-            this.平衡模式ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-            // 
-            // 游戏模式15WToolStripMenuItem
-            // 
-            this.游戏模式ToolStripMenuItem.CheckOnClick = true;
-            this.游戏模式ToolStripMenuItem.Name = "游戏模式ToolStripMenuItem";
-            this.游戏模式ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.游戏模式ToolStripMenuItem.Tag = "GamingMode";
-            this.游戏模式ToolStripMenuItem.Text = "游戏模式";
-            this.游戏模式ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-            
-            // 
-            // 恢复默认设置ToolStripMenuItem
-            // 
-            this.出厂模式ToolStripMenuItem.CheckOnClick = true;
-            this.出厂模式ToolStripMenuItem.Name = "出厂模式ToolStripMenuItem";
-            this.出厂模式ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.出厂模式ToolStripMenuItem.Tag = "FactoryDefaultMode";
-            this.出厂模式ToolStripMenuItem.Text = "出厂模式";
-            this.出厂模式ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
+         
+            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.CheckOnClick = true;
+            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Name = "AutoModeCtrlAltShiftF1ToolStripMenuItem";
+            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Tag = "AutoMode";
+            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Text = "自动模式";
+            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
 
-            // 手动模式ToolStripMenuItem
-            this.手动模式ToolStripMenuItem.CheckOnClick = true;
-            this.手动模式ToolStripMenuItem.Name = "手动模式ToolStripMenuItem";
-            this.手动模式ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.手动模式ToolStripMenuItem.Tag = "CustomMode";
-            this.手动模式ToolStripMenuItem.Text = "手动模式";
-            this.手动模式ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-            // 
+            this.Mode1ToolStripMenuItem.CheckOnClick = true;
+            this.Mode1ToolStripMenuItem.Name = "Mode1ToolStripMenuItem";
+            this.Mode1ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.Mode1ToolStripMenuItem.Tag = "ExtendedBatteryLifeMode";
+            this.Mode1ToolStripMenuItem.Text = "待机模式";
+            this.Mode1ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
+           
+            this.Mode2ToolStripMenuItem.CheckOnClick = true;
+            this.Mode2ToolStripMenuItem.Name = "Mode2ToolStripMenuItem";
+            this.Mode2ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.Mode2ToolStripMenuItem.Tag = "BatteryLifeMode";
+            this.Mode2ToolStripMenuItem.Text = "省电模式";
+            this.Mode2ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
+
+            this.Mode3ToolStripMenuItem.CheckOnClick = true;
+            this.Mode3ToolStripMenuItem.Name = "Mode3ToolStripMenuItem";
+            this.Mode3ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.Mode3ToolStripMenuItem.Tag = "GamingMode";
+            this.Mode3ToolStripMenuItem.Text = "平衡模式";
+            this.Mode3ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
+            
+
+            this.Mode4ToolStripMenuItem.CheckOnClick = true;
+            this.Mode4ToolStripMenuItem.Name = "Mode4ToolStripMenuItem";
+            this.Mode4ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.Mode4ToolStripMenuItem.Tag = "FactoryDefaultMode";
+            this.Mode4ToolStripMenuItem.Text = "性能模式";
+            this.Mode4ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
+
+            this.CustomModeToolStripMenuItem.CheckOnClick = true;
+            this.CustomModeToolStripMenuItem.Name = "CustomModeToolStripMenuItem";
+            this.CustomModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.CustomModeToolStripMenuItem.Tag = "CustomMode";
+            this.CustomModeToolStripMenuItem.Text = "手动模式";
+            this.CustomModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
+            
             // toolStripSeparator1
-            // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(277, 6);
             // 
@@ -346,12 +334,12 @@ namespace RyzenTuner
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem 自动模式CtrlAltShiftF1ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 续航模式ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 平衡模式ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 游戏模式ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 出厂模式ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 手动模式ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem AutoModeCtrlAltShiftF1ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem Mode1ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem Mode2ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem Mode3ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem Mode4ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem CustomModeToolStripMenuItem;
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
