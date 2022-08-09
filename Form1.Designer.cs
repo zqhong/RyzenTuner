@@ -109,7 +109,8 @@ namespace RyzenTuner
 
             // radioButton6
             this.radioButton6.AutoSize = true;
-            this.radioButton6.Location = new System.Drawing.Point(464, 88);
+            // TODO：这里需要调整下
+            this.radioButton6.Location = new System.Drawing.Point(467, 88);
             this.radioButton6.Name = "radioButton6";
             this.radioButton6.Size = new System.Drawing.Size(113, 28);
             this.radioButton6.TabIndex = 5;
