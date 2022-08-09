@@ -37,6 +37,6 @@
   * 支持的 APU 列表：https://github.com/JamesCJ60/AMD-APU-Tuning-Utility#basic-apu-support-list
   * 使用版本：v0.11.0
 * [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar)：Windows 进程管理，可能有增加续航的效果（未测试）
-    * 需要 Windows 11 21H1 以上版本
-  * 使用版本：v1.0.0
+  * 需要 Windows 11 21H1 以上版本
+  * 使用版本：v1.0.0（本地编译，编译选项：ReleaseInvisible | Any CPU。基于 https://github.com/imbushuo/EnergyStar/commit/18872289ac4de7d22208f1fc5b156abaa904dff8）
 * [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)：获取硬件信息
