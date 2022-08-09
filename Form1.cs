@@ -213,7 +213,7 @@ CPU: {3:0}%, GPU: {4:0}%",
             // 默认使用 medium（平衡）
             var powerLimit = medium;
 
-            // 符合下面条件的情况下，使用 low（待机）
+            // 符合下面条件之一的情况下，使用 low（待机）
             var idleSecond = CommonUtils.GetIdleSecond();
             if (
                 // 条件1：白天 && 非活跃时间超过16分钟 && CPU 占用小于 10% && 显卡占用小于 10%

@@ -64,7 +64,7 @@ namespace RyzenTuner
             this.平衡模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.游戏模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.出厂模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.自定义ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.手动模式ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
@@ -89,7 +89,7 @@ namespace RyzenTuner
             this.groupBox1.Size = new System.Drawing.Size(706, 141);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "功耗限制";
+            this.groupBox1.Text = "功率限制";
             // 
             // textBox1
             // 
@@ -108,7 +108,7 @@ namespace RyzenTuner
             this.radioButton6.Size = new System.Drawing.Size(113, 28);
             this.radioButton6.TabIndex = 5;
             this.radioButton6.Tag = "CustomMode";
-            this.radioButton6.Text = "自定义";
+            this.radioButton6.Text = "手动模式";
             this.radioButton6.UseVisualStyleBackColor = true;
             this.radioButton6.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             
@@ -226,7 +226,7 @@ namespace RyzenTuner
             this.平衡模式ToolStripMenuItem,
             this.游戏模式ToolStripMenuItem,
             this.出厂模式ToolStripMenuItem,
-            this.自定义ToolStripMenuItem,
+            this.手动模式ToolStripMenuItem,
             this.toolStripSeparator1,
             this.退出ToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
@@ -278,15 +278,14 @@ namespace RyzenTuner
             this.出厂模式ToolStripMenuItem.Tag = "FactoryDefaultMode";
             this.出厂模式ToolStripMenuItem.Text = "出厂模式";
             this.出厂模式ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-            // 
-            // 自定义ToolStripMenuItem
-            // 
-            this.自定义ToolStripMenuItem.CheckOnClick = true;
-            this.自定义ToolStripMenuItem.Name = "自定义ToolStripMenuItem";
-            this.自定义ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.自定义ToolStripMenuItem.Tag = "CustomMode";
-            this.自定义ToolStripMenuItem.Text = "自定义";
-            this.自定义ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
+
+            // 手动模式ToolStripMenuItem
+            this.手动模式ToolStripMenuItem.CheckOnClick = true;
+            this.手动模式ToolStripMenuItem.Name = "手动模式ToolStripMenuItem";
+            this.手动模式ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.手动模式ToolStripMenuItem.Tag = "CustomMode";
+            this.手动模式ToolStripMenuItem.Text = "手动模式";
+            this.手动模式ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
             // 
             // toolStripSeparator1
             // 
@@ -352,7 +351,7 @@ namespace RyzenTuner
         private System.Windows.Forms.ToolStripMenuItem 平衡模式ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 游戏模式ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 出厂模式ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem 自定义ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 手动模式ToolStripMenuItem;
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
