@@ -44,5 +44,35 @@ namespace RyzenTuner.Properties {
                 resourceCulture = value;
             }
         }
+        
+        internal static string SleepMode {
+            get {
+                return ResourceManager.GetString("SleepMode", resourceCulture);
+            }
+        }
+        
+        internal static string PowerSaveMode {
+            get {
+                return ResourceManager.GetString("PowerSaveMode", resourceCulture);
+            }
+        }
+        
+        internal static string BalancedMode {
+            get {
+                return ResourceManager.GetString("BalancedMode", resourceCulture);
+            }
+        }
+        
+        internal static string PerformanceMode {
+            get {
+                return ResourceManager.GetString("PerformanceMode", resourceCulture);
+            }
+        }
+        
+        internal static string CustomMode {
+            get {
+                return ResourceManager.GetString("CustomMode", resourceCulture);
+            }
+        }
     }
 }
