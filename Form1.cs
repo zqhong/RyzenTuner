@@ -310,12 +310,6 @@ CPU: {3:0}%, GPU: {4:0}%",
                 $"--slow-limit {powerLimit * 1000}"
             };
 
-            if (CommonUtils.IsSleepMode(powerLimit))
-            {
-                // DC-Mode-Tune with boost delay，延迟超频
-                argArr.Add("--power-saving");
-            }
-
             var argText = string.Join(" ", argArr.ToArray());
             argText = argText.Trim();
 

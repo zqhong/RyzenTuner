@@ -60,7 +60,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        [global::System.Configuration.DefaultSettingValueAttribute("16")]
         public string AutoMode {
             get {
                 return ((string)(this["AutoMode"]));
@@ -84,7 +84,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("8")]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
         public string PowerSaveMode {
             get {
                 return ((string)(this["PowerSaveMode"]));
@@ -108,7 +108,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("30")]
+        [global::System.Configuration.DefaultSettingValueAttribute("26")]
         public string PerformanceMode {
             get {
                 return ((string)(this["PerformanceMode"]));
