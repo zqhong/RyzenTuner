@@ -146,13 +146,13 @@ namespace RyzenTuner
 
             var isNight = CommonUtils.IsNight(DateTime.Now);
 
-            // 四个档位：待机、省电、平衡、性能
+            // 自动模式下，在三个档位切换：待机、平衡、性能
             // 插电模式下
             var sleepPower = CommonUtils.GetPowerLimitByMode("SleepMode");
-            var powerSavePower = CommonUtils.GetPowerLimitByMode("PowerSaveMode");
             var balancedPower = CommonUtils.GetPowerLimitByMode("BalancedMode");
             var performancePower = CommonUtils.GetPowerLimitByMode("PerformanceMode");
 
+            
             // 电池模式下，最高性能为【平衡】
             if (SystemInformation.PowerStatus.PowerLineStatus == PowerLineStatus.Offline)
             {
@@ -165,8 +165,8 @@ namespace RyzenTuner
                 performancePower = CommonUtils.GetPowerLimitByMode("BalancedMode");
             }
 
-            // 默认使用【省电】
-            var powerLimit = powerSavePower;
+            // 默认使用【平衡】
+            var powerLimit = balancedPower;
 
             // 符合下面条件之一的情况下，使用【待机】
             var idleSecond = CommonUtils.GetIdleSecond();
@@ -180,15 +180,8 @@ namespace RyzenTuner
                 powerLimit = sleepPower;
             }
 
-            // CPU 超过 30% 占用后，使用【平衡】
+            // CPU 超过 30% 占用后，使用【性能】
             if (cpuUsage >= 30)
-            {
-                powerLimit = balancedPower;
-            }
-
-            // CPU 超过 60% 占用后，使用【性能】
-            // TODO：超过 60% CPU 占用超过 x 分钟之后才切换
-            if (cpuUsage >= 60)
             {
                 powerLimit = performancePower;
             }
