@@ -171,8 +171,8 @@ namespace RyzenTuner
             // 符合下面条件之一的情况下，使用【待机】
             var idleSecond = CommonUtils.GetIdleSecond();
             if (
-                // 条件1：白天 && 非活跃时间超过16分钟 && CPU 占用小于 10% && 显卡占用小于 10%
-                (!isNight && idleSecond >= 16 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
+                // 条件1：白天 && 非活跃时间超过32分钟 && CPU 占用小于 10% && 显卡占用小于 10%
+                (!isNight && idleSecond >= 32 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
                 // 条件2：夜晚 && 非活跃时间超过4分钟 && CPU 占用小于 20% && 显卡占用小于 20%
                 (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20)
             )
