@@ -1,3 +1,15 @@
+
+## AMD Ryzen™ 7 PRO 6850HS
+
+### ryzenadj.exe
+
+```
+set_min_lclk is not supported on this family
+set_max_gfxclk_freq is not supported on this family
+
+set_min_gfxclk_freq is not supported on this familys
+```
+
 ## 参考 preset
 
 ### AATU

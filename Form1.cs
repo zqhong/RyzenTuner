@@ -65,13 +65,12 @@ namespace RyzenTuner
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            // check energystar.exe is running, if not, start it
-            if (checkBox1.Checked)
+            _hardwareMonitor.Monitor();
+
+            // 启动/关闭 EnergyStar
+            if (checkBox1.Checked && CommonUtils.IsSupportEnergyStar())
             {
-                if (CommonUtils.IsSupportEnergyStar())
-                {
-                    StartEnergyStar();
-                }
+                StartEnergyStar();
             }
             else
             {
@@ -142,8 +141,6 @@ namespace RyzenTuner
          */
         private float AutoModePowerLimit()
         {
-            _hardwareMonitor.Monitor();
-
             var cpuUsage = _hardwareMonitor.CpuUsage;
             var videoCard3DUsage = _hardwareMonitor.VideoCard3DUsage;
 
