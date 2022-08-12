@@ -46,6 +46,7 @@
 
 ## 计划
 
+- [ ] 使用 EnergyStar 的 config 分支，添加自定义白名单的功能
 - [ ] 多语言支持
 - [ ] GitHub Action 自动编译
 - [ ] .NET MAUI 重写，支持 Windows 和 Linux
