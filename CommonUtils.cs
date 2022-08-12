@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -18,6 +19,22 @@ namespace RyzenTuner
 
             [MarshalAs(UnmanagedType.U4)] public int cbSize;
             [MarshalAs(UnmanagedType.U4)] public UInt32 dwTime;
+        }
+
+        /**
+         * 检查字体是否存在
+         */
+        public static bool IsFontExists(string fontName)
+        {
+            const float fontSize = 12;
+
+            using var fontTester = new Font(
+                fontName,
+                fontSize,
+                FontStyle.Regular,
+                GraphicsUnit.Pixel);
+
+            return fontTester.Name == fontName;
         }
 
         /**

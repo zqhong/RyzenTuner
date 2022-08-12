@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 
 namespace RyzenTuner
@@ -43,6 +45,21 @@ namespace RyzenTuner
         /// </summary>
         private void InitializeComponent()
         {
+            string[] tryFontArr =
+            {
+                "微软雅黑",
+                "思源黑体",
+                "Arial",
+            };
+            foreach (var loopFont in tryFontArr)
+            {
+                if (CommonUtils.IsFontExists(loopFont))
+                {
+                    this.Font = new Font("微软雅黑", 10);
+                    break;
+                }
+            }
+            
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             
@@ -76,6 +93,7 @@ namespace RyzenTuner
             this.groupBox3.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
+            
             // 
             // groupBox1
             // 
