@@ -112,14 +112,5 @@ namespace RyzenTuner.Properties {
                 return ResourceManager.GetString("SleepMode", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to v1.0.3.
-        /// </summary>
-        internal static string Version {
-            get {
-                return ResourceManager.GetString("Version", resourceCulture);
-            }
-        }
     }
 }

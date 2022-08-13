@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace RyzenTuner
 {
@@ -236,14 +238,15 @@ namespace RyzenTuner
             // 
             this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.AutoModeCtrlAltShiftF1ToolStripMenuItem,
-            this.SleepModeToolStripMenuItem,
-            this.PowerSaveModeToolStripMenuItem,
-            this.BalancedModeToolStripMenuItem,
-            this.PerformanceModeToolStripMenuItem,
-            this.CustomModeToolStripMenuItem,
-            this.toolStripSeparator1,
-            this.退出ToolStripMenuItem});
+                this.AutoModeCtrlAltShiftF1ToolStripMenuItem,
+                this.SleepModeToolStripMenuItem,
+                this.PowerSaveModeToolStripMenuItem,
+                this.BalancedModeToolStripMenuItem,
+                this.PerformanceModeToolStripMenuItem,
+                this.CustomModeToolStripMenuItem,
+                this.toolStripSeparator1,
+                this.退出ToolStripMenuItem,
+            });
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(281, 276);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
@@ -322,7 +325,10 @@ namespace RyzenTuner
             this.MinimizeBox = false;
             this.Name = "Form1";
             // Form 标题
-            this.Text = String.Format("RyzenTuner {0}", Properties.Strings.Version);
+            var softwareVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            softwareVersion = Regex.Replace(softwareVersion, @"(\d+\.\d+\.\d+)\.\d+", "$1");
+            
+            this.Text = String.Format("RyzenTuner V{0}", softwareVersion);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);
