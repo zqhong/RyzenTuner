@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -99,6 +100,30 @@ namespace RyzenTuner
             return Math.Abs(powerLimit - GetPowerLimitByMode("SleepMode")) < 0.01;
         }
 
+        /**
+         * 检查当前是否出于【省电模式】
+         */
+        public static bool IsPowerSaveModeMode(float powerLimit)
+        {
+            return Math.Abs(powerLimit - GetPowerLimitByMode("PowerSaveMode")) < 0.01;
+        }
+
+        /**
+         * 检查当前是否出于【平衡模式】
+         */
+        public static bool IsBalancedMode(float powerLimit)
+        {
+            return Math.Abs(powerLimit - GetPowerLimitByMode("BalancedMode")) < 0.01;
+        }
+
+        /**
+         * 检查当前是否出于【性能模式】
+         */
+        public static bool IsPerformanceModeMode(float powerLimit)
+        {
+            return Math.Abs(powerLimit - GetPowerLimitByMode("PerformanceMode")) < 0.01;
+        }
+
         public static void LogInfo(string content)
         {
             var filePath = AppDomain.CurrentDomain.BaseDirectory + "\\runtime\\ryzen-tuner.log.txt";
@@ -110,6 +135,65 @@ namespace RyzenTuner
         public static float GetPowerLimitByMode(string mode)
         {
             return float.Parse(Properties.Settings.Default[mode].ToString());
+        }
+
+        /**
+         * 关闭 CPU 睿频，CPU 将保持基础频率。降低性能，减少发热量
+         */
+        public static bool DisableCpuBoost()
+        {
+            var result = true;
+
+            // 备注
+            // /SETACVALUEINDEX：设置【接通电源】相关联的参数
+            // /SETDCVALUEINDEX：设置【使用电池】相关联的参数
+            // /SETACTIVE, /S     使系统上的电源方案处于活动状态
+
+            // perfboostmode
+            //      0：Disabled
+            //      1：Enabled
+            //      2：Aggressive（官方翻译：高性能，这个模式下睿频频繁）
+            //      3：Efficient enabled
+            //      4：Efficient aggressive
+            // 参考：https://docs.microsoft.com/en-us/windows-hardware/customize/power-settings/options-for-perf-state-engine-perfboostmode
+            
+            // 查询当前配置命令：
+            // powercfg -q scheme_current sub_processor perfboostmode
+            
+            result &= RunPowerCfg("/SETACVALUEINDEX scheme_current sub_processor perfboostmode 0");
+            result &= RunPowerCfg("/SETDCVALUEINDEX scheme_current sub_processor perfboostmode 0");
+            result &= RunPowerCfg("/SETACTIVE SCHEME_CURRENT");
+
+            return result;
+        }
+
+        /**
+         * 开启 CPU 睿频。提高性能，增加发热量
+         *
+         * 更多说明参考【DisableCpuBoost】
+         */
+        public static bool EnableCpuBoost()
+        {
+            var result = true;
+
+            result &= RunPowerCfg("/SETACVALUEINDEX scheme_current sub_processor perfboostmode 2");
+            result &= RunPowerCfg("/SETDCVALUEINDEX scheme_current sub_processor perfboostmode 2");
+            result &= RunPowerCfg("/SETACTIVE SCHEME_CURRENT");
+
+            return result;
+        }
+
+        private static bool RunPowerCfg(string arg)
+        {
+            var process = new Process();
+            var startInfo = new ProcessStartInfo
+            {
+                WindowStyle = ProcessWindowStyle.Hidden,
+                FileName = "C:\\Windows\\System32\\powercfg.exe",
+                Arguments = arg
+            };
+            process.StartInfo = startInfo;
+            return process.Start();
         }
     }
 }
