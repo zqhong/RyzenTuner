@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace RyzenTuner
@@ -117,14 +118,30 @@ namespace RyzenTuner
             {
                 notifyIcon1.Text = this.GetNoticeText();
 
-                Process process = new Process();
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.FileName = System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
-                                     "\\ryzenadj\\ryzenadj.exe";
-                startInfo.Arguments = this.CalcRyzenAdjArg();
+                var powerLimit = GetPowerLimit();
+
+                // 运行 ryzen adj
+                var process = new Process();
+                var startInfo = new ProcessStartInfo
+                {
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    FileName = System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
+                               "\\ryzenadj\\ryzenadj.exe",
+                    Arguments = CalcRyzenAdjArg()
+                };
                 process.StartInfo = startInfo;
                 process.Start();
+
+                // 配置系统电源计划
+                // 1、仅在【性能模式】下开启睿频
+                if (CommonUtils.IsPerformanceModeMode(powerLimit))
+                {
+                    CommonUtils.EnableCpuBoost();
+                }
+                else
+                {
+                    CommonUtils.DisableCpuBoost();
+                }
             }
             catch (Exception e)
             {
@@ -153,7 +170,7 @@ namespace RyzenTuner
             var balancedPower = CommonUtils.GetPowerLimitByMode("BalancedMode");
             var performancePower = CommonUtils.GetPowerLimitByMode("PerformanceMode");
 
-            
+
             // 电池模式下，最高性能为【平衡】
             if (SystemInformation.PowerStatus.PowerLineStatus == PowerLineStatus.Offline)
             {
@@ -181,11 +198,12 @@ namespace RyzenTuner
                 powerLimit = sleepPower;
             }
 
-            // CPU 超过 30% 占用后，使用【性能】
-            if (cpuUsage >= 30)
-            {
-                powerLimit = performancePower;
-            }
+            // TODO：暂时不使用性能模式
+            // CPU 超过 99% 占用后，使用【性能】
+            // if (cpuUsage >= 99)
+            // {
+            //     powerLimit = performancePower;
+            // }
 
             return powerLimit;
         }
@@ -304,9 +322,31 @@ CPU: {3:0}%, GPU: {4:0}%",
                 $"--slow-limit {powerLimit * 1000}"
             };
 
+            // 预设参数
+            if (CommonUtils.IsSleepMode(powerLimit))
+            {
+                argArr.Add("--tctl-temp 50");
+            }
+            else if (CommonUtils.IsPowerSaveModeMode(powerLimit))
+            {
+                argArr.Add("--tctl-temp 55");
+            }
+            else if (CommonUtils.IsBalancedMode(powerLimit))
+            {
+                argArr.Add("--tctl-temp 60");
+            }
+            else if (CommonUtils.IsPerformanceModeMode(powerLimit))
+            {
+                argArr.Add("--tctl-temp 70");
+            }
+            else
+            {
+                argArr.Add("--tctl-temp 90");
+            }
+
             var argText = string.Join(" ", argArr.ToArray());
             argText = argText.Trim();
-
+            
             return argText;
         }
     }
