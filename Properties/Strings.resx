@@ -36,7 +36,4 @@
     <data name="SleepMode" xml:space="preserve">
         <value>待机模式</value>
     </data>
-    <data name="Version" xml:space="preserve">
-        <value>v1.0.3</value>
-    </data>
 </root>
