@@ -39,7 +39,7 @@ namespace RyzenTuner
         }
 
         /**
-         * 检查提供的日期是否出于晚上
+         * 检查提供的日期是否处于晚上
          */
         public static bool IsNight(DateTime now)
         {
@@ -93,7 +93,7 @@ namespace RyzenTuner
         }
 
         /**
-         * 检查当前是否出于【待机模式】
+         * 检查当前是否处于【待机模式】
          */
         public static bool IsSleepMode(float powerLimit)
         {
@@ -101,7 +101,7 @@ namespace RyzenTuner
         }
 
         /**
-         * 检查当前是否出于【省电模式】
+         * 检查当前是否处于【省电模式】
          */
         public static bool IsPowerSaveModeMode(float powerLimit)
         {
@@ -109,7 +109,7 @@ namespace RyzenTuner
         }
 
         /**
-         * 检查当前是否出于【平衡模式】
+         * 检查当前是否处于【平衡模式】
          */
         public static bool IsBalancedMode(float powerLimit)
         {
@@ -117,7 +117,7 @@ namespace RyzenTuner
         }
 
         /**
-         * 检查当前是否出于【性能模式】
+         * 检查当前是否处于【性能模式】
          */
         public static bool IsPerformanceModeMode(float powerLimit)
         {
