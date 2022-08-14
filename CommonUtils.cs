@@ -25,6 +25,15 @@ namespace RyzenTuner
         }
 
         /**
+         * 检查系统是否处于锁屏状态
+         */
+        public static bool IsSystemLocked()
+        {
+            // logonui，即 Windows Logon User Interface Host，翻译为【登录用户界面】
+            return Process.GetProcessesByName("logonui").Length > 0;
+        }
+
+        /**
          * 检查字体是否存在
          */
         public static bool IsFontExists(string fontName)
@@ -139,6 +148,7 @@ namespace RyzenTuner
             return float.Parse(Properties.Settings.Default[mode].ToString());
         }
 
+
         /**
          * 关闭 CPU 睿频，CPU 将保持基础频率。降低性能，减少发热量
          */
@@ -197,7 +207,7 @@ namespace RyzenTuner
         private static int GetCpuBoost()
         {
             var (processStartResult, output) = RunPowerCfg("-q scheme_current sub_processor perfboostmode");
-            
+
             if (!processStartResult)
             {
                 return -1;

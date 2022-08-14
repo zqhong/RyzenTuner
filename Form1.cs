@@ -70,7 +70,7 @@ namespace RyzenTuner
         private void timer1_Tick(object sender, EventArgs e)
         {
             _hardwareMonitor.Monitor();
-
+            
             // 启动/关闭 EnergyStar
             if (checkBox1.Checked && CommonUtils.IsSupportEnergyStar())
             {
@@ -93,9 +93,9 @@ namespace RyzenTuner
             }
         }
 
-        public static void StopEnergyStar()
+        private static void StopEnergyStar()
         {
-            foreach (Process p in Process.GetProcessesByName("energystar"))
+            foreach (var p in Process.GetProcessesByName("energystar"))
             {
                 p.Kill();
             }
@@ -166,7 +166,7 @@ namespace RyzenTuner
 
             var isNight = CommonUtils.IsNight(DateTime.Now);
 
-            // 自动模式下，在三个档位切换：待机、平衡、性能
+            // 自动模式下，在几个模式下切换：待机、平衡、性能
             // 插电模式下
             var sleepPower = CommonUtils.GetPowerLimitByMode("SleepMode");
             var balancedPower = CommonUtils.GetPowerLimitByMode("BalancedMode");
@@ -194,7 +194,9 @@ namespace RyzenTuner
                 // 条件1：白天 && 非活跃时间超过32分钟 && CPU 占用小于 10% && 显卡占用小于 10%
                 (!isNight && idleSecond >= 32 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
                 // 条件2：夜晚 && 非活跃时间超过4分钟 && CPU 占用小于 20% && 显卡占用小于 20%
-                (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20)
+                (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20) ||
+                // 条件3：锁屏状态下 && 非活跃时间超过1分钟 && CPU 占用小于 10% && 显卡占用小于 10%
+                (CommonUtils.IsSystemLocked() && idleSecond >= 1 * 60 && cpuUsage < 10 && videoCard3DUsage < 10)
             )
             {
                 powerLimit = sleepPower;
