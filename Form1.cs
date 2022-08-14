@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -18,6 +17,8 @@ namespace RyzenTuner
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
         }
+        
+        
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -25,6 +26,8 @@ namespace RyzenTuner
             checkBox3.Checked = Properties.Settings.Default.CloseToTray;
             textBox1.Text = Properties.Settings.Default.CustomMode;
             SyncEnergyModeSelection();
+            
+            WindowState = FormWindowState.Minimized;
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
