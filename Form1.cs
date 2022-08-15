@@ -26,6 +26,9 @@ namespace RyzenTuner
             textBox1.Text = Properties.Settings.Default.CustomMode;
             SyncEnergyModeSelection();
 
+            // 设置系统唤醒状态
+            keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
+
             WindowState = FormWindowState.Minimized;
         }
 
@@ -36,10 +39,19 @@ namespace RyzenTuner
             timer1_Tick(sender, e);
         }
 
-        private void keepAwakeCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void keepAwakeCheckBox_CheckedChanged(object? sender, EventArgs e)
         {
             Properties.Settings.Default.KeepAwake = keepAwakeCheckBox.Checked;
             Properties.Settings.Default.Save();
+
+            if (Properties.Settings.Default.KeepAwake)
+            {
+                Awake.KeepingSysAwake(true);
+            }
+            else
+            {
+                Awake.AllowSysSleep();
+            }
         }
 
         private void 退出ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -78,12 +90,6 @@ namespace RyzenTuner
             else
             {
                 StopEnergyStar();
-            }
-
-            // 保持唤醒
-            if (keepAwakeCheckBox.Checked)
-            {
-                Awake.KeepingSysAwake(false);
             }
 
             ApplyEnergyMode();
