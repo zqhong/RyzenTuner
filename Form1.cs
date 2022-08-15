@@ -174,6 +174,7 @@ namespace RyzenTuner
         {
             var cpuUsage = _hardwareMonitor.CpuUsage;
             var videoCard3DUsage = _hardwareMonitor.VideoCard3DUsage;
+            var cpuTemperature = _hardwareMonitor.CpuTemperature;
 
             var isNight = CommonUtils.IsNight(DateTime.Now);
 
@@ -213,12 +214,11 @@ namespace RyzenTuner
                 powerLimit = sleepPower;
             }
 
-            // TODO：暂时不使用性能模式
-            // CPU 超过 99% 占用后，使用【性能】
-            // if (cpuUsage >= 99)
-            // {
-            //     powerLimit = performancePower;
-            // }
+            // CPU 占用大于 50%，温度在 65 度以内，使用【性能模式】
+            if (cpuUsage >= 50 && cpuTemperature < 65)
+            {
+                powerLimit = performancePower;
+            }
 
             return powerLimit;
         }
@@ -309,11 +309,12 @@ namespace RyzenTuner
 
             var noticeText = string.Format(@"[{0}]
 限制功率：{1:0}W，实际功率：{2:0}W
-CPU: {3:0}%, GPU: {4:0}%",
+CPU: {3:0}%, CPU：{4:0}℃，GPU: {5:0}%",
                 Properties.Settings.Default.CurrentMode,
                 powerLimit,
                 _hardwareMonitor.CpuPackagePower,
                 _hardwareMonitor.CpuUsage,
+                _hardwareMonitor.CpuTemperature,
                 _hardwareMonitor.VideoCard3DUsage
             );
             if (noticeText.Length > 64)

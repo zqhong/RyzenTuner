@@ -30,6 +30,7 @@ namespace RyzenTuner
 
         private float _cpuUsage;
         private float _cpuPackagePower;
+        private float _cpuTemperature;
 
         private float _videoCard3DUsage;
 
@@ -61,8 +62,10 @@ namespace RyzenTuner
 
         public float CpuPackagePower => _cpuPackagePower;
 
+        public float CpuTemperature => _cpuTemperature;
+
         public float VideoCard3DUsage => _videoCard3DUsage;
-        
+
         public void Monitor()
         {
             // Triggers the IVisitor.VisitComputer method for the given observer.
@@ -95,6 +98,17 @@ namespace RyzenTuner
             if (linqCpuPackage != null)
             {
                 _cpuPackagePower = linqCpuPackage.Value;
+            }
+            
+            var linqCpuTemperature = cpuEnumerable
+                .Where(s => s.SensorType == SensorType.Temperature)
+                .Where(s => s.Name == "Core (Tctl/Tdie)")
+                .Where(s => s.Value != null)
+                .Select(s => s.Value)
+                .First();
+            if (linqCpuTemperature != null)
+            {
+                _cpuTemperature = linqCpuTemperature.Value;
             }
 
             // 显卡
