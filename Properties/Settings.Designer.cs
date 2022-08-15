@@ -36,13 +36,13 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool CloseToTray {
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool KeepAwake {
             get {
-                return ((bool)(this["CloseToTray"]));
+                return ((bool)(this["KeepAwake"]));
             }
             set {
-                this["CloseToTray"] = value;
+                this["KeepAwake"] = value;
             }
         }
         

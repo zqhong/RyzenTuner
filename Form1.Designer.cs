@@ -75,7 +75,7 @@ namespace RyzenTuner
             this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.checkBox3 = new System.Windows.Forms.CheckBox();
+            this.keepAwakeCheckBox = new System.Windows.Forms.CheckBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -191,7 +191,7 @@ namespace RyzenTuner
             this.radioButton1.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
             // groupBox3
-            this.groupBox3.Controls.Add(this.checkBox3);
+            this.groupBox3.Controls.Add(this.keepAwakeCheckBox);
             this.groupBox3.Controls.Add(this.checkBox1);
             this.groupBox3.Location = new System.Drawing.Point(29, 180);
             this.groupBox3.Name = "groupBox3";
@@ -201,16 +201,16 @@ namespace RyzenTuner
             this.groupBox3.Text = "其他工具";
             
             // 
-            // checkBox3
+            // 保持唤醒选项框
             // 
-            this.checkBox3.AutoSize = true;
-            this.checkBox3.Location = new System.Drawing.Point(261, 34);
-            this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(210, 28);
-            this.checkBox3.TabIndex = 2;
-            this.checkBox3.Text = "关闭到托盘菜单";
-            this.checkBox3.UseVisualStyleBackColor = true;
-            this.checkBox3.CheckedChanged += new System.EventHandler(this.checkBox3_CheckedChanged);
+            this.keepAwakeCheckBox.AutoSize = true;
+            this.keepAwakeCheckBox.Location = new System.Drawing.Point(261, 34);
+            this.keepAwakeCheckBox.Name = "keepAwakeCheckBox";
+            this.keepAwakeCheckBox.Size = new System.Drawing.Size(210, 28);
+            this.keepAwakeCheckBox.TabIndex = 2;
+            this.keepAwakeCheckBox.Text = "保持唤醒";
+            this.keepAwakeCheckBox.UseVisualStyleBackColor = true;
+            this.keepAwakeCheckBox.CheckedChanged += new System.EventHandler(this.keepAwakeCheckBox_CheckedChanged);
             
             // 
             // checkBox1
@@ -365,7 +365,7 @@ namespace RyzenTuner
         private System.Windows.Forms.ToolStripMenuItem BalancedModeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem PerformanceModeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem CustomModeToolStripMenuItem;
-        private System.Windows.Forms.CheckBox checkBox3;
+        private System.Windows.Forms.CheckBox keepAwakeCheckBox;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
