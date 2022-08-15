@@ -17,16 +17,15 @@ namespace RyzenTuner
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
         }
-        
-        
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
             checkBox1.Checked = Properties.Settings.Default.EnergyStar;
-            checkBox3.Checked = Properties.Settings.Default.CloseToTray;
+            keepAwakeCheckBox.Checked = Properties.Settings.Default.KeepAwake;
             textBox1.Text = Properties.Settings.Default.CustomMode;
             SyncEnergyModeSelection();
-            
+
             WindowState = FormWindowState.Minimized;
         }
 
@@ -37,9 +36,9 @@ namespace RyzenTuner
             timer1_Tick(sender, e);
         }
 
-        private void checkBox3_CheckedChanged(object sender, EventArgs e)
+        private void keepAwakeCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.CloseToTray = checkBox3.Checked;
+            Properties.Settings.Default.KeepAwake = keepAwakeCheckBox.Checked;
             Properties.Settings.Default.Save();
         }
 
@@ -50,7 +49,7 @@ namespace RyzenTuner
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (e.CloseReason == CloseReason.UserClosing && Properties.Settings.Default.CloseToTray)
+            if (e.CloseReason == CloseReason.UserClosing)
             {
                 if (radioButton6.Checked)
                 {
@@ -70,7 +69,7 @@ namespace RyzenTuner
         private void timer1_Tick(object sender, EventArgs e)
         {
             _hardwareMonitor.Monitor();
-            
+
             // 启动/关闭 EnergyStar
             if (checkBox1.Checked && CommonUtils.IsSupportEnergyStar())
             {
@@ -79,6 +78,12 @@ namespace RyzenTuner
             else
             {
                 StopEnergyStar();
+            }
+
+            // 保持唤醒
+            if (keepAwakeCheckBox.Checked)
+            {
+                Awake.KeepingSysAwake(false);
             }
 
             ApplyEnergyMode();
@@ -350,7 +355,7 @@ CPU: {3:0}%, GPU: {4:0}%",
 
             var argText = string.Join(" ", argArr.ToArray());
             argText = argText.Trim();
-            
+
             return argText;
         }
     }

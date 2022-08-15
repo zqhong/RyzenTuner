@@ -33,7 +33,7 @@ namespace RyzenTuner
         /**
          * 保持操作系统清醒
          */
-        public static bool KeepingSysAwake(bool keepDisplayOn = false)
+        public static bool KeepingSysAwake(bool keepDisplayOn)
         {
             bool success;
             if (keepDisplayOn)
@@ -45,7 +45,7 @@ namespace RyzenTuner
             {
                 success = SetAwakeState(ExecutionState.ES_SYSTEM_REQUIRED | ExecutionState.ES_CONTINUOUS);
             }
-
+            
             return success;
         }
 
