@@ -45,14 +45,23 @@ namespace RyzenTuner
             {
                 success = SetAwakeState(ExecutionState.ES_SYSTEM_REQUIRED | ExecutionState.ES_CONTINUOUS);
             }
-            
+
             return success;
         }
 
+        /**
+         * 允许系统进入睡眠
+         */
+        public static bool AllowSysSleep()
+        {
+            return SetAwakeState(ExecutionState.ES_CONTINUOUS);
+        }
+
         /// <summary>
-        /// Sets the computer awake state using the native Win32 SetThreadExecutionState API. This
-        /// function is just a nice-to-have wrapper that helps avoid tracking the success or failure of
-        /// the call.
+        /// 使一个应用程序能够通知系统它正在使用中，从而防止系统在应用程序运行时进入睡眠状态或关闭显示器。
+        ///
+        /// 在没有ES_CONTINUOUS的情况下调用SetThreadExecutionState，只是简单地重置了空闲计时器；为了保持显示或系统处于工作状态，线程必须定期地调用SetThreadExecutionState。
+        /// 备注：这个函数不会阻止屏幕保护程序的执行
         /// </summary>
         /// <param name="state">Single or multiple EXECUTION_STATE entries.</param>
         /// <returns>true if successful, false if failed</returns>
