@@ -2,7 +2,7 @@
 
 一个方便调节 Ryzen 移动处理器功率限制的工具。
 
-![preview.jpg](https://s2.loli.net/2022/08/09/6lcTD5U93g2y4Am.jpg)
+![preview-20220815102541.png](https://s2.loli.net/2022/08/15/scp9zgGXNKhtj21.png)
 
 ## 添加内容
 
@@ -46,7 +46,7 @@
 
 ## 计划
 
-- [ ] 添加类似 powertoys awake 的功能
+- [x] 添加类似 powertoys awake 的功能
 - [ ] CPU 占用大于 50%，温度在 65 度以内，允许启用性能模式
 - [ ] 使用 EnergyStar 的 config 分支，添加自定义白名单的功能
 - [ ] 多语言支持
