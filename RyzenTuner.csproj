@@ -72,6 +72,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Awake.cs" />
     <Compile Include="CommonUtils.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

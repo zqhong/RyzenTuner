@@ -199,6 +199,7 @@ namespace RyzenTuner
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "其他工具";
+            
             // 
             // checkBox3
             // 
@@ -210,6 +211,7 @@ namespace RyzenTuner
             this.checkBox3.Text = "关闭到托盘菜单";
             this.checkBox3.UseVisualStyleBackColor = true;
             this.checkBox3.CheckedChanged += new System.EventHandler(this.checkBox3_CheckedChanged);
+            
             // 
             // checkBox1
             // 
