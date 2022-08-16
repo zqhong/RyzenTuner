@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace RyzenTuner
@@ -175,9 +174,9 @@ namespace RyzenTuner
 
             var result = true;
 
-            result &= RunPowerCfg("/SETACVALUEINDEX scheme_current sub_processor perfboostmode 0").Item1;
-            result &= RunPowerCfg("/SETDCVALUEINDEX scheme_current sub_processor perfboostmode 0").Item1;
-            result &= RunPowerCfg("/SETACTIVE SCHEME_CURRENT").Item1;
+            result &= RunPowerCfg("/SETACVALUEINDEX scheme_current sub_processor perfboostmode 0", false).Item1;
+            result &= RunPowerCfg("/SETDCVALUEINDEX scheme_current sub_processor perfboostmode 0", false).Item1;
+            result &= RunPowerCfg("/SETACTIVE SCHEME_CURRENT", false).Item1;
 
             return result;
         }
@@ -197,16 +196,16 @@ namespace RyzenTuner
 
             var result = true;
 
-            result &= RunPowerCfg("/SETACVALUEINDEX scheme_current sub_processor perfboostmode 2").Item1;
-            result &= RunPowerCfg("/SETDCVALUEINDEX scheme_current sub_processor perfboostmode 2").Item1;
-            result &= RunPowerCfg("/SETACTIVE SCHEME_CURRENT").Item1;
+            result &= RunPowerCfg("/SETACVALUEINDEX scheme_current sub_processor perfboostmode 2", false).Item1;
+            result &= RunPowerCfg("/SETDCVALUEINDEX scheme_current sub_processor perfboostmode 2", false).Item1;
+            result &= RunPowerCfg("/SETACTIVE SCHEME_CURRENT", false).Item1;
 
             return result;
         }
 
         private static int GetCpuBoost()
         {
-            var (processStartResult, output) = RunPowerCfg("-q scheme_current sub_processor perfboostmode");
+            var (processStartResult, output) = RunPowerCfg("-q scheme_current sub_processor perfboostmode", true);
 
             if (!processStartResult)
             {
@@ -247,7 +246,7 @@ namespace RyzenTuner
             return -1;
         }
 
-        private static (bool, string) RunPowerCfg(string arg)
+        private static (bool, string) RunPowerCfg(string arg, bool needOutput)
         {
             var process = new Process();
             var startInfo = new ProcessStartInfo
@@ -262,15 +261,13 @@ namespace RyzenTuner
             process.StartInfo = startInfo;
             var startResult = process.Start();
 
-
-            var sb = new StringBuilder();
-            while (!process.StandardOutput.EndOfStream)
+            if (!needOutput)
             {
-                var line = process.StandardOutput.ReadLine();
-                sb.AppendLine(line);
+                return (startResult, "");
             }
 
-            return (startResult, sb.ToString());
+            process.WaitForExit();
+            return (startResult, process.StandardOutput.ReadToEnd());
         }
     }
 }

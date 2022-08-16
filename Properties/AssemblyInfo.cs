@@ -1,15 +1,16 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-// 有关程序集的一般信息由以下
-// 控制。更改这些特性值可修改
-// 与程序集关联的信息。
-[assembly: AssemblyTitle("RyzenTuner")]
+// 文件说明
+[assembly: AssemblyTitle("调节 Ryzen 移动处理器功率限制的工具")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
+// 产品名称
 [assembly: AssemblyProduct("RyzenTuner")]
+// 版权
 [assembly: AssemblyCopyright("Copyright ©  2022")]
+// 合法商标
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
