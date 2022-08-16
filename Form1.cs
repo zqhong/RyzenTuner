@@ -25,7 +25,7 @@ namespace RyzenTuner
             keepAwakeCheckBox.Checked = Properties.Settings.Default.KeepAwake;
             textBox1.Text = Properties.Settings.Default.CustomMode;
             SyncEnergyModeSelection();
-
+            
             // 设置系统唤醒状态
             keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
 
@@ -207,8 +207,8 @@ namespace RyzenTuner
                 (!isNight && idleSecond >= 32 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
                 // 条件2：夜晚 && 非活跃时间超过4分钟 && CPU 占用小于 20% && 显卡占用小于 20%
                 (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20) ||
-                // 条件3：锁屏状态下 && 非活跃时间超过 30 秒 && CPU 占用小于 15% && 显卡占用小于 15%
-                (CommonUtils.IsSystemLocked() && idleSecond >= 30 && cpuUsage < 15 && videoCard3DUsage < 15)
+                // 条件3：锁屏状态下 && 非活跃时间超过 2 秒 && CPU 占用小于 15% && 显卡占用小于 15%
+                (CommonUtils.IsSystemLocked() && idleSecond >= 2 && cpuUsage < 15 && videoCard3DUsage < 15)
             )
             {
                 powerLimit = sleepPower;
