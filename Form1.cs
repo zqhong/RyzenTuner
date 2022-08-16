@@ -307,19 +307,12 @@ namespace RyzenTuner
         {
             var powerLimit = this.GetPowerLimit();
 
-            var noticeText = string.Format(@"[{0}]
-限制功率：{1:0}W，实际功率：{2:0}W
-CPU: {3:0}%, CPU：{4:0}℃，GPU: {5:0}%",
-                Properties.Settings.Default.CurrentMode,
-                powerLimit,
-                _hardwareMonitor.CpuPackagePower,
-                _hardwareMonitor.CpuUsage,
-                _hardwareMonitor.CpuTemperature,
-                _hardwareMonitor.VideoCard3DUsage
-            );
-            if (noticeText.Length > 64)
+            var noticeText = $@"{Properties.Settings.Default.CurrentMode}
+功率：限制{powerLimit:0}W、实际{_hardwareMonitor.CpuPackagePower:0}W
+CPU: {_hardwareMonitor.CpuUsage:0}%、{_hardwareMonitor.CpuTemperature:0}℃，GPU: {_hardwareMonitor.VideoCard3DUsage:0}%";
+            if (noticeText.Length >= 64)
             {
-                noticeText = noticeText.Substring(0, 64);
+                noticeText = noticeText.Substring(0, 63);
             }
 
             return noticeText;
