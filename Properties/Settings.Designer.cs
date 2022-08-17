@@ -130,12 +130,12 @@ namespace RyzenTuner.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Debug")]
-        public string RunMode {
+        public string LogLevel {
             get {
-                return ((string)(this["RunMode"]));
+                return ((string)(this["LogLevel"]));
             }
             set {
-                this["RunMode"] = value;
+                this["LogLevel"] = value;
             }
         }
     }

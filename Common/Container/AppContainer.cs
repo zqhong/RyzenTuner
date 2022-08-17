@@ -1,4 +1,5 @@
-﻿using RyzenTuner.Common.Processor;
+﻿using RyzenTuner.Common.Logger;
+using RyzenTuner.Common.Processor;
 
 namespace RyzenTuner.Common.Container
 {
@@ -21,6 +22,14 @@ namespace RyzenTuner.Common.Container
 
             Container.Register(() => new AmdProcessor())
                 .AsSingleton();
+
+            Container.Register(() =>
+                {
+                    var logger = new SimpleLogger();
+                    logger.DefaultLogLevel = logger.ToLogLevel(Properties.Settings.Default.LogLevel);
+                    return logger;
+                })
+                .AsSingleton();
         }
 
         public static HardwareMonitor HardwareMonitor()
@@ -36,6 +45,11 @@ namespace RyzenTuner.Common.Container
         public static AmdProcessor AmdProcessor()
         {
             return Container.Resolve<AmdProcessor>();
+        }
+
+        public static SimpleLogger Logger()
+        {
+            return Container.Resolve<SimpleLogger>();
         }
     }
 }
