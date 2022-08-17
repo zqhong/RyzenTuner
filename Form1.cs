@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -336,47 +335,6 @@ CPU: {_hardwareMonitor.CpuUsage:0}%、{_hardwareMonitor.CpuTemperature:0}℃，G
             }
 
             return 90;
-        }
-
-        private string CalcRyzenAdjArg()
-        {
-            var powerLimit = this.GetPowerLimit();
-            var argArr = new List<string>
-            {
-                // 持续功率限制
-                $"--stapm-limit {powerLimit * 1000}",
-                // 实际功率限制
-                $"--fast-limit {powerLimit * 1000}",
-                // 平均功率限制
-                $"--slow-limit {powerLimit * 1000}"
-            };
-
-            // 预设参数
-            if (CommonUtils.IsSleepMode(powerLimit))
-            {
-                argArr.Add("--tctl-temp 50");
-            }
-            else if (CommonUtils.IsPowerSaveModeMode(powerLimit))
-            {
-                argArr.Add("--tctl-temp 55");
-            }
-            else if (CommonUtils.IsBalancedMode(powerLimit))
-            {
-                argArr.Add("--tctl-temp 60");
-            }
-            else if (CommonUtils.IsPerformanceMode(powerLimit))
-            {
-                argArr.Add("--tctl-temp 70");
-            }
-            else
-            {
-                argArr.Add("--tctl-temp 90");
-            }
-
-            var argText = string.Join(" ", argArr.ToArray());
-            argText = argText.Trim();
-
-            return argText;
         }
     }
 }

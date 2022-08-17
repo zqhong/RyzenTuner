@@ -10,17 +10,6 @@ namespace RyzenTuner.Common.Processor
         Fast = 2,
     }
 
-    // 错误码，参考：https://github.com/FlyGoat/RyzenAdj/blob/master/lib/ryzenadj.h#L52-L56
-    public enum ErrCode
-    {
-        AdjErrNone = 0,
-        AdjErrFamUnsupported = -1,
-        AdjErrSmuTimeout = -2,
-        AdjErrSmuUnsupported = -3,
-        AdjErrSmuRejected = -4,
-        AdjErrMemoryAccess = -5,
-    }
-
     public class AmdProcessor
     {
         private readonly IntPtr _ry;

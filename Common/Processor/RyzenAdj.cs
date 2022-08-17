@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace RyzenTuner.Common.Processor
 {
+    // 参考：https://github.com/FlyGoat/RyzenAdj/blob/master/lib/ryzenadj.h#L15-L26
     public enum RyzenFamily
     {
         FamUnknown = -1,
@@ -17,7 +18,19 @@ namespace RyzenTuner.Common.Processor
         FamEnd
     }
 
+    // 错误码，参考：https://github.com/FlyGoat/RyzenAdj/blob/master/lib/ryzenadj.h#L52-L56
+    public enum ErrCode
+    {
+        AdjErrNone = 0,
+        AdjErrFamUnsupported = -1,
+        AdjErrSmuTimeout = -2,
+        AdjErrSmuUnsupported = -3,
+        AdjErrSmuRejected = -4,
+        AdjErrMemoryAccess = -5,
+    }
+
     /**
+     * RyzenAdj.cs
      * Author：Valkirie
      * Refer：https://github.com/Valkirie/ControllerService/blob/main/ControllerCommon/Processor/AMD/RyzenAdj.cs
      *
