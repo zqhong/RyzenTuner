@@ -25,7 +25,7 @@ namespace RyzenTuner
             keepAwakeCheckBox.Checked = Properties.Settings.Default.KeepAwake;
             textBox1.Text = Properties.Settings.Default.CustomMode;
             SyncEnergyModeSelection();
-            
+
             // 设置系统唤醒状态
             keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
 
@@ -149,11 +149,11 @@ namespace RyzenTuner
                 // 1、仅在【性能模式】下开启睿频
                 if (CommonUtils.IsPerformanceModeMode(powerLimit))
                 {
-                    CommonUtils.EnableCpuBoost();
+                    _powerConfig.EnableCpuBoost();
                 }
                 else
                 {
-                    CommonUtils.DisableCpuBoost();
+                    _powerConfig.DisableCpuBoost();
                 }
             }
             catch (Exception e)

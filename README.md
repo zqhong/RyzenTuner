@@ -46,8 +46,7 @@
 
 ## 计划
 
-- [x] 添加类似 powertoys awake 的功能
-- [x] CPU 占用大于 50%，温度在 65 度以内，允许启用性能模式
+- [ ] powercfg.exe、ryzenadj.exe 等改为 DLL 库方法
 - [ ] 使用 EnergyStar 的 config 分支，添加自定义白名单的功能
 - [ ] 多语言支持
 - [ ] GitHub Action 自动编译

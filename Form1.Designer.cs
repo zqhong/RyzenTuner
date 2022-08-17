@@ -343,6 +343,7 @@ namespace RyzenTuner
             this.ResumeLayout(false);
 
             this._hardwareMonitor = new HardwareMonitor();
+            this._powerConfig = new PowerConfig();
         }
 
         #endregion
@@ -371,6 +372,7 @@ namespace RyzenTuner
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
 
         private HardwareMonitor _hardwareMonitor;
+        private PowerConfig _powerConfig;
     }
 }
 
