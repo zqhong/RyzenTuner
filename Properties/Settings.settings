@@ -30,7 +30,7 @@
       <Value Profile="(Default)">AutoMode</Value>
     </Setting>
     <Setting Name="RunMode" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Debug</Value>
+      <Value Profile="(Default)">Production</Value>
     </Setting>
   </Settings>
 </SettingsFile>
