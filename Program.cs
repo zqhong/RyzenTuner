@@ -6,20 +6,17 @@ namespace RyzenTuner
 {
     internal static class Program
     {
-        /// <summary>
-        /// 应用程序的主入口点。
-        /// </summary>
         [STAThread]
-        static void Main()
+        private static void Main()
         {
             if (Environment.OSVersion.Version.Major >= 6)
             {
                 SetProcessDPIAware();
             }
-
+            
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new MainForm());
         }
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]

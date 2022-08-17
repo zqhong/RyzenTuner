@@ -4,13 +4,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
 using RyzenTuner.Common;
+using RyzenTuner.Common.Container;
 using RyzenTuner.Utils;
 
 namespace RyzenTuner.UI
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
         }
@@ -81,10 +82,10 @@ namespace RyzenTuner.UI
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            _hardwareMonitor.Monitor();
+            AppContainer.HardwareMonitor().Monitor();
 
             // 启动/关闭 EnergyStar
-            if (checkBox1.Checked && CommonUtils.IsSupportEnergyStar())
+            if (checkBox1.Checked && RyzenTunerUtils.IsSupportEnergyStar())
             {
                 StartEnergyStar();
             }
@@ -130,24 +131,24 @@ namespace RyzenTuner.UI
         {
             try
             {
-                notifyIcon1.Text = this.GetNoticeText();
+                notifyIcon1.Text = RyzenTunerUtils.GetNoticeText();
 
-                var powerLimit = GetPowerLimit();
-                var tctlTemp = GetTctlTemp();
+                var powerLimit = RyzenAdjUtils.GetPowerLimit();
+                var tctlTemp = RyzenAdjUtils.GetTctlTemp();
 
                 // 调用 ryzenadj 调整 Cpu 设置
-                _processor.SetAllTdpLimit(powerLimit);
-                _processor.SetTctlTemp((uint)tctlTemp);
+                AppContainer.AmdProcessor().SetAllTdpLimit(powerLimit);
+                AppContainer.AmdProcessor().SetTctlTemp((uint)tctlTemp);
 
                 // 配置系统电源计划
                 // 1、仅在【性能模式】下开启睿频
-                if (CommonUtils.IsPerformanceMode(powerLimit))
+                if (RyzenTunerUtils.IsPerformanceMode(powerLimit))
                 {
-                    _powerConfig.EnableCpuBoost();
+                    AppContainer.PowerConfig().EnableCpuBoost();
                 }
                 else
                 {
-                    _powerConfig.DisableCpuBoost();
+                    AppContainer.PowerConfig().DisableCpuBoost();
                 }
             }
             catch (Exception e)
@@ -156,65 +157,6 @@ namespace RyzenTuner.UI
                 radioButton5.Checked = true;
                 ChangeEnergyMode(radioButton5, EventArgs.Empty);
             }
-        }
-
-        /**
-         * 计算自动模式下的限制功率（单位：瓦）
-         *
-         * 改进：
-         * 1、适配不同型号 CPU
-         */
-        private float AutoModePowerLimit()
-        {
-            var cpuUsage = _hardwareMonitor.CpuUsage;
-            var videoCard3DUsage = _hardwareMonitor.VideoCard3DUsage;
-            var cpuTemperature = _hardwareMonitor.CpuTemperature;
-
-            var isNight = CommonUtils.IsNight(DateTime.Now);
-
-            // 自动模式下，在几个模式下切换：待机、平衡、性能
-            // 插电模式下
-            var sleepPower = CommonUtils.GetPowerLimitByMode("SleepMode");
-            var balancedPower = CommonUtils.GetPowerLimitByMode("BalancedMode");
-            var performancePower = CommonUtils.GetPowerLimitByMode("PerformanceMode");
-
-
-            // 电池模式下，最高性能为【平衡】
-            if (SystemInformation.PowerStatus.PowerLineStatus == PowerLineStatus.Offline)
-            {
-                performancePower = CommonUtils.GetPowerLimitByMode("BalancedMode");
-            }
-
-            // 夜晚，最高性能为【平衡】
-            if (isNight)
-            {
-                performancePower = CommonUtils.GetPowerLimitByMode("BalancedMode");
-            }
-
-            // 默认使用【平衡】
-            var powerLimit = balancedPower;
-
-            // 符合下面条件之一的情况下，使用【待机】
-            var idleSecond = CommonUtils.GetIdleSecond();
-            if (
-                // 条件1：白天 && 非活跃时间超过32分钟 && CPU 占用小于 10% && 显卡占用小于 10%
-                (!isNight && idleSecond >= 32 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
-                // 条件2：夜晚 && 非活跃时间超过4分钟 && CPU 占用小于 20% && 显卡占用小于 20%
-                (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20) ||
-                // 条件3：锁屏状态下 && 非活跃时间超过 2 秒 && CPU 占用小于 15% && 显卡占用小于 15%
-                (CommonUtils.IsSystemLocked() && idleSecond >= 2 && cpuUsage < 15 && videoCard3DUsage < 15)
-            )
-            {
-                powerLimit = sleepPower;
-            }
-
-            // CPU 占用大于 50%，温度在 65 度以内，使用【性能模式】
-            if (cpuUsage >= 50 && cpuTemperature < 65)
-            {
-                powerLimit = performancePower;
-            }
-
-            return powerLimit;
         }
 
         private void SyncEnergyModeSelection()
@@ -268,75 +210,6 @@ namespace RyzenTuner.UI
             {
                 this.Hide();
             }
-        }
-
-        private string GetModeDetailText(string mode)
-        {
-            return String.Format("{0}-{1}W",
-                Properties.Strings.ResourceManager.GetString(mode),
-                CommonUtils.GetPowerLimitByMode(mode)
-            );
-        }
-
-        private float GetPowerLimit()
-        {
-            var powerLimit = CommonUtils.GetPowerLimitByMode(Properties.Settings.Default.CurrentMode);
-
-            // 自动模式下，根据系统状态自动调整
-            if (Properties.Settings.Default.CurrentMode == "AutoMode")
-            {
-                powerLimit = this.AutoModePowerLimit();
-            }
-
-            // 数值修正
-            if (powerLimit < 0)
-            {
-                powerLimit = 1;
-            }
-
-            return powerLimit;
-        }
-
-        private string GetNoticeText()
-        {
-            var powerLimit = this.GetPowerLimit();
-
-            var noticeText = $@"{Properties.Settings.Default.CurrentMode}
-功率：限制{powerLimit:0}W、实际{_hardwareMonitor.CpuPackagePower:0}W
-CPU: {_hardwareMonitor.CpuUsage:0}%、{_hardwareMonitor.CpuTemperature:0}℃，GPU: {_hardwareMonitor.VideoCard3DUsage:0}%";
-            if (noticeText.Length >= 64)
-            {
-                noticeText = noticeText.Substring(0, 63);
-            }
-
-            return noticeText;
-        }
-
-        private int GetTctlTemp()
-        {
-            var powerLimit = this.GetPowerLimit();
-
-            if (CommonUtils.IsSleepMode(powerLimit))
-            {
-                return 50;
-            }
-
-            if (CommonUtils.IsPowerSaveModeMode(powerLimit))
-            {
-                return 55;
-            }
-
-            if (CommonUtils.IsBalancedMode(powerLimit))
-            {
-                return 60;
-            }
-
-            if (CommonUtils.IsPerformanceMode(powerLimit))
-            {
-                return 70;
-            }
-
-            return 90;
         }
     }
 }

@@ -28,7 +28,5 @@ using System.Runtime.InteropServices;
 //      次版本
 //      生成号
 //      修订号
-//
-//通过使用 "*"，如下所示:
 [assembly: AssemblyVersion("1.1.0.0")]
 [assembly: AssemblyFileVersion("1.1.0.0")]

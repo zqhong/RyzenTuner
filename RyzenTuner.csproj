@@ -48,7 +48,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>resources\phoenix-96.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\phoenix-96.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HidSharp, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -100,6 +100,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Awake.cs" />
+    <Compile Include="Common\Container\AppContainer.cs" />
+    <Compile Include="Common\Container\Container.cs" />
     <Compile Include="Common\HardwareMonitor.cs" />
     <Compile Include="Common\Logger.cs" />
     <Compile Include="Common\PowerConfig.cs" />
@@ -112,14 +114,16 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Include="UI\Form1.cs">
+    <Compile Include="UI\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="UI\MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Utils\AppUtils.cs" />
     <Compile Include="Utils\CommonUtils.cs" />
+    <Compile Include="Utils\RyzenAdjUtils.cs" />
+    <Compile Include="Utils\RyzenTunerUtils.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -133,8 +137,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <EmbeddedResource Include="UI\MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.manifest" />
     <None Include="packages.config" />
@@ -164,7 +168,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="resources\phoenix-96.ico" />
+    <Content Include="Resources\phoenix-96.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
