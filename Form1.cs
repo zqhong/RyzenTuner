@@ -132,22 +132,15 @@ namespace RyzenTuner
                 notifyIcon1.Text = this.GetNoticeText();
 
                 var powerLimit = GetPowerLimit();
+                var tctlTemp = GetTctlTemp();
 
-                // 运行 ryzen adj
-                var process = new Process();
-                var startInfo = new ProcessStartInfo
-                {
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    FileName = System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
-                               "\\ryzenadj\\ryzenadj.exe",
-                    Arguments = CalcRyzenAdjArg()
-                };
-                process.StartInfo = startInfo;
-                process.Start();
+                // 调用 ryzenadj 调整 Cpu 设置
+                _processor.SetAllTdpLimit(powerLimit);
+                _processor.SetTctlTemp((uint)tctlTemp);
 
                 // 配置系统电源计划
                 // 1、仅在【性能模式】下开启睿频
-                if (CommonUtils.IsPerformanceModeMode(powerLimit))
+                if (CommonUtils.IsPerformanceMode(powerLimit))
                 {
                     _powerConfig.EnableCpuBoost();
                 }
@@ -318,6 +311,33 @@ CPU: {_hardwareMonitor.CpuUsage:0}%、{_hardwareMonitor.CpuTemperature:0}℃，G
             return noticeText;
         }
 
+        private int GetTctlTemp()
+        {
+            var powerLimit = this.GetPowerLimit();
+
+            if (CommonUtils.IsSleepMode(powerLimit))
+            {
+                return 50;
+            }
+
+            if (CommonUtils.IsPowerSaveModeMode(powerLimit))
+            {
+                return 55;
+            }
+
+            if (CommonUtils.IsBalancedMode(powerLimit))
+            {
+                return 60;
+            }
+
+            if (CommonUtils.IsPerformanceMode(powerLimit))
+            {
+                return 70;
+            }
+
+            return 90;
+        }
+
         private string CalcRyzenAdjArg()
         {
             var powerLimit = this.GetPowerLimit();
@@ -344,7 +364,7 @@ CPU: {_hardwareMonitor.CpuUsage:0}%、{_hardwareMonitor.CpuTemperature:0}℃，G
             {
                 argArr.Add("--tctl-temp 60");
             }
-            else if (CommonUtils.IsPerformanceModeMode(powerLimit))
+            else if (CommonUtils.IsPerformanceMode(powerLimit))
             {
                 argArr.Add("--tctl-temp 70");
             }

@@ -101,6 +101,9 @@
   <ItemGroup>
     <Compile Include="Awake.cs" />
     <Compile Include="CommonUtils.cs" />
+    <Compile Include="Common\Logger.cs" />
+    <Compile Include="Common\Processor\AMDProcessor.cs" />
+    <Compile Include="Common\Processor\RyzenAdj.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -117,6 +120,7 @@
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="Utils\AppUtils.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

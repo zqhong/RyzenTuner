@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using RyzenTuner.Common.Processor;
 
 namespace RyzenTuner
 {
@@ -344,6 +345,7 @@ namespace RyzenTuner
 
             this._hardwareMonitor = new HardwareMonitor();
             this._powerConfig = new PowerConfig();
+            this._processor = new AmdProcessor();
         }
 
         #endregion
@@ -373,6 +375,7 @@ namespace RyzenTuner
 
         private HardwareMonitor _hardwareMonitor;
         private PowerConfig _powerConfig;
+        private AmdProcessor _processor;
     }
 }
 
