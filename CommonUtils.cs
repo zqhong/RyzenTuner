@@ -71,16 +71,16 @@ namespace RyzenTuner
          */
         public static int GetIdleSecond()
         {
-            int idleTime = 0;
-            LASTINPUTINFO lastInputInfo = new LASTINPUTINFO();
+            var idleTime = 0;
+            var lastInputInfo = new LASTINPUTINFO();
             lastInputInfo.cbSize = Marshal.SizeOf(lastInputInfo);
             lastInputInfo.dwTime = 0;
 
-            int envTicks = Environment.TickCount;
+            var envTicks = Environment.TickCount;
 
             if (GetLastInputInfo(ref lastInputInfo))
             {
-                int lastInputTick = (int)lastInputInfo.dwTime;
+                var lastInputTick = (int)lastInputInfo.dwTime;
 
                 idleTime = envTicks - lastInputTick;
             }
