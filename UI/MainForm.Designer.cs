@@ -3,16 +3,14 @@ using System.Drawing;
 using System.IO;
 using System.Text.RegularExpressions;
 using RyzenTuner.Common;
+using RyzenTuner.Common.Container;
 using RyzenTuner.Common.Processor;
 using RyzenTuner.Utils;
 
 namespace RyzenTuner.UI
 {
-    partial class Form1
+    partial class MainForm
     {
-        /// <summary>
-        /// 必需的设计器变量。
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         /**
@@ -39,9 +37,7 @@ namespace RyzenTuner.UI
             }
             base.Dispose(disposing);
         }
-
-        #region Windows 窗体设计器生成的代码
-
+        
         /// <summary>
         /// 设计器支持所需的方法 - 不要修改
         /// 使用代码编辑器修改此方法的内容。
@@ -64,7 +60,7 @@ namespace RyzenTuner.UI
             }
             
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
@@ -142,7 +138,7 @@ namespace RyzenTuner.UI
             this.radioButton5.TabIndex = 4;
             this.radioButton5.TabStop = true;
             this.radioButton5.Tag = "PerformanceMode";
-            this.radioButton5.Text = GetModeDetailText("PerformanceMode");
+            this.radioButton5.Text = RyzenTunerUtils.GetModeDetailText("PerformanceMode");
             this.radioButton5.UseVisualStyleBackColor = true;
             this.radioButton5.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
             
@@ -153,7 +149,7 @@ namespace RyzenTuner.UI
             this.radioButton4.Size = new System.Drawing.Size(185, 28);
             this.radioButton4.TabIndex = 3;
             this.radioButton4.Tag = "BalancedMode";
-            this.radioButton4.Text = GetModeDetailText("BalancedMode");
+            this.radioButton4.Text = RyzenTunerUtils.GetModeDetailText("BalancedMode");
             this.radioButton4.UseVisualStyleBackColor = true;
             this.radioButton4.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
@@ -164,7 +160,7 @@ namespace RyzenTuner.UI
             this.radioButton3.Size = new System.Drawing.Size(173, 28);
             this.radioButton3.TabIndex = 2;
             this.radioButton3.Tag = "PowerSaveMode";
-            this.radioButton3.Text = GetModeDetailText("PowerSaveMode");
+            this.radioButton3.Text = RyzenTunerUtils.GetModeDetailText("PowerSaveMode");
             this.radioButton3.UseVisualStyleBackColor = true;
             this.radioButton3.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
@@ -175,7 +171,7 @@ namespace RyzenTuner.UI
             this.radioButton2.Size = new System.Drawing.Size(221, 28);
             this.radioButton2.TabIndex = 1;
             this.radioButton2.Tag = "SleepMode";
-            this.radioButton2.Text = GetModeDetailText("SleepMode");
+            this.radioButton2.Text = RyzenTunerUtils.GetModeDetailText("SleepMode");
             this.radioButton2.UseVisualStyleBackColor = true;
             this.radioButton2.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
@@ -224,7 +220,7 @@ namespace RyzenTuner.UI
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 仅在支持 EnergyStar 的时候显示方框
-            if (!CommonUtils.IsSupportEnergyStar())
+            if (!RyzenTunerUtils.IsSupportEnergyStar())
             {
                 this.checkBox1.Enabled = false;
             }
@@ -326,7 +322,7 @@ namespace RyzenTuner.UI
             this.Icon = this.getIcon();
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "Form1";
+            this.Name = "MainForm";
             // Form 标题
             var softwareVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
             softwareVersion = Regex.Replace(softwareVersion, @"(\d+\.\d+\.\d+)\.\d+", "$1");
@@ -341,14 +337,8 @@ namespace RyzenTuner.UI
             this.groupBox3.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
-
-            this._hardwareMonitor = new HardwareMonitor();
-            this._powerConfig = new PowerConfig();
-            this._processor = new AmdProcessor();
         }
-
-        #endregion
-
+        
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.RadioButton radioButton6;
@@ -371,10 +361,6 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
-
-        private HardwareMonitor _hardwareMonitor;
-        private PowerConfig _powerConfig;
-        private AmdProcessor _processor;
     }
 }
 
