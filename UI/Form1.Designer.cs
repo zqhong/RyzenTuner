@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
+using RyzenTuner.Common;
 using RyzenTuner.Common.Processor;
+using RyzenTuner.Utils;
 
-namespace RyzenTuner
+namespace RyzenTuner.UI
 {
     partial class Form1
     {

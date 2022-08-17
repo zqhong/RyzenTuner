@@ -1,7 +1,7 @@
 using System.Linq;
 using LibreHardwareMonitor.Hardware;
 
-namespace RyzenTuner
+namespace RyzenTuner.Common
 {
     public class HardwareMonitor
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace RyzenTuner
+namespace RyzenTuner.Common
 {
     /**
      * 参考：
