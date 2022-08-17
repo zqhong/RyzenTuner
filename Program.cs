@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using RyzenTuner.Common.Container;
 using RyzenTuner.UI;
 
 namespace RyzenTuner
@@ -13,7 +14,7 @@ namespace RyzenTuner
             {
                 SetProcessDPIAware();
             }
-            
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());

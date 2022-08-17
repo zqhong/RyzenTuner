@@ -103,7 +103,7 @@
     <Compile Include="Common\Container\AppContainer.cs" />
     <Compile Include="Common\Container\Container.cs" />
     <Compile Include="Common\HardwareMonitor.cs" />
-    <Compile Include="Common\Logger.cs" />
+    <Compile Include="Common\Logger\SimpleLogger.cs" />
     <Compile Include="Common\PowerConfig.cs" />
     <Compile Include="Common\Processor\AMDProcessor.cs" />
     <Compile Include="Common\Processor\RyzenAdj.cs" />
@@ -120,7 +120,6 @@
     <Compile Include="UI\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Utils\AppUtils.cs" />
     <Compile Include="Utils\CommonUtils.cs" />
     <Compile Include="Utils\RyzenAdjUtils.cs" />
     <Compile Include="Utils\RyzenTunerUtils.cs" />
