@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 // 文件说明
-[assembly: AssemblyTitle("调节 Ryzen 移动处理器功率限制的工具")]
+[assembly: AssemblyTitle("RyzenTuner")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
