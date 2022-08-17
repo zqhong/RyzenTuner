@@ -31,16 +31,18 @@
 修改前
 
 ```xml
+
 <setting name="SleepMode" serializeAs="String">
-  <value>1</value>
+    <value>1</value>
 </setting>
 ```
 
 修改后
 
 ```xml
+
 <setting name="SleepMode" serializeAs="String">
-  <value>2</value>
+    <value>2</value>
 </setting>
 ```
 
@@ -56,13 +58,8 @@
 
 * [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner)：基于该项目开发
 * [FlyGoat/RyzenAdj](https://github.com/FlyGoat/RyzenAdj)：Ryzen 移动处理器电源管理工具
-  * 使用版本：v0.11.1
-* [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar)：Windows 进程管理，可能有增加续航的效果（未测试）
-  * 需要 Windows 11 21H1 以上版本
-  * 使用版本：v1.0.0（https://github.com/JasonWei512/EnergyStar/actions/runs/2773330296）
-  * 原理：当一个进程设置为 PROCESS_POWER_THROTTLING_EXECUTION_SPEED 时，该进程将被分类为 EcoQoS。系统将尝试通过**降低CPU频率**或**使用更多高能效的内核**等策略来提高电源效率。
-  * 相关资料
-    * https://www.v2ex.com/t/871732
-    * https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setprocessinformation
-    * https://docs.microsoft.com/en-us/windows/win32/procthread/quality-of-service
+* [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar)：Windows 进程调度，可能有增加续航的效果（未测试）
+    * 原理：当一个进程设置为 PROCESS_POWER_THROTTLING_EXECUTION_SPEED 时，该进程将被分类为 EcoQoS。系统将尝试通过**
+      降低CPU频率**或**使用更多高能效的内核**等策略来提高电源效率。
 * [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)：获取硬件信息
+* [dahall/Vanara](https://github.com/dahall/Vanara)：一套 .NET 库，包含了许多 Windows 原生 API 的 PInvoke 调用的封装
