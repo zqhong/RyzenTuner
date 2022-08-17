@@ -4,9 +4,9 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace RyzenTuner
+namespace RyzenTuner.Utils
 {
-    public class CommonUtils
+    public static class CommonUtils
     {
         [DllImport("user32.dll")]
         static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);

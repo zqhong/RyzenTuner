@@ -3,8 +3,10 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
+using RyzenTuner.Common;
+using RyzenTuner.Utils;
 
-namespace RyzenTuner
+namespace RyzenTuner.UI
 {
     public partial class Form1 : Form
     {

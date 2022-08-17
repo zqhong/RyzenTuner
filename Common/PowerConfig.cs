@@ -2,7 +2,7 @@
 using Vanara.PInvoke;
 using static Vanara.PInvoke.PowrProf;
 
-namespace RyzenTuner
+namespace RyzenTuner.Common
 {
     public class PowerConfig
     {
