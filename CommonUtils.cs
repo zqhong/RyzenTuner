@@ -128,7 +128,7 @@ namespace RyzenTuner
         /**
          * 检查当前是否处于【性能模式】
          */
-        public static bool IsPerformanceModeMode(float powerLimit)
+        public static bool IsPerformanceMode(float powerLimit)
         {
             return Math.Abs(powerLimit - GetPowerLimitByMode("PerformanceMode")) < 0.01;
         }

@@ -126,5 +126,17 @@ namespace RyzenTuner.Properties {
                 this["CurrentMode"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Debug")]
+        public string RunMode {
+            get {
+                return ((string)(this["RunMode"]));
+            }
+            set {
+                this["RunMode"] = value;
+            }
+        }
     }
 }
