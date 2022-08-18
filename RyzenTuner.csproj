@@ -87,7 +87,8 @@
     <Compile Include="Common\Awake.cs" />
     <Compile Include="Common\Container\AppContainer.cs" />
     <Compile Include="Common\Container\Container.cs" />
-    <Compile Include="Common\HardwareMonitor.cs" />
+    <Compile Include="Common\Hardware\HardwareMonitor.cs" />
+    <Compile Include="Common\Hardware\UpdateVisitor.cs" />
     <Compile Include="Common\Logger\SimpleLogger.cs" />
     <Compile Include="Common\PowerConfig.cs" />
     <Compile Include="Common\Processor\AMDProcessor.cs" />
@@ -107,6 +108,7 @@
     </Compile>
     <Compile Include="UI\ToolStripRenderer.cs" />
     <Compile Include="Utils\CommonUtils.cs" />
+    <Compile Include="Utils\DebugUtils.cs" />
     <Compile Include="Utils\RyzenAdjUtils.cs" />
     <Compile Include="Utils\RyzenTunerUtils.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
