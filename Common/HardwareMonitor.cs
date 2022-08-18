@@ -76,9 +76,13 @@ namespace RyzenTuner.Common
                 _computer.Accept(new UpdateVisitor());
 
                 // CPU
+                // 示例：
+                //      AMD Ryzen 7 PRO 6850HS with Radeon Graphics
+                //      AMD Ryzen 7 4800H with Radeon Graphics
+                // 备注：如果有多个 CPU，可能会有问题。可忽略，普通电脑一般只有一个 CPU 插槽
                 var hardwareCpu = _computer
                     .Hardware
-                    .Where(i => i.Name.StartsWith("AMD Ryzen"))
+                    .Where(i => i.HardwareType == HardwareType.Cpu)
                     .SelectMany(s => s.Sensors);
                 var cpuEnumerable = hardwareCpu.ToList();
 
@@ -115,10 +119,12 @@ namespace RyzenTuner.Common
                     _cpuTemperature = linqCpuTemperature.Value;
                 }
 
-                // 显卡
+                // 核心显卡
+                // 示例：AMD Radeon(TM) Graphics
+                // 备注：如果是 AMD 核心显卡 + AMD 独立显卡，可能会有问题
                 var hardwareVideoCard = _computer
                     .Hardware
-                    .Where(i => i.Name.EndsWith(" Graphics"))
+                    .Where(i => i.HardwareType == HardwareType.GpuAmd)
                     .SelectMany(s => s.Sensors);
                 var videoCardList = hardwareVideoCard.ToList();
 
