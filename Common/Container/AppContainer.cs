@@ -14,7 +14,7 @@ namespace RyzenTuner.Common.Container
         {
             Container = new Container();
 
-            Container.Register(() => new HardwareMonitor())
+            Container.Register(() => new Hardware.HardwareMonitor())
                 .AsSingleton();
 
             Container.Register(() => new PowerConfig())
@@ -32,9 +32,9 @@ namespace RyzenTuner.Common.Container
                 .AsSingleton();
         }
 
-        public static HardwareMonitor HardwareMonitor()
+        public static Hardware.HardwareMonitor HardwareMonitor()
         {
-            return Container.Resolve<HardwareMonitor>();
+            return Container.Resolve<Hardware.HardwareMonitor>();
         }
 
         public static PowerConfig PowerConfig()
