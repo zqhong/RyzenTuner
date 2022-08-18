@@ -105,6 +105,7 @@
     <Compile Include="UI\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\ToolStripRenderer.cs" />
     <Compile Include="Utils\CommonUtils.cs" />
     <Compile Include="Utils\RyzenAdjUtils.cs" />
     <Compile Include="Utils\RyzenTunerUtils.cs" />

@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 using RyzenTuner.Common;
 using RyzenTuner.Common.Container;
 using RyzenTuner.Common.Processor;
@@ -239,8 +240,6 @@ namespace RyzenTuner.UI
             
             // 
             // contextMenuStrip：托盘右键菜单
-            // 
-            this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
                 this.AutoModeCtrlAltShiftF1ToolStripMenuItem,
                 this.SleepModeToolStripMenuItem,
@@ -254,12 +253,16 @@ namespace RyzenTuner.UI
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(281, 276);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
-         
+
+            // 设置自定义 Renderer，加粗选中项
+            this.contextMenuStrip1.Renderer = new ToolStripRenderer();
+            
             this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Name = "AutoModeCtrlAltShiftF1ToolStripMenuItem";
             this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Tag = "AutoMode";
             this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Text = Properties.Strings.AutoMode;
             this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
+            
 
             this.SleepModeToolStripMenuItem.Name = "SleepModeToolStripMenuItem";
             this.SleepModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
