@@ -62,7 +62,8 @@ namespace RyzenTuner.UI
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            // 功率限制组
+            this.powerLimitGroupBox = new System.Windows.Forms.GroupBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.radioButton6 = new System.Windows.Forms.RadioButton();
             this.radioButton5 = new System.Windows.Forms.RadioButton();
@@ -76,19 +77,10 @@ namespace RyzenTuner.UI
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             
-            this.AutoModeCtrlAltShiftF1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            
-            this.SleepModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.PowerSaveModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.BalancedModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.PerformanceModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.CustomModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             
-            this.groupBox1.SuspendLayout();
+            this.powerLimitGroupBox.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -96,19 +88,19 @@ namespace RyzenTuner.UI
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.textBox1);
-            this.groupBox1.Controls.Add(this.radioButton6);
-            this.groupBox1.Controls.Add(this.radioButton5);
-            this.groupBox1.Controls.Add(this.radioButton4);
-            this.groupBox1.Controls.Add(this.radioButton3);
-            this.groupBox1.Controls.Add(this.radioButton2);
-            this.groupBox1.Controls.Add(this.radioButton1);
-            this.groupBox1.Location = new System.Drawing.Point(25, 21);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(706, 141);
-            this.groupBox1.TabIndex = 0;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "功率限制";
+            this.powerLimitGroupBox.Controls.Add(this.textBox1);
+            this.powerLimitGroupBox.Controls.Add(this.radioButton6);
+            this.powerLimitGroupBox.Controls.Add(this.radioButton5);
+            this.powerLimitGroupBox.Controls.Add(this.radioButton4);
+            this.powerLimitGroupBox.Controls.Add(this.radioButton3);
+            this.powerLimitGroupBox.Controls.Add(this.radioButton2);
+            this.powerLimitGroupBox.Controls.Add(this.radioButton1);
+            this.powerLimitGroupBox.Location = new System.Drawing.Point(25, 21);
+            this.powerLimitGroupBox.Name = "powerLimitGroupBox";
+            this.powerLimitGroupBox.Size = new System.Drawing.Size(706, 141);
+            this.powerLimitGroupBox.TabIndex = 0;
+            this.powerLimitGroupBox.TabStop = false;
+            this.powerLimitGroupBox.Text = "功率限制";
             
             // textBox1
             this.textBox1.Location = new System.Drawing.Point(596, 87);
@@ -232,8 +224,21 @@ namespace RyzenTuner.UI
             this.notifyIcon1.Icon = this.getIcon();
             this.notifyIcon1.Visible = true;
             this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
+            
+            
+            // 托盘菜单选项
+            this.AutoModeCtrlAltShiftF1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            
+            this.SleepModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.PowerSaveModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.BalancedModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.PerformanceModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CustomModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            
             // 
-            // contextMenuStrip1
+            // contextMenuStrip：托盘右键菜单
             // 
             this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -250,59 +255,53 @@ namespace RyzenTuner.UI
             this.contextMenuStrip1.Size = new System.Drawing.Size(281, 276);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
          
-            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.CheckOnClick = true;
             this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Name = "AutoModeCtrlAltShiftF1ToolStripMenuItem";
             this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Tag = "AutoMode";
             this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Text = Properties.Strings.AutoMode;
             this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
 
-            this.SleepModeToolStripMenuItem.CheckOnClick = true;
             this.SleepModeToolStripMenuItem.Name = "SleepModeToolStripMenuItem";
             this.SleepModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.SleepModeToolStripMenuItem.Tag = "SleepMode";
             this.SleepModeToolStripMenuItem.Text = Properties.Strings.SleepMode;
             this.SleepModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
            
-            this.PowerSaveModeToolStripMenuItem.CheckOnClick = true;
             this.PowerSaveModeToolStripMenuItem.Name = "PowerSaveModeToolStripMenuItem";
             this.PowerSaveModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.PowerSaveModeToolStripMenuItem.Tag = "PowerSaveMode";
             this.PowerSaveModeToolStripMenuItem.Text = Properties.Strings.PowerSaveMode;
             this.PowerSaveModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
 
-            this.BalancedModeToolStripMenuItem.CheckOnClick = true;
             this.BalancedModeToolStripMenuItem.Name = "BalancedModeToolStripMenuItem";
             this.BalancedModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.BalancedModeToolStripMenuItem.Tag = "BalancedMode";
             this.BalancedModeToolStripMenuItem.Text = Properties.Strings.BalancedMode;
             this.BalancedModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
             
-
-            this.PerformanceModeToolStripMenuItem.CheckOnClick = true;
             this.PerformanceModeToolStripMenuItem.Name = "PerformanceModeToolStripMenuItem";
             this.PerformanceModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.PerformanceModeToolStripMenuItem.Tag = "PerformanceMode";
             this.PerformanceModeToolStripMenuItem.Text = Properties.Strings.PerformanceMode;
             this.PerformanceModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
 
-            this.CustomModeToolStripMenuItem.CheckOnClick = true;
             this.CustomModeToolStripMenuItem.Name = "CustomModeToolStripMenuItem";
             this.CustomModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.CustomModeToolStripMenuItem.Tag = "CustomMode";
             this.CustomModeToolStripMenuItem.Text = Properties.Strings.CustomMode;
             this.CustomModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
             
-            // toolStripSeparator1
+            // toolStripSeparator1：分割线
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(277, 6);
+            
             // 
-            // 退出ToolStripMenuItem
+            // 托盘菜单选项 - 退出
             // 
             this.退出ToolStripMenuItem.Name = "退出ToolStripMenuItem";
             this.退出ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.退出ToolStripMenuItem.Text = "退出";
-            this.退出ToolStripMenuItem.Click += new System.EventHandler(this.退出ToolStripMenuItem_Click);
+            this.退出ToolStripMenuItem.Click += new System.EventHandler(this.ExitAppToolStripMenuItem_Click);
             
             // 
             // timer1
@@ -318,7 +317,7 @@ namespace RyzenTuner.UI
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(757, 291);
             this.Controls.Add(this.groupBox3);
-            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.powerLimitGroupBox);
             this.Icon = this.getIcon();
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -331,15 +330,15 @@ namespace RyzenTuner.UI
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
+            this.powerLimitGroupBox.ResumeLayout(false);
+            this.powerLimitGroupBox.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
         }
         
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox powerLimitGroupBox;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.RadioButton radioButton6;
         private System.Windows.Forms.RadioButton radioButton5;

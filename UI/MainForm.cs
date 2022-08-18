@@ -56,7 +56,7 @@ namespace RyzenTuner.UI
             }
         }
 
-        private void 退出ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ExitAppToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
         }
@@ -158,10 +158,10 @@ namespace RyzenTuner.UI
                 ChangeEnergyMode(radioButton5, EventArgs.Empty);
             }
         }
-        
+
         private void SyncEnergyModeSelection()
         {
-            foreach (Control c in groupBox1.Controls)
+            foreach (Control c in powerLimitGroupBox.Controls)
             {
                 if (c.Tag != null && c.Tag.ToString() == Properties.Settings.Default.CurrentMode)
                 {
@@ -170,7 +170,7 @@ namespace RyzenTuner.UI
                 }
             }
 
-            
+
             foreach (ToolStripItem tsmi in contextMenuStrip1.Items)
             {
                 if (tsmi.Tag != null && tsmi.Tag.ToString() == Properties.Settings.Default.CurrentMode)
@@ -195,16 +195,25 @@ namespace RyzenTuner.UI
 
         private void ToolStripMenuItems_Clicked(object sender, EventArgs e)
         {
-            foreach (Control c in groupBox1.Controls)
+            var menuItem = (ToolStripMenuItem)sender;
+            if (menuItem.CheckState != CheckState.Checked)
             {
-                if (c.Tag != null && c.Tag.ToString() == ((ToolStripMenuItem)sender).Tag.ToString())
+                menuItem.Checked = true;
+            }
+
+            // 根据用户点击的托盘菜单选项，自动选中不同的【功率限制】按钮
+            foreach (Control c in powerLimitGroupBox.Controls)
+            {
+                if (c.Tag == null || c.Tag.ToString() != ((ToolStripMenuItem)sender).Tag.ToString())
                 {
-                    var rb = (RadioButton)c;
-                    rb.Checked = true;
+                    continue;
                 }
+
+                var radioButton = (RadioButton)c;
+                radioButton.Checked = true;
             }
         }
-        
+
         private void Form1_Shown(object sender, EventArgs e)
         {
             if (Environment.GetCommandLineArgs().Length > 1 && Environment.GetCommandLineArgs()[1] == "-hide")
