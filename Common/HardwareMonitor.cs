@@ -1,11 +1,13 @@
+using System;
 using System.Linq;
 using LibreHardwareMonitor.Hardware;
+using RyzenTuner.Common.Container;
 
 namespace RyzenTuner.Common
 {
     public class HardwareMonitor
     {
-        class UpdateVisitor : IVisitor
+        private class UpdateVisitor : IVisitor
         {
             public void VisitComputer(IComputer computer)
             {
@@ -16,7 +18,7 @@ namespace RyzenTuner.Common
             public void VisitHardware(IHardware hardware)
             {
                 hardware.Update();
-                foreach (IHardware subHardware in hardware.SubHardware) subHardware.Accept(this);
+                foreach (var subHardware in hardware.SubHardware) subHardware.Accept(this);
             }
 
             public void VisitSensor(ISensor sensor)
@@ -68,65 +70,72 @@ namespace RyzenTuner.Common
 
         public void Monitor()
         {
-            // Triggers the IVisitor.VisitComputer method for the given observer.
-            _computer.Accept(new UpdateVisitor());
-
-            // CPU
-            var hardwareCpu = _computer
-                .Hardware
-                .Where(i => i.Name.StartsWith("AMD Ryzen"))
-                .SelectMany(s => s.Sensors);
-            var cpuEnumerable = hardwareCpu.ToList();
-
-            var linqCpuUsage = cpuEnumerable
-                .Where(s => s.SensorType == SensorType.Load)
-                .Where(s => s.Name == "CPU Total")
-                .Where(s => s.Value != null)
-                .Select(s => s.Value)
-                .First();
-            if (linqCpuUsage != null)
+            try
             {
-                _cpuUsage = linqCpuUsage.Value;
+                // Triggers the IVisitor.VisitComputer method for the given observer.
+                _computer.Accept(new UpdateVisitor());
+
+                // CPU
+                var hardwareCpu = _computer
+                    .Hardware
+                    .Where(i => i.Name.StartsWith("AMD Ryzen"))
+                    .SelectMany(s => s.Sensors);
+                var cpuEnumerable = hardwareCpu.ToList();
+
+                var linqCpuUsage = cpuEnumerable
+                    .Where(s => s.SensorType == SensorType.Load)
+                    .Where(s => s.Name == "CPU Total")
+                    .Where(s => s.Value != null)
+                    .Select(s => s.Value)
+                    .First();
+                if (linqCpuUsage is <= 100)
+                {
+                    _cpuUsage = linqCpuUsage.Value;
+                }
+
+                var linqCpuPackage = cpuEnumerable
+                    .Where(s => s.SensorType == SensorType.Power)
+                    .Where(s => s.Name == "Package")
+                    .Where(s => s.Value != null)
+                    .Select(s => s.Value)
+                    .First();
+                if (linqCpuPackage is <= 1000)
+                {
+                    _cpuPackagePower = linqCpuPackage.Value;
+                }
+
+                var linqCpuTemperature = cpuEnumerable
+                    .Where(s => s.SensorType == SensorType.Temperature)
+                    .Where(s => s.Name == "Core (Tctl/Tdie)")
+                    .Where(s => s.Value != null)
+                    .Select(s => s.Value)
+                    .First();
+                if (linqCpuTemperature is <= 150)
+                {
+                    _cpuTemperature = linqCpuTemperature.Value;
+                }
+
+                // 显卡
+                var hardwareVideoCard = _computer
+                    .Hardware
+                    .Where(i => i.Name.EndsWith(" Graphics"))
+                    .SelectMany(s => s.Sensors);
+                var videoCardList = hardwareVideoCard.ToList();
+
+                var linqVideoCard3D = videoCardList
+                    .Where(s => s.SensorType == SensorType.Load)
+                    .Where(s => s.Name == "D3D 3D")
+                    .Where(s => s.Value != null)
+                    .Select(s => s.Value)
+                    .First();
+                if (linqVideoCard3D is <= 100)
+                {
+                    _videoCard3DUsage = linqVideoCard3D.Value;
+                }
             }
-
-            var linqCpuPackage = cpuEnumerable
-                .Where(s => s.SensorType == SensorType.Power)
-                .Where(s => s.Name == "Package")
-                .Where(s => s.Value != null)
-                .Select(s => s.Value)
-                .First();
-            if (linqCpuPackage != null)
+            catch (Exception e)
             {
-                _cpuPackagePower = linqCpuPackage.Value;
-            }
-            
-            var linqCpuTemperature = cpuEnumerable
-                .Where(s => s.SensorType == SensorType.Temperature)
-                .Where(s => s.Name == "Core (Tctl/Tdie)")
-                .Where(s => s.Value != null)
-                .Select(s => s.Value)
-                .First();
-            if (linqCpuTemperature != null)
-            {
-                _cpuTemperature = linqCpuTemperature.Value;
-            }
-
-            // 显卡
-            var hardwareVideoCard = _computer
-                .Hardware
-                .Where(i => i.Name.EndsWith(" Graphics"))
-                .SelectMany(s => s.Sensors);
-            var videoCardList = hardwareVideoCard.ToList();
-
-            var linqVideoCard3D = videoCardList
-                .Where(s => s.SensorType == SensorType.Load)
-                .Where(s => s.Name == "D3D 3D")
-                .Where(s => s.Value != null)
-                .Select(s => s.Value)
-                .First();
-            if (linqVideoCard3D != null)
-            {
-                _videoCard3DUsage = linqVideoCard3D.Value;
+                AppContainer.Logger().Warning(e.Message);
             }
         }
     }
