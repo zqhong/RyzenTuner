@@ -22,11 +22,12 @@ using System.Runtime.InteropServices;
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
 [assembly: Guid("ebc428a6-134e-4b8b-8b89-3595ff804785")]
 
+// Major.Minor.Build.Revision
 // 程序集的版本信息由下列四个值组成: 
 //
 //      主版本
 //      次版本
 //      生成号
 //      修订号
-[assembly: AssemblyVersion("1.1.1.0")]
-[assembly: AssemblyFileVersion("1.1.1.0")]
+[assembly: AssemblyVersion("1.1.1.100")]
+[assembly: AssemblyFileVersion("1.1.1.100")]
