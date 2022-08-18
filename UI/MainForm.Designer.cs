@@ -218,18 +218,14 @@ namespace RyzenTuner.UI
                 this.checkBox1.Enabled = false;
             }
             
-            // 
-            // notifyIcon1
-            // 
+            // 托盘菜单 icon
             this.notifyIcon1.ContextMenuStrip = this.contextMenuStrip1;
             this.notifyIcon1.Icon = this.getIcon();
             this.notifyIcon1.Visible = true;
             this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
             
-            
             // 托盘菜单选项
-            this.AutoModeCtrlAltShiftF1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            
+            this.AutoModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SleepModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.PowerSaveModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.BalancedModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -238,10 +234,9 @@ namespace RyzenTuner.UI
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
-            // 
             // contextMenuStrip：托盘右键菜单
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.AutoModeCtrlAltShiftF1ToolStripMenuItem,
+                this.AutoModeToolStripMenuItem,
                 this.SleepModeToolStripMenuItem,
                 this.PowerSaveModeToolStripMenuItem,
                 this.BalancedModeToolStripMenuItem,
@@ -257,11 +252,11 @@ namespace RyzenTuner.UI
             // 设置自定义 Renderer，加粗选中项
             this.contextMenuStrip1.Renderer = new ToolStripRenderer();
             
-            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Name = "AutoModeCtrlAltShiftF1ToolStripMenuItem";
-            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Tag = "AutoMode";
-            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Text = Properties.Strings.AutoMode;
-            this.AutoModeCtrlAltShiftF1ToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
+            this.AutoModeToolStripMenuItem.Name = "AutoModeToolStripMenuItem";
+            this.AutoModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.AutoModeToolStripMenuItem.Tag = "AutoMode";
+            this.AutoModeToolStripMenuItem.Text = Properties.Strings.AutoMode;
+            this.AutoModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
             
 
             this.SleepModeToolStripMenuItem.Name = "SleepModeToolStripMenuItem";
@@ -325,11 +320,11 @@ namespace RyzenTuner.UI
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "MainForm";
+            
             // Form 标题
             var softwareVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            softwareVersion = Regex.Replace(softwareVersion, @"(\d+\.\d+\.\d+)\.\d+", "$1");
-            
             this.Text = String.Format("RyzenTuner V{0}", softwareVersion);
+            
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);
@@ -353,7 +348,7 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem AutoModeCtrlAltShiftF1ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem AutoModeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SleepModeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem PowerSaveModeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem BalancedModeToolStripMenuItem;
