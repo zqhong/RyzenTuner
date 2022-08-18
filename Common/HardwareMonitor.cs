@@ -91,7 +91,7 @@ namespace RyzenTuner.Common
                     .Where(s => s.Name == "CPU Total")
                     .Where(s => s.Value != null)
                     .Select(s => s.Value)
-                    .First();
+                    .FirstOrDefault();
                 if (linqCpuUsage is <= 100)
                 {
                     _cpuUsage = linqCpuUsage.Value;
@@ -102,7 +102,7 @@ namespace RyzenTuner.Common
                     .Where(s => s.Name == "Package")
                     .Where(s => s.Value != null)
                     .Select(s => s.Value)
-                    .First();
+                    .FirstOrDefault();
                 if (linqCpuPackage is <= 1000)
                 {
                     _cpuPackagePower = linqCpuPackage.Value;
@@ -113,7 +113,7 @@ namespace RyzenTuner.Common
                     .Where(s => s.Name == "Core (Tctl/Tdie)")
                     .Where(s => s.Value != null)
                     .Select(s => s.Value)
-                    .First();
+                    .FirstOrDefault();
                 if (linqCpuTemperature is <= 150)
                 {
                     _cpuTemperature = linqCpuTemperature.Value;
@@ -133,7 +133,7 @@ namespace RyzenTuner.Common
                     .Where(s => s.Name == "D3D 3D")
                     .Where(s => s.Value != null)
                     .Select(s => s.Value)
-                    .First();
+                    .FirstOrDefault();
                 if (linqVideoCard3D is <= 100)
                 {
                     _videoCard3DUsage = linqVideoCard3D.Value;
@@ -141,7 +141,7 @@ namespace RyzenTuner.Common
             }
             catch (Exception e)
             {
-                AppContainer.Logger().Warning(e.Message);
+                AppContainer.Logger().LogException(e);
             }
         }
     }
