@@ -49,8 +49,14 @@
 ## 计划
 
 - [x] powercfg.exe、ryzenadj.exe 等改为 DLL 库方法
+- [ ] 内置 EnergyStar
+- [ ] 添加关于面板
+- [ ] 添加设置面板
+- [ ] 添加是否允许修改电源计划的选项，默认关闭
 - [ ] 使用 EnergyStar 的 config 分支，添加自定义白名单的功能
 - [ ] 多语言支持
+- [ ] 完善 FAQ
+
 
 ## 感谢
 
