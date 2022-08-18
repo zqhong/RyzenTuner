@@ -77,7 +77,7 @@ namespace RyzenTuner.UI
 
         private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            this.Show();
+            Show();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -158,28 +158,29 @@ namespace RyzenTuner.UI
                 ChangeEnergyMode(radioButton5, EventArgs.Empty);
             }
         }
-
+        
         private void SyncEnergyModeSelection()
         {
             foreach (Control c in groupBox1.Controls)
             {
                 if (c.Tag != null && c.Tag.ToString() == Properties.Settings.Default.CurrentMode)
                 {
-                    RadioButton rb = (RadioButton)c;
+                    var rb = (RadioButton)c;
                     rb.Checked = true;
                 }
             }
 
+            
             foreach (ToolStripItem tsmi in contextMenuStrip1.Items)
             {
                 if (tsmi.Tag != null && tsmi.Tag.ToString() == Properties.Settings.Default.CurrentMode)
                 {
-                    ToolStripMenuItem tsmi2 = (ToolStripMenuItem)tsmi;
+                    var tsmi2 = (ToolStripMenuItem)tsmi;
                     tsmi2.Checked = true;
                 }
                 else if (tsmi is ToolStripMenuItem)
                 {
-                    ToolStripMenuItem tsmi2 = (ToolStripMenuItem)tsmi;
+                    var tsmi2 = (ToolStripMenuItem)tsmi;
                     tsmi2.Checked = false;
                 }
             }
@@ -198,17 +199,17 @@ namespace RyzenTuner.UI
             {
                 if (c.Tag != null && c.Tag.ToString() == ((ToolStripMenuItem)sender).Tag.ToString())
                 {
-                    RadioButton rb = (RadioButton)c;
+                    var rb = (RadioButton)c;
                     rb.Checked = true;
                 }
             }
         }
-
+        
         private void Form1_Shown(object sender, EventArgs e)
         {
             if (Environment.GetCommandLineArgs().Length > 1 && Environment.GetCommandLineArgs()[1] == "-hide")
             {
-                this.Hide();
+                Hide();
             }
         }
     }
