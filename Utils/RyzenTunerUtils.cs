@@ -102,7 +102,7 @@ namespace RyzenTuner.Utils
 
             var noticeText = $@"{Properties.Settings.Default.CurrentMode}
 功率：限制{powerLimit:0}W、实际{hardwareMonitor.CpuPackagePower:0}W
-CPU: {hardwareMonitor.CpuUsage:0}%、{hardwareMonitor.CpuTemperature:0}℃，GPU: {hardwareMonitor.VideoCard3DUsage:0}%";
+CPU: {hardwareMonitor.CpuUsage:0}%、{hardwareMonitor.CpuTemperature:0}℃、{hardwareMonitor.CpuFreq:0}MHz，GPU: {hardwareMonitor.VideoCard3DUsage:0}%";
             if (noticeText.Length >= 64)
             {
                 noticeText = noticeText.Substring(0, 63);

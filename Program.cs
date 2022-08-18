@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using RyzenTuner.Common.Container;
 using RyzenTuner.UI;
+using RyzenTuner.Utils;
 
 namespace RyzenTuner
 {
@@ -10,6 +11,9 @@ namespace RyzenTuner
         [STAThread]
         private static void Main()
         {
+            // TODO：测试用
+            DebugUtils.LogCpuInfo();
+            
             if (Environment.OSVersion.Version.Major >= 6)
             {
                 SetProcessDPIAware();
