@@ -35,7 +35,7 @@ namespace RyzenTuner.Utils
 
                 AppContainer.Logger()
                     .Debug(
-                        $"限制{i}瓦，CPU：{hardware.CpuUsage:F}%、{hardware.CpuTemperature:F}℃、{hardware.CpuFreq:F}MHz，GPU：{hardware.VideoCard3DUsage:F}%");
+                        $"功率：限制{i}瓦、实际{hardware.CpuPackagePower:F}瓦，CPU：{hardware.CpuUsage:F}%、{hardware.CpuTemperature:F}℃、{hardware.CpuFreq:F}MHz，GPU：{hardware.VideoCard3DUsage:F}%");
             }
         }
     }
