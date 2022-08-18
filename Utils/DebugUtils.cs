@@ -30,12 +30,12 @@ namespace RyzenTuner.Utils
             for (var i = 1; i <= maxPowerLimit; i++)
             {
                 AppContainer.AmdProcessor().SetAllTdpLimit(i);
-                System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(2048);
                 AppContainer.HardwareMonitor().Monitor();
 
                 AppContainer.Logger()
                     .Debug(
-                        $"限制{i}瓦，CPU：{hardware.CpuUsage}%、{hardware.CpuTemperature}℃、{hardware.CpuFreq}MHz，GPU：{hardware.VideoCard3DUsage}");
+                        $"限制{i}瓦，CPU：{hardware.CpuUsage:F}%、{hardware.CpuTemperature:F}℃、{hardware.CpuFreq:F}MHz，GPU：{hardware.VideoCard3DUsage:F}%");
             }
         }
     }
