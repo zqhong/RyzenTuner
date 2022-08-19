@@ -15,7 +15,7 @@
       <Value Profile="(Default)">16</Value>
     </Setting>
     <Setting Name="SleepMode" Type="System.String" Scope="User">
-      <Value Profile="(Default)">1</Value>
+      <Value Profile="(Default)">5</Value>
     </Setting>
     <Setting Name="PowerSaveMode" Type="System.String" Scope="User">
       <Value Profile="(Default)">10</Value>

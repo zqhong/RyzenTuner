@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows.Forms;
-using RyzenTuner.Common;
 using RyzenTuner.Common.Container;
 
 namespace RyzenTuner.Utils
@@ -13,7 +12,7 @@ namespace RyzenTuner.Utils
          * 改进：
          * 1、适配不同型号 CPU
          */
-        public static float AutoModePowerLimit()
+        private static float AutoModePowerLimit()
         {
             var hardwareMonitor = AppContainer.HardwareMonitor();
 
@@ -48,12 +47,14 @@ namespace RyzenTuner.Utils
             // 符合下面条件之一的情况下，使用【待机】
             var idleSecond = RyzenTunerUtils.GetIdleSecond();
             if (
-                // 条件1：白天 && 非活跃时间超过32分钟 && CPU 占用小于 10% && 显卡占用小于 10%
-                (!isNight && idleSecond >= 32 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
-                // 条件2：夜晚 && 非活跃时间超过4分钟 && CPU 占用小于 20% && 显卡占用小于 20%
+                // 条件1：CPU 占用小于 3% && 显卡占用小于 3%
+                (cpuUsage < 3 && videoCard3DUsage < 3) ||
+                // 条件2：白天 && 非活跃时间超过4分钟 && CPU 占用小于 10% && 显卡占用小于 10%
+                (!isNight && idleSecond >= 4 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
+                // 条件3：夜晚 && 非活跃时间超过2分钟 && CPU 占用小于 20% && 显卡占用小于 20%
                 (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20) ||
-                // 条件3：锁屏状态下 && 非活跃时间超过 2 秒 && CPU 占用小于 15% && 显卡占用小于 15%
-                (CommonUtils.IsSystemLocked() && idleSecond >= 2 && cpuUsage < 15 && videoCard3DUsage < 15)
+                // 条件4：锁屏状态下 && 非活跃时间超过 2 秒 && CPU 占用小于 20% && 显卡占用小于 20%
+                (CommonUtils.IsSystemLocked() && idleSecond >= 2 && cpuUsage < 20 && videoCard3DUsage < 20)
             )
             {
                 powerLimit = sleepPower;
