@@ -12,6 +12,7 @@ namespace RyzenTuner.Utils
         public static void LogCpuInfo()
         {
             AppContainer.HardwareMonitor().Monitor();
+            AppContainer.AmdProcessor().SetTctlTemp(90);
 
             AppContainer.PowerConfig().DisableCpuBoost();
             AppContainer.Logger().Debug("关闭睿频");

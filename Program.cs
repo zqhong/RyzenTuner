@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using RyzenTuner.Common.Container;
 using RyzenTuner.UI;
-using RyzenTuner.Utils;
 
 namespace RyzenTuner
 {
