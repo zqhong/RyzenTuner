@@ -47,14 +47,27 @@ namespace RyzenTuner.Utils
             // 符合下面条件之一的情况下，使用【待机】
             var idleSecond = RyzenTunerUtils.GetIdleSecond();
             if (
-                // 条件1：CPU 占用小于 3% && 显卡占用小于 3%
-                (cpuUsage < 3 && videoCard3DUsage < 3) ||
-                // 条件2：白天 && 非活跃时间超过4分钟 && CPU 占用小于 10% && 显卡占用小于 10%
-                (!isNight && idleSecond >= 4 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
-                // 条件3：夜晚 && 非活跃时间超过2分钟 && CPU 占用小于 20% && 显卡占用小于 20%
-                (isNight && idleSecond >= 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20) ||
-                // 条件4：锁屏状态下 && 非活跃时间超过 2 秒 && CPU 占用小于 20% && 显卡占用小于 20%
-                (CommonUtils.IsSystemLocked() && idleSecond >= 2 && cpuUsage < 20 && videoCard3DUsage < 20)
+                // 条件1：CPU 占用小于 2% && 显卡占用小于 2%
+                //      在笔记本负载极低的情况下马上进入待机模式
+                (cpuUsage < 2 && videoCard3DUsage < 2) ||
+
+                // 条件2：非活跃时间超过2秒钟 && CPU 占用小于 5% && 显卡占用小于 5%
+                //      在短时间不活跃使用且笔记本负载较低的情况下，进入待机模式
+                (isNight && idleSecond > 2 && cpuUsage < 5 && videoCard3DUsage < 5) ||
+
+                // 条件3：白天 && 非活跃时间超过4分钟 && CPU 占用小于 10% && 显卡占用小于 10%
+                (!isNight && idleSecond > 4 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
+
+                // 条件4：夜晚 && 非活跃时间超过2分钟 && CPU 占用小于 20% && 显卡占用小于 20%
+                (isNight && idleSecond > 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20) ||
+
+                // 条件5：锁屏状态下 && 非活跃时间超过 2 秒 && CPU 占用小于 20% && 显卡占用小于 20%
+                (CommonUtils.IsSystemLocked() && idleSecond > 2 && cpuUsage < 20 && videoCard3DUsage < 20) ||
+
+                // 条件6：锁屏状态下 && 非活跃时间超过 2 秒 && 温度大于 52 度
+                //      当前使用的笔记本在锁屏且温度在 60 度以内，会关闭风扇。一段时间后解锁电脑，风扇迅速运转，体验差。
+                //      如果需要长时间运行高负载的任务，建议打开【保持唤醒】，不要锁屏。
+                (CommonUtils.IsSystemLocked() && idleSecond > 2 && cpuTemperature > 52)
             )
             {
                 powerLimit = sleepPower;
