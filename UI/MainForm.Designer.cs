@@ -323,7 +323,8 @@ namespace RyzenTuner.UI
             
             // Form 标题
             var softwareVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            this.Text = String.Format("RyzenTuner V{0}", softwareVersion);
+            softwareVersion = Regex.Replace(softwareVersion, @"(\d+\.\d+\.\d+)\.\d+", "$1");
+            this.Text = String.Format("RyzenTuner {0}", softwareVersion);
             
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
