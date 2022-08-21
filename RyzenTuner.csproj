@@ -87,6 +87,10 @@
     <Compile Include="Common\Awake.cs" />
     <Compile Include="Common\Container\AppContainer.cs" />
     <Compile Include="Common\Container\Container.cs" />
+    <Compile Include="Common\EnergyStar\EnergyManager.cs" />
+    <Compile Include="Common\EnergyStar\Interop\Event.cs" />
+    <Compile Include="Common\EnergyStar\Interop\HookManager.cs" />
+    <Compile Include="Common\EnergyStar\Interop\Win32Api.cs" />
     <Compile Include="Common\Hardware\HardwareMonitor.cs" />
     <Compile Include="Common\Hardware\UpdateVisitor.cs" />
     <Compile Include="Common\Logger\SimpleLogger.cs" />
