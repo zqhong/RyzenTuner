@@ -49,7 +49,7 @@
 ## 计划
 
 - [x] powercfg.exe、ryzenadj.exe 等改为 DLL 库方法
-- [ ] 内置 EnergyStar
+- [x] 内置 EnergyStar
 - [x] 添加关于面板
 - [ ] 添加设置面板
 - [ ] 添加是否允许修改电源计划的选项，默认关闭
@@ -62,8 +62,5 @@
 * [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner)：基于该项目开发
 * [FlyGoat/RyzenAdj](https://github.com/FlyGoat/RyzenAdj)：Ryzen 移动处理器电源管理工具
 * [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar)：Windows 进程调度，可能有增加续航的效果（未测试）
-    * 原理：
-      * 当一个进程设置为 PROCESS_POWER_THROTTLING_EXECUTION_SPEED 时，该进程将被分类为 EcoQoS。
-      * 系统通过对 EcoQoS 进程降低 CPU 频率或使用更多高能效的内核等操作来提高电源效率。
 * [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)：获取硬件信息
 * [dahall/Vanara](https://github.com/dahall/Vanara)：一套 .NET 库，包含了许多 Windows 原生 API 的 PInvoke 调用的封装
