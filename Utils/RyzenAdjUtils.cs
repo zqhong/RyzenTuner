@@ -47,30 +47,27 @@ namespace RyzenTuner.Utils
             // 符合下面条件之一的情况下，使用【待机】
             var idleSecond = RyzenTunerUtils.GetIdleSecond();
             if (
-                // 条件1：在笔记本负载极低的情况下马上进入待机模式
-                (cpuUsage < 2 && videoCard3DUsage < 2) ||
-                
-                // 条件2：在短时间不活跃使用且笔记本负载较低的情况下，进入待机模式
-                (isNight && idleSecond > 2 && cpuUsage < 5 && videoCard3DUsage < 5) ||
+                // 条件1：在短时间不活跃使用且笔记本负载较低的情况下，进入待机模式
+                (idleSecond > 2 && cpuUsage < 5 && videoCard3DUsage < 5) ||
 
-                // 条件3：白天 && 非活跃时间超过 x 分钟 && 笔记本负载低
+                // 条件2：白天 && 非活跃时间超过 x 分钟 && 笔记本低负载
                 (!isNight && idleSecond > 4 * 60 && cpuUsage < 10 && videoCard3DUsage < 10) ||
 
-                // 条件4：夜晚 && 非活跃时间超过 x 分钟 && 笔记本负载中
+                // 条件3：夜晚 && 非活跃时间超过 x 分钟 && 笔记本中负载
                 (isNight && idleSecond > 4 * 60 && cpuUsage < 20 && videoCard3DUsage < 20) ||
 
-                // 条件5：锁屏状态下 && 非活跃时间超过 x 秒 && 笔记本负载中
+                // 条件4：锁屏状态下 && 非活跃时间超过 x 秒 && 笔记本中负载
                 (CommonUtils.IsSystemLocked() && idleSecond > 2 && cpuUsage < 20 && videoCard3DUsage < 20) ||
 
-                // 条件6：锁屏状态下 && 非活跃时间超过 x 秒 && 温度大于 x 度
+                // 条件5：锁屏状态下 && 非活跃时间超过 x 秒 && 温度大于 x 度
                 (CommonUtils.IsSystemLocked() && idleSecond > 2 && cpuTemperature > 52)
             )
             {
                 powerLimit = sleepPower;
             }
 
-            // CPU 占用大于 50%，温度在 65 度以内，使用【性能模式】
-            if (cpuUsage >= 50 && cpuTemperature < 65)
+            // 非待机模式 && CPU 占用大于 50%，温度在 65 度以内，使用【性能模式】
+            if (!RyzenTunerUtils.IsSleepMode(powerLimit) && cpuUsage >= 50 && cpuTemperature < 65)
             {
                 powerLimit = performancePower;
             }

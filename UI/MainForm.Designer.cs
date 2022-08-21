@@ -232,7 +232,8 @@ namespace RyzenTuner.UI
             this.PerformanceModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CustomModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.退出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ExitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             
             // contextMenuStrip：托盘右键菜单
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -243,7 +244,8 @@ namespace RyzenTuner.UI
                 this.PerformanceModeToolStripMenuItem,
                 this.CustomModeToolStripMenuItem,
                 this.toolStripSeparator1,
-                this.退出ToolStripMenuItem,
+                this.AboutToolStripMenuItem,
+                this.ExitToolStripMenuItem,
             });
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(281, 276);
@@ -293,13 +295,17 @@ namespace RyzenTuner.UI
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(277, 6);
             
-            // 
+            // 托盘菜单选项 - 关于
+            this.AboutToolStripMenuItem.Name = "AboutToolStripMenuItem";
+            this.AboutToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.AboutToolStripMenuItem.Text = "关于";
+            this.AboutToolStripMenuItem.Click += new System.EventHandler(this.AboutAppToolStripMenuItem_Click);
+
             // 托盘菜单选项 - 退出
-            // 
-            this.退出ToolStripMenuItem.Name = "退出ToolStripMenuItem";
-            this.退出ToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.退出ToolStripMenuItem.Text = "退出";
-            this.退出ToolStripMenuItem.Click += new System.EventHandler(this.ExitAppToolStripMenuItem_Click);
+            this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
+            this.ExitToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.ExitToolStripMenuItem.Text = "退出";
+            this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitAppToolStripMenuItem_Click);
             
             // 
             // timer1
@@ -358,7 +364,8 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.CheckBox keepAwakeCheckBox;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripMenuItem 退出ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem AboutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ExitToolStripMenuItem;
     }
 }
 
