@@ -57,7 +57,6 @@
 - [ ] 多语言支持
 - [ ] 完善 FAQ
 
-
 ## 感谢
 
 * [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner)：基于该项目开发
