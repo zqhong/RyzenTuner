@@ -56,6 +56,11 @@ namespace RyzenTuner.UI
             }
         }
 
+        private void AboutAppToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new AboutForm().ShowDialog();
+        }
+        
         private void ExitAppToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();

@@ -49,9 +49,8 @@
 ## 计划
 
 - [x] powercfg.exe、ryzenadj.exe 等改为 DLL 库方法
-- [ ] RyzenTuner.Console，记录 Cpu 在不同限制功耗下的数据（功耗、跑分等）
 - [ ] 内置 EnergyStar
-- [ ] 添加关于面板
+- [x] 添加关于面板
 - [ ] 添加设置面板
 - [ ] 添加是否允许修改电源计划的选项，默认关闭
 - [ ] 使用 EnergyStar 的 config 分支，添加自定义白名单的功能
