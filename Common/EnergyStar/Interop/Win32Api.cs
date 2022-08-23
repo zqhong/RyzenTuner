@@ -86,6 +86,15 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         public enum ProcessorPowerThrottlingFlags : uint
         {
             None = 0x0,
+
+            // 当一个进程设置为 PROCESS_POWER_THROTTLING_EXECUTION_SPEED 时，该进程将被分类为 EcoQoS
+            // 系统通过对 EcoQoS 进程降低 CPU 频率或使用更多高能效的内核等操作来提高电源效率
+            // 在 Windows 11 之前，EcoQoS 级别并不存在，进程被标记为 LowQoS
+            //      LowQoS：在电池模式下，选择最有效的CPU频率和调度到高效核心。1709 以后版本可用。
+            //      EcoQos：总是选择最有效的CPU频率，并调度到高效的核心。Windows 11 以后版本可用。
+            // 参考：
+            //      https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setprocessinformation
+            //      https://docs.microsoft.com/en-us/windows/win32/procthread/quality-of-service
             PROCESS_POWER_THROTTLING_EXECUTION_SPEED = 0x1,
         }
 
@@ -110,15 +119,15 @@ namespace RyzenTuner.Common.EnergyStar.Interop
 
             // Process with no special scheduling needs
             NORMAL_PRIORITY_CLASS = 0x20,
-            
+
             // 开始后台处理模式。系统降低了进程(及其线程)的资源调度优先级，以便它可以在不显著影响前台活动的情况下执行后台工作
             // PROCESS_MODE_BACKGROUND_BEGIN 不适合用于低优先级的后台工作
             // 参考：https://stackoverflow.com/questions/13631644/setthreadpriority-and-setpriorityclass
             PROCESS_MODE_BACKGROUND_BEGIN = 0x100000, // Windows Vista/2008 and higher
-            
+
             // 结束后台处理模式。系统恢复进程(及其线程)进入后台处理模式前的资源调度优先级
             PROCESS_MODE_BACKGROUND_END = 0x200000, //   Windows Vista/2008 and higher
-            
+
             // 具有最高优先级的进程。该进程的线程抢占所有其他进程的线程，包括执行重要任务的操作系统进程
             REALTIME_PRIORITY_CLASS = 0x100
         }
