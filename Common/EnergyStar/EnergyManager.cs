@@ -38,8 +38,8 @@ namespace RyzenTuner.Common.EnergyStar
             PThrottleOn = Marshal.AllocHGlobal(SzControlBlock);
             PThrottleOff = Marshal.AllocHGlobal(SzControlBlock);
 
-            // 参考：https://www.intel.com/content/dam/develop/external/us/en/documents-tps/348851-optimizing-x86-hybrid-cpus.pdf
-            // 打开 ExecutionSpeed 节流功能
+            // 参考：https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setprocessinformation
+            // EcoQoS：打开 ExecutionSpeed 节流功能
             var throttleState = new Win32Api.ProcessPowerThrottlingState
             {
                 Version = Win32Api.ProcessPowerThrottlingState.ProcessPowerThrottlingCurrentVersion,
@@ -47,7 +47,7 @@ namespace RyzenTuner.Common.EnergyStar
                 StateMask = Win32Api.ProcessorPowerThrottlingFlags.PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
             };
 
-            // 关闭 ExecutionSpeed 节流
+            // HighQoS：关闭 ExecutionSpeed 节流
             var unThrottleState = new Win32Api.ProcessPowerThrottlingState
             {
                 Version = Win32Api.ProcessPowerThrottlingState.ProcessPowerThrottlingCurrentVersion,
