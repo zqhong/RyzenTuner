@@ -18,14 +18,15 @@ namespace RyzenTuner.Common.EnergyStar
         };
 
         // Special handling needs for UWP to get the child window process
+        // UWP Application Frame Host
         private const string UwpFrameHostApp = "ApplicationFrameHost.exe";
 
-        private static uint _pendingProcPid = 0;
+        private static uint _pendingProcPid;
         private static string _pendingProcName = "";
 
         private static readonly IntPtr PThrottleOn;
         private static readonly IntPtr PThrottleOff;
-        private static readonly int SzControlBlock = 0;
+        private static readonly int SzControlBlock;
 
         static EnergyManager()
         {
@@ -37,6 +38,8 @@ namespace RyzenTuner.Common.EnergyStar
             PThrottleOn = Marshal.AllocHGlobal(SzControlBlock);
             PThrottleOff = Marshal.AllocHGlobal(SzControlBlock);
 
+            // 参考：https://www.intel.com/content/dam/develop/external/us/en/documents-tps/348851-optimizing-x86-hybrid-cpus.pdf
+            // 打开 ExecutionSpeed 节流功能
             var throttleState = new Win32Api.ProcessPowerThrottlingState
             {
                 Version = Win32Api.ProcessPowerThrottlingState.ProcessPowerThrottlingCurrentVersion,
@@ -44,15 +47,24 @@ namespace RyzenTuner.Common.EnergyStar
                 StateMask = Win32Api.ProcessorPowerThrottlingFlags.PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
             };
 
-            var unthrottleState = new Win32Api.ProcessPowerThrottlingState
+            // 关闭 ExecutionSpeed 节流
+            var unThrottleState = new Win32Api.ProcessPowerThrottlingState
             {
                 Version = Win32Api.ProcessPowerThrottlingState.ProcessPowerThrottlingCurrentVersion,
                 ControlMask = Win32Api.ProcessorPowerThrottlingFlags.PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
                 StateMask = Win32Api.ProcessorPowerThrottlingFlags.None,
             };
 
+            // 如果想要让系统管理所有的功率节流，ControlMask 和 StateMask 设置为 Win32Api.ProcessorPowerThrottlingFlags.None
+            // var defaultThrottleState = new Win32Api.ProcessPowerThrottlingState
+            // {
+            //     Version = Win32Api.ProcessPowerThrottlingState.ProcessPowerThrottlingCurrentVersion,
+            //     ControlMask = Win32Api.ProcessorPowerThrottlingFlags.None,
+            //     StateMask = Win32Api.ProcessorPowerThrottlingFlags.None,
+            // };
+
             Marshal.StructureToPtr(throttleState, PThrottleOn, false);
-            Marshal.StructureToPtr(unthrottleState, PThrottleOff, false);
+            Marshal.StructureToPtr(unThrottleState, PThrottleOff, false);
         }
 
         private static void ToggleEfficiencyMode(IntPtr hProcess, bool enable)
@@ -79,7 +91,7 @@ namespace RyzenTuner.Common.EnergyStar
         public static void HandleForegroundEvent(IntPtr hwnd)
         {
             var windowThreadId = Win32Api.GetWindowThreadProcessId(hwnd, out var procId);
-            
+
             // This is invalid, likely a process is dead, or idk
             if (windowThreadId == 0 || procId == 0) return;
 
