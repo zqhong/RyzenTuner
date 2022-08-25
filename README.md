@@ -2,7 +2,7 @@
 
 一个方便调节 Ryzen 移动处理器功率限制的工具。
 
-![preview.jpg](https://s2.loli.net/2022/08/19/DNhgZBJoWQdlXae.jpg)
+![preview.jpg](https://s2.loli.net/2022/08/25/YTA9yf8jqOtUEwn.jpg)
 
 ## 添加内容
 
