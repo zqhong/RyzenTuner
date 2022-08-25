@@ -39,6 +39,7 @@ namespace RyzenTuner.Common.EnergyStar
             "SearchHost.exe",
             "sihost.exe",
             "fontdrvhost.exe",
+            "logonui.exe",
 
             // IME
             "ChsIME.exe",
