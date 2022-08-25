@@ -28,6 +28,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>bin\Debug\</OutputPath>
     <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Prefer32bit>false</Prefer32bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -88,8 +90,6 @@
     <Compile Include="Common\Container\AppContainer.cs" />
     <Compile Include="Common\Container\Container.cs" />
     <Compile Include="Common\EnergyStar\EnergyManager.cs" />
-    <Compile Include="Common\EnergyStar\Interop\Event.cs" />
-    <Compile Include="Common\EnergyStar\Interop\HookManager.cs" />
     <Compile Include="Common\EnergyStar\Interop\Win32Api.cs" />
     <Compile Include="Common\Hardware\HardwareMonitor.cs" />
     <Compile Include="Common\Hardware\UpdateVisitor.cs" />

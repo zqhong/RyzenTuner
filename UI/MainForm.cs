@@ -1,7 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Windows.Forms;
 using RyzenTuner.Common;
 using RyzenTuner.Common.Container;
@@ -23,7 +21,7 @@ namespace RyzenTuner.UI
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            checkBox1.Checked = Properties.Settings.Default.EnergyStar;
+            checkBoxEnergyStar.Checked = Properties.Settings.Default.EnergyStar;
             keepAwakeCheckBox.Checked = Properties.Settings.Default.KeepAwake;
             textBox1.Text = Properties.Settings.Default.CustomMode;
             SyncEnergyModeSelection();
@@ -32,13 +30,22 @@ namespace RyzenTuner.UI
             keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
 
             WindowState = FormWindowState.Minimized;
+
+            if (checkBoxEnergyStar.Checked)
+            {
+                AppContainer.EnergyManager().ThrottleAllUserBackgroundProcesses();
+            }
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        private void checkBoxEnergyStar_CheckedChanged(object sender, EventArgs e)
         {
-            Properties.Settings.Default.EnergyStar = checkBox1.Checked;
+            Properties.Settings.Default.EnergyStar = checkBoxEnergyStar.Checked;
             Properties.Settings.Default.Save();
-            timer1_Tick(sender, e);
+
+            if (checkBoxEnergyStar.Checked)
+            {
+                AppContainer.EnergyManager().ThrottleAllUserBackgroundProcesses();
+            }
         }
 
         private void keepAwakeCheckBox_CheckedChanged(object? sender, EventArgs e)
@@ -60,7 +67,7 @@ namespace RyzenTuner.UI
         {
             new AboutForm().ShowDialog();
         }
-        
+
         private void ExitAppToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
@@ -89,41 +96,21 @@ namespace RyzenTuner.UI
         {
             AppContainer.HardwareMonitor().Monitor();
 
-            // 启动/关闭 EnergyStar
-            if (checkBox1.Checked && RyzenTunerUtils.IsSupportEnergyStar())
+            // EnergyStar：配置前台进程
+            if (checkBoxEnergyStar.Checked)
             {
-                StartEnergyStar();
-            }
-            else
-            {
-                StopEnergyStar();
+                AppContainer.EnergyManager().HandleForeground();
             }
 
             ApplyEnergyMode();
         }
 
-        private static void StartEnergyStar()
-        {
-            if (!Process.GetProcessesByName("energystar").Any())
-            {
-                Process.Start(System.IO.Path.GetDirectoryName(Application.ExecutablePath) +
-                              "\\energystar\\EnergyStar.exe");
-            }
-        }
-
-        private static void StopEnergyStar()
-        {
-            foreach (var p in Process.GetProcessesByName("energystar"))
-            {
-                p.Kill();
-            }
-        }
 
         private void ChangeEnergyMode(object sender, EventArgs e)
         {
             if (((RadioButton)sender).Checked)
             {
-                string checkedMode = ((RadioButton)sender).Tag.ToString();
+                var checkedMode = ((RadioButton)sender).Tag.ToString();
                 Properties.Settings.Default.CurrentMode = checkedMode;
                 Properties.Settings.Default.Save();
                 SyncEnergyModeSelection();

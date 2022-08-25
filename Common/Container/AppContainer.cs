@@ -1,4 +1,5 @@
-﻿using RyzenTuner.Common.Logger;
+﻿using RyzenTuner.Common.EnergyStar;
+using RyzenTuner.Common.Logger;
 using RyzenTuner.Common.Processor;
 
 namespace RyzenTuner.Common.Container
@@ -23,6 +24,9 @@ namespace RyzenTuner.Common.Container
             Container.Register(() => new AmdProcessor())
                 .AsSingleton();
 
+            Container.Register(() => new EnergyManager())
+                .AsSingleton();
+
             Container.Register(() =>
                 {
                     var logger = new SimpleLogger();
@@ -45,6 +49,11 @@ namespace RyzenTuner.Common.Container
         public static AmdProcessor AmdProcessor()
         {
             return Container.Resolve<AmdProcessor>();
+        }
+
+        public static EnergyManager EnergyManager()
+        {
+            return Container.Resolve<EnergyManager>();
         }
 
         public static SimpleLogger Logger()
