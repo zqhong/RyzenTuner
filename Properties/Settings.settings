@@ -30,7 +30,7 @@
       <Value Profile="(Default)">AutoMode</Value>
     </Setting>
     <Setting Name="LogLevel" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Debug</Value>
+      <Value Profile="(Default)">Warning</Value>
     </Setting>
     <Setting Name="EnergyStarBypassProcessList" Type="System.String" Scope="User">
       <Value Profile="(Default)">example1.exe,example2.exe</Value>

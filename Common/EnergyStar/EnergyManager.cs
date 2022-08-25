@@ -32,13 +32,27 @@ namespace RyzenTuner.Common.EnergyStar
             // Widgets
             "Widgets.exe",
 
-            // System shell
-            "dwm.exe",
+            // 系统进程
             "explorer.exe",
+            "ntoskrnl.exe",
+            "WerFault.exe",
+            "backgroundTaskHost.exe",
+            "backgroundTransferHost.exe",
+            "winlogon.exe",
+            "wininit.exe",
+            "csrss.exe",
+            "lsass.exe",
+            "smss.exe",
+            "services.exe",
+            "taskeng.exe",
+            "taskhost.exe",
+            "dwm.exe",
+            "conhost.exe",
+            "svchost.exe",
+            "sihost.exe",
             "ShellExperienceHost.exe",
             "StartMenuExperienceHost.exe",
             "SearchHost.exe",
-            "sihost.exe",
             "fontdrvhost.exe",
             "logonui.exe",
             "LockApp.exe",
@@ -47,11 +61,6 @@ namespace RyzenTuner.Common.EnergyStar
             // 输入法
             "ChsIME.exe",
             "ctfmon.exe",
-
-            // 系统服务会自动调度
-            "csrss.exe",
-            "smss.exe",
-            "svchost.exe",
 
             // WUDF
             "WUDFRd.exe",
@@ -210,7 +219,7 @@ namespace RyzenTuner.Common.EnergyStar
             }
             catch (Exception e)
             {
-                logger.Warning(e.Message);
+                AppContainer.Logger().LogException(e);
             }
         }
 
@@ -234,7 +243,7 @@ namespace RyzenTuner.Common.EnergyStar
             }
             catch (Exception e)
             {
-                AppContainer.Logger().Warning(e.Message);
+                AppContainer.Logger().LogException(e);
                 return UnknownProcessName;
             }
         }
@@ -267,7 +276,7 @@ namespace RyzenTuner.Common.EnergyStar
             }
             catch (Exception e)
             {
-                logger.Warning(e.Message);
+                AppContainer.Logger().LogException(e);
             }
         }
 
@@ -284,6 +293,7 @@ namespace RyzenTuner.Common.EnergyStar
                 var currentSessionId = Process.GetCurrentProcess().SessionId;
 
                 var sameAsThisSession = runningProcesses.Where(p => p.SessionId == currentSessionId);
+
                 foreach (var proc in sameAsThisSession)
                 {
                     ToggleEfficiencyMode(proc.Id, true);
@@ -291,7 +301,7 @@ namespace RyzenTuner.Common.EnergyStar
             }
             catch (Exception e)
             {
-                AppContainer.Logger().Warning(e.Message);
+                AppContainer.Logger().LogException(e);
             }
         }
     }
