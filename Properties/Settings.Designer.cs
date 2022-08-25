@@ -138,5 +138,17 @@ namespace RyzenTuner.Properties {
                 this["LogLevel"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("example1.exe,example2.exe")]
+        public string EnergyStarBypassProcessList {
+            get {
+                return ((string)(this["EnergyStarBypassProcessList"]));
+            }
+            set {
+                this["EnergyStarBypassProcessList"] = value;
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using RyzenTuner.Common.Container;
 using RyzenTuner.Common.EnergyStar.Interop;
+using RyzenTuner.Properties;
 
 namespace RyzenTuner.Common.EnergyStar
 {
@@ -99,9 +100,11 @@ namespace RyzenTuner.Common.EnergyStar
 
         public EnergyManager()
         {
-            // TODO：Setting 类没有实现，暂时屏蔽
-            // var settings = Settings.Load();
-            // BypassProcessList.UnionWith(settings.Exemptions.Select(x => x.ToLowerInvariant()));
+            var bypassSetting =
+                Settings.Default.EnergyStarBypassProcessList
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim());
+            _bypassProcessList.UnionWith(bypassSetting);
 
             // 将 _bypassProcessList 的元素全部替代为小写字符串
             foreach (var processName in _bypassProcessList.ToArray())
@@ -115,7 +118,7 @@ namespace RyzenTuner.Common.EnergyStar
                 _bypassProcessList.Remove(processName);
                 _bypassProcessList.Add(lowerProcessName);
             }
-
+            
             _szControlBlock = Marshal.SizeOf<Win32Api.ProcessPowerThrottlingState>();
             _pThrottleOn = Marshal.AllocHGlobal(_szControlBlock);
             _pThrottleOff = Marshal.AllocHGlobal(_szControlBlock);

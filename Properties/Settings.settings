@@ -32,6 +32,9 @@
     <Setting Name="LogLevel" Type="System.String" Scope="User">
       <Value Profile="(Default)">Debug</Value>
     </Setting>
+    <Setting Name="EnergyStarBypassProcessList" Type="System.String" Scope="User">
+      <Value Profile="(Default)">example1.exe,example2.exe</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
 
