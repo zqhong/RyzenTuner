@@ -13,7 +13,7 @@ namespace RyzenTuner.Common.EnergyStar
     {
         private const string UnknownProcessName = "Unknown-K7Ncy4PUIQBNyGTl.exe";
 
-        private HashSet<string> _bypassProcessList = new()
+        private readonly HashSet<string> _bypassProcessList = new()
         {
             // Edge has energy awareness
             "msedge.exe",
@@ -26,6 +26,7 @@ namespace RyzenTuner.Common.EnergyStar
             "taskmgr.exe",
             "procmon.exe",
             "procmon64.exe",
+            "perfmon.exe",
 
             // Widgets
             "Widgets.exe",
@@ -90,9 +91,6 @@ namespace RyzenTuner.Common.EnergyStar
         // UWP Application Frame Host
         private const string UwpFrameHostApp = "ApplicationFrameHost.exe";
 
-        private uint _pendingProcPid;
-        private string _pendingProcName = "";
-
         private readonly IntPtr _pThrottleOn;
         private readonly IntPtr _pThrottleOff;
         private readonly int _szControlBlock;
@@ -152,213 +150,117 @@ namespace RyzenTuner.Common.EnergyStar
         /// <summary>
         /// 如果 enable 为 true，则切换到【效率模式】（低优先级；低频率；高效核）；否则，则是普通模式。
         /// </summary>
-        /// <param name="hProcess"></param>
+        /// <param name="processId"></param>
         /// <param name="enable"></param>
-        private void ToggleEfficiencyMode(IntPtr hProcess, bool enable)
+        private void ToggleEfficiencyMode(int processId, bool enable)
         {
+            var logger = AppContainer.Logger();
+
             try
             {
-                Win32Api.SetProcessInformation(hProcess, Win32Api.PROCESS_INFORMATION_CLASS.ProcessPowerThrottling,
-                    enable ? _pThrottleOn : _pThrottleOff, (uint)_szControlBlock);
-                Win32Api.SetPriorityClass(hProcess,
-                    enable ? Win32Api.PriorityClass.IDLE_PRIORITY_CLASS : Win32Api.PriorityClass.NORMAL_PRIORITY_CLASS);
-            }
-            catch (Exception e)
-            {
-                AppContainer.Logger().Warning(e.Message);
-            }
-        }
-
-        private Process? GetForegroundProcess()
-        {
-            try
-            {
-                var hwnd = Win32Api.GetForegroundWindow();
-
-                // The foreground window can be NULL in certain circumstances, 
-                // such as when a window is losing activation.
-                if (hwnd == IntPtr.Zero)
+                var appName = GetProcessNameFromPid(processId);
+                switch (appName)
                 {
-                    return null;
+                    case UnknownProcessName:
+                        logger.Warning($"ToggleEfficiencyMode: 获取进程名称失败。pid: {processId}");
+                        return;
+                    case UwpFrameHostApp:
+                        logger.Debug($"ToggleEfficiencyMode: 暂不处理 UwpFrameHostApp");
+                        return;
                 }
 
-                Win32Api.GetWindowThreadProcessId(hwnd, out var pid);
-
-                return Process.GetProcessById((int)pid);
-            }
-            catch (Exception e)
-            {
-                AppContainer.Logger().Warning(e.Message);
-                return null;
-            }
-        }
-
-        public string GetForegroundProcessName()
-        {
-            try
-            {
-                var p = GetForegroundProcess();
-                if (p != null && p.MainModule != null)
+                if (_bypassProcessList.Contains(appName.ToLower()))
                 {
-                    return Path.GetFileName(p.MainModule.FileName);
-                }
-
-                return UnknownProcessName;
-            }
-            catch (Exception e)
-            {
-                AppContainer.Logger().Warning(e.Message);
-                return UnknownProcessName;
-            }
-        }
-
-        // private string GetProcessNameFromHandle(IntPtr hProcess)
-        // {
-        //     try
-        //     {
-        //         var capacity = 1024;
-        //         var sb = new StringBuilder(capacity);
-        //
-        //         if (Win32Api.QueryFullProcessImageName(hProcess, 0, sb, ref capacity))
-        //         {
-        //             return Path.GetFileName(sb.ToString());
-        //         }
-        //
-        //         return "";
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         AppContainer.Logger().Warning(e.Message);
-        //         return "";
-        //     }
-        // }
-
-        private string GetProcessNameFromHandleV2(IntPtr hProcess)
-        {
-            try
-            {
-                if (hProcess == IntPtr.Zero)
-                {
-                    return UnknownProcessName;
-                }
-
-                Win32Api.GetWindowThreadProcessId(hProcess, out var pid);
-                var p = Process.GetProcessById((int)pid);
-
-                if (p != null && p.MainModule != null)
-                {
-                    return Path.GetFileName(p.MainModule.FileName);
-                }
-
-                return UnknownProcessName;
-            }
-            catch (Exception e)
-            {
-                AppContainer.Logger().Warning(e.Message);
-                return UnknownProcessName;
-            }
-        }
-
-
-        /// <summary>
-        /// 处理当前的前台进程
-        /// </summary>
-        public void HandleForeground()
-        {
-            try
-            {
-                var p = GetForegroundProcess();
-                if (p == null)
-                {
+                    logger.Debug($"ToggleEfficiencyMode: 不处理白名单列表中的应用{appName}");
                     return;
                 }
 
-                _handleForeground(p.Handle);
+                var procHandle = Win32Api.OpenProcess(
+                    (uint)(Win32Api.ProcessAccessFlags.QueryLimitedInformation |
+                           Win32Api.ProcessAccessFlags.SetInformation), false, (uint)processId);
+
+                var r1 = Win32Api.SetProcessInformation(procHandle,
+                    Win32Api.PROCESS_INFORMATION_CLASS.ProcessPowerThrottling,
+                    enable ? _pThrottleOn : _pThrottleOff, (uint)_szControlBlock);
+                var r2 = Win32Api.SetPriorityClass(procHandle,
+                    enable ? Win32Api.PriorityClass.IDLE_PRIORITY_CLASS : Win32Api.PriorityClass.NORMAL_PRIORITY_CLASS);
+
+                using (null)
+                {
+                    var actionText = "Boost";
+                    if (enable)
+                    {
+                        actionText = "Throttle";
+                    }
+
+
+                    logger.Debug(
+                        $"{actionText} {appName}. SetProcessInformation result: {r1}, SetPriorityClass result: {r2}");
+                }
+
+                Win32Api.CloseHandle(procHandle);
+            }
+            catch (Exception e)
+            {
+                logger.Warning(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// 通过进程的 ID 获取进程的名称
+        /// </summary>
+        /// <param name="pid"></param>
+        /// <returns></returns>
+        private string GetProcessNameFromPid(int pid)
+        {
+            try
+            {
+                var p = Process.GetProcessById(pid);
+
+                if (p.MainModule != null)
+                {
+                    return Path.GetFileName(p.MainModule.FileName);
+                }
+
+                return UnknownProcessName;
             }
             catch (Exception e)
             {
                 AppContainer.Logger().Warning(e.Message);
+                return UnknownProcessName;
             }
         }
+
 
         /// <summary>
         /// 处理前台进程
         /// </summary>
-        /// <param name="hwnd"></param>
-        private void _handleForeground(IntPtr hwnd)
+        public void HandleForeground()
         {
             var logger = AppContainer.Logger();
-            var windowThreadId = Win32Api.GetWindowThreadProcessId(hwnd, out var procId);
 
-            // This is invalid, likely a process is dead, or idk
-            if (windowThreadId == 0 || procId == 0) return;
-
-            var procHandle = Win32Api.OpenProcess(
-                (uint)(Win32Api.ProcessAccessFlags.QueryLimitedInformation |
-                       Win32Api.ProcessAccessFlags.SetInformation), false, procId);
-            if (procHandle == IntPtr.Zero) return;
-
-            // Get the process
-            var appName = GetProcessNameFromHandleV2(procHandle);
-
-            // UWP needs to be handled in a special case
-            if (appName == UwpFrameHostApp)
+            try
             {
-                var found = false;
-                Win32Api.EnumChildWindows(hwnd, (innerHwnd, lparam) =>
+                var handleToWindow = Win32Api.GetForegroundWindow();
+
+                if (handleToWindow == IntPtr.Zero)
                 {
-                    if (found) return true;
-                    if (Win32Api.GetWindowThreadProcessId(innerHwnd, out uint innerProcId) > 0)
-                    {
-                        if (procId == innerProcId) return true;
-
-                        var innerProcHandle = Win32Api.OpenProcess(
-                            (uint)(Win32Api.ProcessAccessFlags.QueryLimitedInformation |
-                                   Win32Api.ProcessAccessFlags.SetInformation), false, innerProcId);
-                        if (innerProcHandle == IntPtr.Zero) return true;
-
-                        // Found. Set flag, reinitialize handles and call it a day
-                        found = true;
-                        Win32Api.CloseHandle(procHandle);
-                        procHandle = innerProcHandle;
-                        procId = innerProcId;
-                        appName = GetProcessNameFromHandleV2(procHandle);
-                    }
-
-                    return true;
-                }, IntPtr.Zero);
-            }
-
-            // Boost the current foreground app, and then impose EcoQoS for previous foreground app
-            var bypass = _bypassProcessList.Contains(appName.ToLower());
-            if (!bypass)
-            {
-                logger.Debug($"Boost {appName}");
-                ToggleEfficiencyMode(procHandle, false);
-            }
-
-            if (_pendingProcPid != 0)
-            {
-                logger.Debug($"Throttle {_pendingProcName}");
-
-                var prevProcHandle = Win32Api.OpenProcess((uint)Win32Api.ProcessAccessFlags.SetInformation, false,
-                    _pendingProcPid);
-                if (prevProcHandle != IntPtr.Zero)
-                {
-                    ToggleEfficiencyMode(prevProcHandle, true);
-                    Win32Api.CloseHandle(prevProcHandle);
-                    _pendingProcPid = 0;
-                    _pendingProcName = "";
+                    return;
                 }
-            }
 
-            if (!bypass)
+                var windowThreadId = Win32Api.GetWindowThreadProcessId(handleToWindow, out var processId);
+                // This is invalid, likely a process is dead, or idk
+                if (windowThreadId == 0 || processId == 0)
+                {
+                    return;
+                }
+
+                ToggleEfficiencyMode((int)processId, false);
+            }
+            catch (Exception e)
             {
-                _pendingProcPid = procId;
-                _pendingProcName = appName;
+                logger.Warning(e.Message);
             }
-
-            Win32Api.CloseHandle(procHandle);
         }
 
         /// <summary>
@@ -374,20 +276,7 @@ namespace RyzenTuner.Common.EnergyStar
                 var sameAsThisSession = runningProcesses.Where(p => p.SessionId == currentSessionId);
                 foreach (var proc in sameAsThisSession)
                 {
-                    if (proc.Id == _pendingProcPid)
-                    {
-                        continue;
-                    }
-
-                    if (_bypassProcessList.Contains($"{proc.ProcessName}.exe".ToLower()))
-                    {
-                        continue;
-                    }
-
-                    var hProcess = Win32Api.OpenProcess((uint)Win32Api.ProcessAccessFlags.SetInformation, false,
-                        (uint)proc.Id);
-                    ToggleEfficiencyMode(hProcess, true);
-                    Win32Api.CloseHandle(hProcess);
+                    ToggleEfficiencyMode(proc.Id, true);
                 }
             }
             catch (Exception e)
