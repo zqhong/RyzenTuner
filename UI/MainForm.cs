@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Windows.Forms;
 using RyzenTuner.Common;
 using RyzenTuner.Common.Container;
@@ -9,15 +8,12 @@ namespace RyzenTuner.UI
 {
     public partial class MainForm : Form
     {
+        private Int64 _tickCount;
+
         public MainForm()
         {
             InitializeComponent();
         }
-
-        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
-        {
-        }
-
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -92,14 +88,21 @@ namespace RyzenTuner.UI
             Show();
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void mainFormTimer_Tick(object sender, EventArgs e)
         {
+            _tickCount++;
             AppContainer.HardwareMonitor().Monitor();
 
-            // EnergyStar：配置前台进程
+            // EnergyStar
             if (checkBoxEnergyStar.Checked)
             {
                 AppContainer.EnergyManager().HandleForeground();
+
+                // 每 5 分钟后，Throttle 当前用户的所有后台进程
+                if (_tickCount % 150 == 0)
+                {
+                    AppContainer.EnergyManager().ThrottleAllUserBackgroundProcesses();
+                }
             }
 
             ApplyEnergyMode();

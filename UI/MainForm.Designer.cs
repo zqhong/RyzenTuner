@@ -79,7 +79,7 @@ namespace RyzenTuner.UI
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             
             
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.mainFormTimer = new System.Windows.Forms.Timer(this.components);
             
             this.powerLimitGroupBox.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -244,7 +244,6 @@ namespace RyzenTuner.UI
             });
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(281, 276);
-            this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 
             // 设置自定义 Renderer，加粗选中项
             this.contextMenuStrip1.Renderer = new ToolStripRenderer();
@@ -303,11 +302,11 @@ namespace RyzenTuner.UI
             this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitAppToolStripMenuItem_Click);
             
             // 
-            // timer1
+            // MainFormTimer
             // 
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 2048;        // 单位：毫秒
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.mainFormTimer.Enabled = true;
+            this.mainFormTimer.Interval = 2048;        // 单位：毫秒
+            this.mainFormTimer.Tick += new System.EventHandler(this.mainFormTimer_Tick);
             
             // 
             // Form1
@@ -357,7 +356,7 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.ToolStripMenuItem PerformanceModeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem CustomModeToolStripMenuItem;
         private System.Windows.Forms.CheckBox keepAwakeCheckBox;
-        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer mainFormTimer;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem AboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ExitToolStripMenuItem;
