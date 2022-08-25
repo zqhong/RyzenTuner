@@ -44,19 +44,7 @@ namespace RyzenTuner.Utils
 
             return ((idleTime > 0) ? (idleTime / 1000) : idleTime);
         }
-
-        /**
-         * 检查是否支持 EnergyStar
-         *
-         * EnergyStar 需要 OS Build 版本大于等于 22000，即 Windows 11 21H2。EnergyStar 开发者建议使用 22H2
-         * 参考：
-         * https://github.com/imbushuo/EnergyStar/blob/master/EnergyStar/Program.cs#L29-L39
-         * https://github.com/imbushuo/EnergyStar/issues/10
-         */
-        public static bool IsSupportEnergyStar()
-        {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.OSVersion.Version.Build >= 22000;
-        }
+        
 
         /**
          * 检查当前是否处于【待机模式】

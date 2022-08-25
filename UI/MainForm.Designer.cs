@@ -74,7 +74,7 @@ namespace RyzenTuner.UI
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.keepAwakeCheckBox = new System.Windows.Forms.CheckBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.checkBoxEnergyStar = new System.Windows.Forms.CheckBox();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             
@@ -181,7 +181,7 @@ namespace RyzenTuner.UI
 
             // groupBox3
             this.groupBox3.Controls.Add(this.keepAwakeCheckBox);
-            this.groupBox3.Controls.Add(this.checkBox1);
+            this.groupBox3.Controls.Add(this.checkBoxEnergyStar);
             this.groupBox3.Location = new System.Drawing.Point(29, 180);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(702, 85);
@@ -204,20 +204,15 @@ namespace RyzenTuner.UI
             // 
             // checkBox1
             // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(21, 34);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(222, 28);
-            this.checkBox1.TabIndex = 0;
-            this.checkBox1.Text = "启用 EnergyStar";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
-            // 仅在支持 EnergyStar 的时候显示方框
-            if (!RyzenTunerUtils.IsSupportEnergyStar())
-            {
-                this.checkBox1.Enabled = false;
-            }
-            
+            this.checkBoxEnergyStar.AutoSize = true;
+            this.checkBoxEnergyStar.Location = new System.Drawing.Point(21, 34);
+            this.checkBoxEnergyStar.Name = "checkBoxEnergyStar";
+            this.checkBoxEnergyStar.Size = new System.Drawing.Size(222, 28);
+            this.checkBoxEnergyStar.TabIndex = 0;
+            this.checkBoxEnergyStar.Text = "启用 EnergyStar";
+            this.checkBoxEnergyStar.UseVisualStyleBackColor = true;
+            this.checkBoxEnergyStar.CheckedChanged += new System.EventHandler(this.checkBoxEnergyStar_CheckedChanged);
+
             // 托盘菜单 icon
             this.notifyIcon1.ContextMenuStrip = this.contextMenuStrip1;
             this.notifyIcon1.Icon = this.getIcon();
@@ -352,7 +347,7 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.RadioButton radioButton2;
         private System.Windows.Forms.RadioButton radioButton1;
         private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.CheckBox checkBoxEnergyStar;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem AutoModeToolStripMenuItem;
