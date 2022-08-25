@@ -49,6 +49,7 @@
 ## 计划
 
 - [ ] EnergyStar 添加对 UwpFrameHostApp 的限制
+- [ ] EnergyStar 添加对 IO 的限制
 - [ ] 添加设置面板
 - [ ] 添加是否允许修改电源计划的选项，默认关闭
 - [ ] 多语言支持
