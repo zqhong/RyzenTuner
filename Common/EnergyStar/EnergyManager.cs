@@ -86,6 +86,7 @@ namespace RyzenTuner.Common.EnergyStar
             // 其他开发相关
             "bash.exe",
             "zsh.exe",
+            "RyzenTuner.exe",
         };
 
         // Special handling needs for UWP to get the child window process
@@ -183,6 +184,7 @@ namespace RyzenTuner.Common.EnergyStar
                 var r1 = Win32Api.SetProcessInformation(procHandle,
                     Win32Api.PROCESS_INFORMATION_CLASS.ProcessPowerThrottling,
                     enable ? _pThrottleOn : _pThrottleOff, (uint)_szControlBlock);
+
                 var r2 = Win32Api.SetPriorityClass(procHandle,
                     enable ? Win32Api.PriorityClass.IDLE_PRIORITY_CLASS : Win32Api.PriorityClass.NORMAL_PRIORITY_CLASS);
 
@@ -271,6 +273,8 @@ namespace RyzenTuner.Common.EnergyStar
         {
             try
             {
+                AppContainer.Logger().Debug("Throttle All User Background Processes");
+
                 var runningProcesses = Process.GetProcesses();
                 var currentSessionId = Process.GetCurrentProcess().SessionId;
 
