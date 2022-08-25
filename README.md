@@ -51,6 +51,7 @@
 - [x] powercfg.exe、ryzenadj.exe 等改为 DLL 库方法
 - [x] 内置 EnergyStar
 - [x] 添加自定义 EnergyStar 白名单的功能
+- [] EnergyStar 添加对 UwpFrameHostApp 的限制
 - [x] 添加关于面板
 - [ ] 添加设置面板
 - [ ] 添加是否允许修改电源计划的选项，默认关闭

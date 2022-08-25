@@ -16,14 +16,14 @@ namespace RyzenTuner.Common.EnergyStar
 
         private readonly HashSet<string> _bypassProcessList = new()
         {
-            // Edge has energy awareness
+            // Edge 浏览器会自动调度
             "msedge.exe",
             "WebViewHost.exe",
 
-            // UWP Frame has special handling, should not be throttled
+            // UWP Frame 需要特殊处理
             "ApplicationFrameHost.exe",
 
-            // Fire extinguisher should not catch fire
+            // 监控相关
             "taskmgr.exe",
             "procmon.exe",
             "procmon64.exe",
@@ -41,12 +41,14 @@ namespace RyzenTuner.Common.EnergyStar
             "sihost.exe",
             "fontdrvhost.exe",
             "logonui.exe",
+            "LockApp.exe",
+            "WUDFHost.exe", // Windows User-Mode Driver Framework Host
 
-            // IME
+            // 输入法
             "ChsIME.exe",
             "ctfmon.exe",
 
-            // System Service - they have their awareness
+            // 系统服务会自动调度
             "csrss.exe",
             "smss.exe",
             "svchost.exe",
@@ -118,7 +120,7 @@ namespace RyzenTuner.Common.EnergyStar
                 _bypassProcessList.Remove(processName);
                 _bypassProcessList.Add(lowerProcessName);
             }
-            
+
             _szControlBlock = Marshal.SizeOf<Win32Api.ProcessPowerThrottlingState>();
             _pThrottleOn = Marshal.AllocHGlobal(_szControlBlock);
             _pThrottleOff = Marshal.AllocHGlobal(_szControlBlock);
