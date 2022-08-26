@@ -150,6 +150,15 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 功率：限制{power_limit}W、实际{actual_power_limit}W.
+        /// </summary>
+        internal static string TextNoticeText {
+            get {
+                return ResourceManager.GetString("TextNoticeText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 其他选项.
         /// </summary>
         internal static string TextOtherOptions {

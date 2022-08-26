@@ -44,7 +44,7 @@ namespace RyzenTuner.Utils
 
             return ((idleTime > 0) ? (idleTime / 1000) : idleTime);
         }
-        
+
 
         /**
          * 检查当前是否处于【待机模式】
@@ -88,8 +88,12 @@ namespace RyzenTuner.Utils
             var hardwareMonitor = AppContainer.HardwareMonitor();
             var powerLimit = RyzenAdjUtils.GetPowerLimit();
 
+            var powerLimitText = Properties.Strings.TextNoticeText
+                .Replace("{power_limit}", $"{powerLimit:0}")
+                .Replace("{actual_power_limit}", $"{hardwareMonitor.CpuPackagePower:0.00}");
+
             var noticeText = $@"{Properties.Settings.Default.CurrentMode}
-功率：限制{powerLimit:0}W、实际{hardwareMonitor.CpuPackagePower:0.00}W
+{powerLimitText}
 CPU: {hardwareMonitor.CpuUsage:0}%、{hardwareMonitor.CpuTemperature:0}℃、{hardwareMonitor.CpuFreq:0}MHz，GPU: {hardwareMonitor.VideoCard3DUsage:0}%";
             if (noticeText.Length >= 64)
             {
