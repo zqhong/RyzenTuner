@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
 using RyzenTuner.Common.Container;
@@ -13,10 +14,15 @@ namespace RyzenTuner
         {
             Application.ThreadException += Application_ThreadException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
+            
             if (Environment.OSVersion.Version.Major >= 6)
             {
                 SetProcessDPIAware();
+            }
+            
+            if (Process.GetProcessesByName("RyzenTuner").Length > 1)
+            {
+                throw new Exception("同一时间内，只允许运行一个 RyzenTuner 程序");
             }
 
             Application.EnableVisualStyles();
