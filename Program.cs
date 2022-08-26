@@ -16,15 +16,12 @@ namespace RyzenTuner
             Application.ThreadException += Application_ThreadException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-            // TODO：测试，切换到英文
-            var culture = new CultureInfo("en-US");
-            CultureInfo.DefaultThreadCurrentCulture = culture;
-            CultureInfo.DefaultThreadCurrentUICulture = culture;
-
             if (Environment.OSVersion.Version.Major >= 6)
             {
                 SetProcessDPIAware();
             }
+
+            AutoSelectLang();
 
             if (Process.GetProcessesByName("RyzenTuner").Length > 1)
             {
@@ -34,6 +31,22 @@ namespace RyzenTuner
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
+        }
+
+        /// <summary>
+        /// 根据用户系统语言，自动选择合适的语言
+        /// </summary>
+        private static void AutoSelectLang()
+        {
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
+            
+            // 非中文环境全部切换为英文
+            if (!currentCulture.ToString().StartsWith("zh-"))
+            {
+                var culture = new CultureInfo("en-US");
+                CultureInfo.DefaultThreadCurrentCulture = culture;
+                CultureInfo.DefaultThreadCurrentUICulture = culture;
+            }
         }
 
         private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
