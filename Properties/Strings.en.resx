@@ -1,11 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-
-<root>
-    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-        <xsd:element name="root" msdata:IsDataSet="true">
-            
-        </xsd:element>
-    </xsd:schema>
+﻿<root>
     <resheader name="resmimetype">
         <value>text/microsoft-resx</value>
     </resheader>
@@ -19,33 +12,33 @@
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
     <data name="AutoMode" xml:space="preserve">
-        <value>自动模式</value>
+        <value>Automatic</value>
     </data>
     <data name="BalancedMode" xml:space="preserve">
-        <value>平衡模式</value>
+        <value>Balance</value>
     </data>
     <data name="CustomMode" xml:space="preserve">
-        <value>手动模式</value>
+        <value>Manual</value>
     </data>
     <data name="PerformanceMode" xml:space="preserve">
-        <value>性能模式</value>
+        <value>Performance</value>
     </data>
     <data name="PowerSaveMode" xml:space="preserve">
-        <value>省电模式</value>
+        <value>Power Saving</value>
     </data>
     <data name="SleepMode" xml:space="preserve">
-        <value>待机模式</value>
+        <value>Standby</value>
     </data>
     <data name="TextPowerLimit" xml:space="preserve">
-        <value>功率限制</value>
+        <value>Power Limit</value>
     </data>
     <data name="TextOtherOptions" xml:space="preserve">
-        <value>其他选项</value>
+        <value>Other Options</value>
     </data>
     <data name="TextStayAwake" xml:space="preserve">
-        <value>保持唤醒</value>
+        <value>Stay Awake</value>
     </data>
     <data name="TextEnableEnergyStar" xml:space="preserve">
-        <value>开启 EnergyStar</value>
+        <value>Enable EnergyStar</value>
     </data>
 </root>

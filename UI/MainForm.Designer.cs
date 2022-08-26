@@ -101,7 +101,7 @@ namespace RyzenTuner.UI
             this.powerLimitGroupBox.Size = new System.Drawing.Size(706, 141);
             this.powerLimitGroupBox.TabIndex = 0;
             this.powerLimitGroupBox.TabStop = false;
-            this.powerLimitGroupBox.Text = "功率限制";
+            this.powerLimitGroupBox.Text = Properties.Strings.TextPowerLimit;
             
             // textBox1
             this.textBox1.Location = new System.Drawing.Point(596, 87);
@@ -179,7 +179,7 @@ namespace RyzenTuner.UI
             this.radioButton1.UseVisualStyleBackColor = true;
             this.radioButton1.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
-            // groupBox3
+            // 其他选项
             this.groupBox3.Controls.Add(this.keepAwakeCheckBox);
             this.groupBox3.Controls.Add(this.checkBoxEnergyStar);
             this.groupBox3.Location = new System.Drawing.Point(29, 180);
@@ -187,7 +187,7 @@ namespace RyzenTuner.UI
             this.groupBox3.Size = new System.Drawing.Size(702, 85);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "其他工具";
+            this.groupBox3.Text = Properties.Strings.TextOtherOptions;
             
             // 
             // 保持唤醒选项框
@@ -197,7 +197,7 @@ namespace RyzenTuner.UI
             this.keepAwakeCheckBox.Name = "keepAwakeCheckBox";
             this.keepAwakeCheckBox.Size = new System.Drawing.Size(210, 28);
             this.keepAwakeCheckBox.TabIndex = 2;
-            this.keepAwakeCheckBox.Text = "保持唤醒";
+            this.keepAwakeCheckBox.Text = Properties.Strings.TextStayAwake;
             this.keepAwakeCheckBox.UseVisualStyleBackColor = true;
             this.keepAwakeCheckBox.CheckedChanged += new System.EventHandler(this.keepAwakeCheckBox_CheckedChanged);
             
@@ -209,7 +209,7 @@ namespace RyzenTuner.UI
             this.checkBoxEnergyStar.Name = "checkBoxEnergyStar";
             this.checkBoxEnergyStar.Size = new System.Drawing.Size(222, 28);
             this.checkBoxEnergyStar.TabIndex = 0;
-            this.checkBoxEnergyStar.Text = "启用 EnergyStar";
+            this.checkBoxEnergyStar.Text = Properties.Strings.TextEnableEnergyStar;
             this.checkBoxEnergyStar.UseVisualStyleBackColor = true;
             this.checkBoxEnergyStar.CheckedChanged += new System.EventHandler(this.checkBoxEnergyStar_CheckedChanged);
 
