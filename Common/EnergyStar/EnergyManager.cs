@@ -106,6 +106,8 @@ namespace RyzenTuner.Common.EnergyStar
         private readonly IntPtr _pThrottleOff;
         private readonly int _szControlBlock;
 
+        public const string UwpFrameHostApp = "ApplicationFrameHost.exe";
+
         public EnergyManager()
         {
             var bypassSetting =
@@ -196,7 +198,9 @@ namespace RyzenTuner.Common.EnergyStar
                     enable ? _pThrottleOn : _pThrottleOff, (uint)_szControlBlock);
 
                 var r2 = Win32Api.SetPriorityClass(hProcess,
-                    enable ? Win32Api.PriorityClass.BELOW_NORMAL_PRIORITY_CLASS : Win32Api.PriorityClass.NORMAL_PRIORITY_CLASS);
+                    enable
+                        ? Win32Api.PriorityClass.BELOW_NORMAL_PRIORITY_CLASS
+                        : Win32Api.PriorityClass.NORMAL_PRIORITY_CLASS);
 
                 using (null)
                 {
@@ -208,7 +212,7 @@ namespace RyzenTuner.Common.EnergyStar
 
 
                     logger.Debug(
-                        $"{actionText} {appName}. SetProcessInformation result: {r1}, SetPriorityClass result: {r2}");
+                        $"{actionText} {appName}. pid: {processId}, set process information and priority result: {r1 && r2}");
                 }
             }
             catch (Exception e)
@@ -250,36 +254,62 @@ namespace RyzenTuner.Common.EnergyStar
         {
             try
             {
-                var handleToWindow = Win32Api.GetForegroundWindow();
+                var hwnd = Win32Api.GetForegroundWindow();
+                if (hwnd == IntPtr.Zero) return;
 
-                if (handleToWindow == IntPtr.Zero)
+                var windowThreadId = Win32Api.GetWindowThreadProcessId(hwnd, out var processId);
+                if (windowThreadId == 0 || processId == 0) return;
+
+                var processHandle = NativeOpenProcess((int)processId);
+                if (processHandle == IntPtr.Zero) return;
+
+                var appName = GetProcessNameFromHandle(processHandle);
+                if (appName == UwpFrameHostApp)
                 {
-                    return;
+                    var found = false;
+                    Win32Api.EnumChildWindows(hwnd, (innerHwnd, lParam) =>
+                    {
+                        if (found) return true;
+                        if (Win32Api.GetWindowThreadProcessId(innerHwnd, out var innerProcId) <= 0) return true;
+                        if (processId == innerProcId) return true;
+
+                        var innerProcHandle = NativeOpenProcess((int)innerProcId);
+                        if (innerProcHandle == IntPtr.Zero) return true;
+
+                        // Found. Set flag, reinitialize handles and call it a day
+                        found = true;
+                        Win32Api.CloseHandle(processHandle);
+                        processHandle = innerProcHandle;
+                        processId = innerProcId;
+                        appName = GetProcessNameFromHandle(processHandle);
+
+                        return true;
+                    }, IntPtr.Zero);
                 }
 
-                var windowThreadId = Win32Api.GetWindowThreadProcessId(handleToWindow, out var processId);
-                // This is invalid, likely a process is dead, or idk
-                if (windowThreadId == 0 || processId == 0)
-                {
-                    return;
-                }
 
-                var hProcess = Win32Api.OpenProcess
-                (
-                    (uint)(Win32Api.ProcessAccessFlags.QueryLimitedInformation |
-                           Win32Api.ProcessAccessFlags.SetInformation),
-                    false,
-                    processId
-                );
-                ToggleEfficiencyMode(hProcess, false);
+                ToggleEfficiencyMode(processHandle, false);
 
-                Win32Api.CloseHandle(handleToWindow);
-                Win32Api.CloseHandle(hProcess);
+                Win32Api.CloseHandle(processHandle);
             }
             catch (Exception e)
             {
                 AppContainer.Logger().LogException(e);
             }
+        }
+
+        /// <summary>
+        /// 使用统一的 process access 参数调用 Win32Api.OpenProcess
+        /// </summary>
+        /// <param name="processId"></param>
+        /// <returns></returns>
+        private IntPtr NativeOpenProcess(int processId)
+        {
+            const uint processAccess = (uint)(
+                Win32Api.ProcessAccessFlags.QueryLimitedInformation |
+                Win32Api.ProcessAccessFlags.SetInformation
+            );
+            return Win32Api.OpenProcess(processAccess, false, (uint)processId);
         }
 
         /// <summary>
@@ -300,13 +330,7 @@ namespace RyzenTuner.Common.EnergyStar
                 {
                     try
                     {
-                        var hProcess = Win32Api.OpenProcess
-                        (
-                            (uint)(Win32Api.ProcessAccessFlags.QueryLimitedInformation |
-                                   Win32Api.ProcessAccessFlags.SetInformation),
-                            false,
-                            (uint)proc.Id
-                        );
+                        var hProcess = NativeOpenProcess(proc.Id);
                         ToggleEfficiencyMode(hProcess, true);
                         Win32Api.CloseHandle(hProcess);
                     }
