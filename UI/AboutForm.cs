@@ -20,6 +20,8 @@ namespace RyzenTuner.UI
 
         private void AboutForm_Load(object sender, EventArgs e)
         {
+            // Form 标题
+            Text = Properties.Strings.TextAbout;
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
