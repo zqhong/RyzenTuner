@@ -112,5 +112,41 @@ namespace RyzenTuner.Properties {
                 return ResourceManager.GetString("SleepMode", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 开启 EnergyStar.
+        /// </summary>
+        internal static string TextEnableEnergyStar {
+            get {
+                return ResourceManager.GetString("TextEnableEnergyStar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 其他选项.
+        /// </summary>
+        internal static string TextOtherOptions {
+            get {
+                return ResourceManager.GetString("TextOtherOptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 功率限制.
+        /// </summary>
+        internal static string TextPowerLimit {
+            get {
+                return ResourceManager.GetString("TextPowerLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 保持唤醒.
+        /// </summary>
+        internal static string TextStayAwake {
+            get {
+                return ResourceManager.GetString("TextStayAwake", resourceCulture);
+            }
+        }
     }
 }
