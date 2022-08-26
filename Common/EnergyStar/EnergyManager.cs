@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using RyzenTuner.Common.Container;
 using RyzenTuner.Common.EnergyStar.Interop;
 using RyzenTuner.Properties;
@@ -101,10 +102,6 @@ namespace RyzenTuner.Common.EnergyStar
             "RyzenTuner.exe",
         };
 
-        // Special handling needs for UWP to get the child window process
-        // UWP Application Frame Host
-        private const string UwpFrameHostApp = "ApplicationFrameHost.exe";
-
         private readonly IntPtr _pThrottleOn;
         private readonly IntPtr _pThrottleOff;
         private readonly int _szControlBlock;
@@ -166,23 +163,26 @@ namespace RyzenTuner.Common.EnergyStar
         /// <summary>
         /// 如果 enable 为 true，则切换到【效率模式】（低优先级；低频率；高效核）；否则，则是普通模式。
         /// </summary>
-        /// <param name="processId"></param>
+        /// <param name="hProcess"></param>
         /// <param name="enable"></param>
-        private void ToggleEfficiencyMode(int processId, bool enable)
+        private void ToggleEfficiencyMode(IntPtr hProcess, bool enable)
         {
             var logger = AppContainer.Logger();
 
             try
             {
-                var appName = GetProcessNameFromPid(processId);
-                switch (appName)
+                if (hProcess == IntPtr.Zero)
                 {
-                    case UnknownProcessName:
-                        logger.Warning($"ToggleEfficiencyMode: 获取进程名称失败。pid: {processId}");
-                        return;
-                    case UwpFrameHostApp:
-                        logger.Debug($"ToggleEfficiencyMode: 暂不处理 UwpFrameHostApp");
-                        return;
+                    return;
+                }
+
+                var processId = Win32Api.GetProcessId(hProcess);
+                var appName = GetProcessNameFromHandle(hProcess);
+
+                if (appName == UnknownProcessName)
+                {
+                    logger.Warning($"ToggleEfficiencyMode: 获取进程名称失败。pid: {processId}");
+                    return;
                 }
 
                 if (_bypassProcessList.Contains(appName.ToLower()))
@@ -191,16 +191,12 @@ namespace RyzenTuner.Common.EnergyStar
                     return;
                 }
 
-                var procHandle = Win32Api.OpenProcess(
-                    (uint)(Win32Api.ProcessAccessFlags.QueryLimitedInformation |
-                           Win32Api.ProcessAccessFlags.SetInformation), false, (uint)processId);
-
-                var r1 = Win32Api.SetProcessInformation(procHandle,
+                var r1 = Win32Api.SetProcessInformation(hProcess,
                     Win32Api.PROCESS_INFORMATION_CLASS.ProcessPowerThrottling,
                     enable ? _pThrottleOn : _pThrottleOff, (uint)_szControlBlock);
 
-                var r2 = Win32Api.SetPriorityClass(procHandle,
-                    enable ? Win32Api.PriorityClass.IDLE_PRIORITY_CLASS : Win32Api.PriorityClass.NORMAL_PRIORITY_CLASS);
+                var r2 = Win32Api.SetPriorityClass(hProcess,
+                    enable ? Win32Api.PriorityClass.BELOW_NORMAL_PRIORITY_CLASS : Win32Api.PriorityClass.NORMAL_PRIORITY_CLASS);
 
                 using (null)
                 {
@@ -214,8 +210,6 @@ namespace RyzenTuner.Common.EnergyStar
                     logger.Debug(
                         $"{actionText} {appName}. SetProcessInformation result: {r1}, SetPriorityClass result: {r2}");
                 }
-
-                Win32Api.CloseHandle(procHandle);
             }
             catch (Exception e)
             {
@@ -224,19 +218,20 @@ namespace RyzenTuner.Common.EnergyStar
         }
 
         /// <summary>
-        /// 通过进程的 ID 获取进程的名称
+        /// 通过 hProcess 获取进程名称
         /// </summary>
-        /// <param name="pid"></param>
+        /// <param name="hProcess"></param>
         /// <returns></returns>
-        private string GetProcessNameFromPid(int pid)
+        private string GetProcessNameFromHandle(IntPtr hProcess)
         {
             try
             {
-                var p = Process.GetProcessById(pid);
+                var capacity = 2048;
+                var sb = new StringBuilder(capacity);
 
-                if (p.MainModule != null)
+                if (Win32Api.QueryFullProcessImageName(hProcess, 0, sb, ref capacity))
                 {
-                    return Path.GetFileName(p.MainModule.FileName);
+                    return Path.GetFileName(sb.ToString());
                 }
 
                 return UnknownProcessName;
@@ -269,7 +264,17 @@ namespace RyzenTuner.Common.EnergyStar
                     return;
                 }
 
-                ToggleEfficiencyMode((int)processId, false);
+                var hProcess = Win32Api.OpenProcess
+                (
+                    (uint)(Win32Api.ProcessAccessFlags.QueryLimitedInformation |
+                           Win32Api.ProcessAccessFlags.SetInformation),
+                    false,
+                    processId
+                );
+                ToggleEfficiencyMode(hProcess, false);
+
+                Win32Api.CloseHandle(handleToWindow);
+                Win32Api.CloseHandle(hProcess);
             }
             catch (Exception e)
             {
@@ -295,7 +300,15 @@ namespace RyzenTuner.Common.EnergyStar
                 {
                     try
                     {
-                        ToggleEfficiencyMode(proc.Id, true);
+                        var hProcess = Win32Api.OpenProcess
+                        (
+                            (uint)(Win32Api.ProcessAccessFlags.QueryLimitedInformation |
+                                   Win32Api.ProcessAccessFlags.SetInformation),
+                            false,
+                            (uint)proc.Id
+                        );
+                        ToggleEfficiencyMode(hProcess, true);
+                        Win32Api.CloseHandle(hProcess);
                     }
                     catch (Exception e)
                     {

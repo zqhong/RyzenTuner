@@ -1,11 +1,19 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Text;
 
 namespace RyzenTuner.Common.EnergyStar.Interop
 {
     internal class Win32Api
     {
+        [DllImport("kernel32.dll")]
+        public static extern int GetProcessId(IntPtr handle);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool QueryFullProcessImageName([In] IntPtr hProcess, [In] int dwFlags,
+            [Out] StringBuilder lpExeName, ref int lpdwSize);
+
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
 
