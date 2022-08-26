@@ -187,7 +187,7 @@ namespace RyzenTuner.Common.EnergyStar
 
                 if (_bypassProcessList.Contains(appName.ToLower()))
                 {
-                    logger.Debug($"ToggleEfficiencyMode: 不处理白名单列表中的应用{appName}");
+                    logger.Debug($"ToggleEfficiencyMode: 不处理白名单列表中的应用 {appName}");
                     return;
                 }
 
@@ -248,14 +248,11 @@ namespace RyzenTuner.Common.EnergyStar
             }
         }
 
-
         /// <summary>
         /// 处理前台进程
         /// </summary>
         public void HandleForeground()
         {
-            var logger = AppContainer.Logger();
-
             try
             {
                 var handleToWindow = Win32Api.GetForegroundWindow();
@@ -296,7 +293,14 @@ namespace RyzenTuner.Common.EnergyStar
 
                 foreach (var proc in sameAsThisSession)
                 {
-                    ToggleEfficiencyMode(proc.Id, true);
+                    try
+                    {
+                        ToggleEfficiencyMode(proc.Id, true);
+                    }
+                    catch (Exception e)
+                    {
+                        AppContainer.Logger().LogException(e);
+                    }
                 }
             }
             catch (Exception e)

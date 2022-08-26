@@ -26,22 +26,12 @@ namespace RyzenTuner.UI
             keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
 
             WindowState = FormWindowState.Minimized;
-
-            if (checkBoxEnergyStar.Checked)
-            {
-                AppContainer.EnergyManager().ThrottleAllUserBackgroundProcesses();
-            }
         }
 
         private void checkBoxEnergyStar_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.EnergyStar = checkBoxEnergyStar.Checked;
             Properties.Settings.Default.Save();
-
-            if (checkBoxEnergyStar.Checked)
-            {
-                AppContainer.EnergyManager().ThrottleAllUserBackgroundProcesses();
-            }
         }
 
         private void keepAwakeCheckBox_CheckedChanged(object? sender, EventArgs e)
@@ -98,8 +88,13 @@ namespace RyzenTuner.UI
             {
                 AppContainer.EnergyManager().HandleForeground();
 
-                // 每 5 分钟后，Throttle 当前用户的所有后台进程
-                if (_tickCount % 150 == 0)
+                // Throttle 当前用户的所有后台进程
+                if (
+                    // 首次运行 30 秒
+                    _tickCount == 15 ||
+                    // 每 5 分钟
+                    _tickCount % 150 == 0
+                )
                 {
                     AppContainer.EnergyManager().ThrottleAllUserBackgroundProcesses();
                 }
