@@ -129,7 +129,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Warning")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Debug")]
         public string LogLevel {
             get {
                 return ((string)(this["LogLevel"]));
