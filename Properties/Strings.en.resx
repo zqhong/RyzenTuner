@@ -53,4 +53,7 @@
     <data name="TextNoticeText" xml:space="preserve">
         <value>Power: limited {power_limit}W, actual {actual_power_limit}W</value>
     </data>
+    <data name="TextExit" xml:space="preserve">
+        <value>Exit</value>
+    </data>
 </root>

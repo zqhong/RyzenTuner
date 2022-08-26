@@ -298,7 +298,7 @@ namespace RyzenTuner.UI
             // 托盘菜单选项 - 退出
             this.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
             this.ExitToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.ExitToolStripMenuItem.Text = "退出";
+            this.ExitToolStripMenuItem.Text = Properties.Strings.TextExit;
             this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitAppToolStripMenuItem_Click);
             
             // 
