@@ -1,34 +1,40 @@
 ## RyzenTuner
 
-一个方便调节 Ryzen 移动处理器功率限制的工具。
+English | [简体中文](README-CN.md)
+
+A handy tool for adjusting the power limit of Ryzen mobile processors.
 
 ![preview.jpg](https://s2.loli.net/2022/08/25/YTA9yf8jqOtUEwn.jpg)
 
-## 添加内容
+## Feature
 
-### 自动模式
+### Automatic Mode
 
-根据插电/电池/夜晚/活跃时间等不同条件，选择不同的工作模式（待机/平衡/性能）。
+Select different working modes (standby/balance/performance) according to different conditions such as
+plug-in/battery/night/active time.
 
-工作模式说明：
+Description of working mode:
 
-* 待机模式（SleepMode）：处于最低能耗状态，只能应对超低负载的工作
-* 平衡模式（BalancedMode）：能耗比最高的状态，应对突发的任务，比如打开网页、Photoshop
-* 性能模式（PerformanceMode）：应对需要高性能的场景，比如编译软件、玩大型游戏、渲染等
+* Standby mode: in the lowest energy consumption state, can only deal with ultra-low load work
+* Balanced Mode: The state with the highest energy consumption ratio, to deal with sudden tasks, such as opening web
+  pages, Photoshop
+* Performance Mode: for scenarios that require high performance, such as compiling software, playing large games,
+  rendering, etc.
 
-## 使用
+## Usage
 
-你可以直接到 [Release](https://github.com/zqhong/RyzenTuner/releases) 下载编译好的程序使用。
+You can directly go to [Release](https://github.com/zqhong/RyzenTuner/releases) to download the compiled program and use
+it.
 
 ## FAQ
 
-### 如何修改待机模式等其他模式的功率
+### How to modify the power of other modes such as standby mode
 
-关闭 `RyzenTuner`。打开 `RyzenTuner.exe.config` 文件，修改对应的参数。比如 `SleepMode` 就是 睡眠模式，修改其中的 value 值。
+Close `RyzenTuner`. Open the `RyzenTuner.exe.config` file and modify the corresponding parameters. For example, `SleepMode` is the sleep mode, modify the value in it.
 
-示例：将睡眠模式从 1 W 改为 2 W
+Example: Change sleep mode from 1 W to 2 W
 
-修改前
+Before update
 
 ```xml
 
@@ -37,7 +43,7 @@
 </setting>
 ```
 
-修改后
+After update
 
 ```xml
 
@@ -46,16 +52,16 @@
 </setting>
 ```
 
-## 计划
+## Give a Star! ⭐
 
-- [x] 多语言支持
-- [ ] 添加设置面板
-- [ ] 添加是否允许修改电源计划的选项，默认关闭
+If you like or are using this project, please give it a star. Thanks!
 
-## 感谢
+[![Star History Chart](https://api.star-history.com/svg?repos=zqhong/RyzenTuner&type=Date)](#RyzenTuner)
 
-* [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner)：基于该项目开发
-* [FlyGoat/RyzenAdj](https://github.com/FlyGoat/RyzenAdj)：Ryzen 移动处理器电源管理工具
-* [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar)：Windows 进程调度，可能有增加续航的效果（未测试）
-* [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)：获取硬件信息
-* [dahall/Vanara](https://github.com/dahall/Vanara)：一套 .NET 库，包含了许多 Windows 原生 API 的 PInvoke 调用的封装
+## Grateful
+
+* [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner): Developed based on this project
+* [FlyGoat/RyzenAdj](https://github.com/FlyGoat/RyzenAdj): Ryzen mobile processor power management tool
+* [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar): Windows process scheduling, may have the effect of increasing battery life (not tested)
+* [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor): Get hardware information
+* [dahall/Vanara](https://github.com/dahall/Vanara): A set of .NET libraries that wraps many PInvoke calls to Windows native APIs
