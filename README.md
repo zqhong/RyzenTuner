@@ -4,7 +4,7 @@ English | [简体中文](README-CN.md)
 
 A handy tool for adjusting the power limit of Ryzen mobile processors.
 
-![preview.jpg](https://s2.loli.net/2022/08/25/YTA9yf8jqOtUEwn.jpg)
+![preview-en.jpg](https://s2.loli.net/2022/08/26/Pr1qiykJUOIEspD.jpg)
 
 ## Feature
 

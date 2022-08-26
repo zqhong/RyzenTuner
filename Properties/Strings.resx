@@ -57,4 +57,7 @@
     <data name="TextExceptionOnlyOneProgramIsAllowedToRun" xml:space="preserve">
         <value>同一时间内，只允许运行一个 RyzenTuner 程序</value>
     </data>
+    <data name="TextNoticeText" xml:space="preserve">
+        <value>功率：限制{power_limit}W、实际{actual_power_limit}W</value>
+    </data>
 </root>
