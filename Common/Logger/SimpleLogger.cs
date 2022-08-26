@@ -137,8 +137,8 @@ namespace RyzenTuner.Common.Logger
             var frame = st.GetFrame(0);
             // Get the line number from the stack frame
             var line = frame.GetFileLineNumber();
-
-            Warning($"Exception\n Message: {e.Message}\n StackTrace: {st}, Line: {line}");
+            
+            Warning($"Exception: {e.Message}\nLine: {line}\nStackTrace: {st}");
         }
 
         private void WriteLine(string text, bool append = false)
