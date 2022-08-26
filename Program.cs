@@ -28,7 +28,7 @@ namespace RyzenTuner
 
             if (Process.GetProcessesByName("RyzenTuner").Length > 1)
             {
-                throw new Exception("同一时间内，只允许运行一个 RyzenTuner 程序");
+                throw new Exception(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
             }
 
             Application.EnableVisualStyles();
@@ -49,7 +49,7 @@ namespace RyzenTuner
 
         private static void _handleUnhandledException(Exception ex)
         {
-            MessageBox.Show(ex.Message, "RyzenTuner 出现错误",
+            MessageBox.Show(ex.Message, Properties.Strings.TextExceptionTitle,
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             AppContainer.Logger().LogException(ex);

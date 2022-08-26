@@ -41,4 +41,13 @@
     <data name="TextEnableEnergyStar" xml:space="preserve">
         <value>Enable EnergyStar</value>
     </data>
+    <data name="TextAbout" xml:space="preserve">
+        <value>About</value>
+    </data>
+    <data name="TextExceptionTitle" xml:space="preserve">
+        <value>RyzenTuner has an error</value>
+    </data>
+    <data name="TextExceptionOnlyOneProgramIsAllowedToRun" xml:space="preserve">
+        <value>Only one RyzenTuner program is allowed to run at a time</value>
+    </data>
 </root>

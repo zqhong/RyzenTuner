@@ -114,11 +114,38 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 关于.
+        /// </summary>
+        internal static string TextAbout {
+            get {
+                return ResourceManager.GetString("TextAbout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 开启 EnergyStar.
         /// </summary>
         internal static string TextEnableEnergyStar {
             get {
                 return ResourceManager.GetString("TextEnableEnergyStar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 同一时间内，只允许运行一个 RyzenTuner 程序.
+        /// </summary>
+        internal static string TextExceptionOnlyOneProgramIsAllowedToRun {
+            get {
+                return ResourceManager.GetString("TextExceptionOnlyOneProgramIsAllowedToRun", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RyzenTuner 出现错误.
+        /// </summary>
+        internal static string TextExceptionTitle {
+            get {
+                return ResourceManager.GetString("TextExceptionTitle", resourceCulture);
             }
         }
         

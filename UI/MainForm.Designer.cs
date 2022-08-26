@@ -292,7 +292,7 @@ namespace RyzenTuner.UI
             // 托盘菜单选项 - 关于
             this.AboutToolStripMenuItem.Name = "AboutToolStripMenuItem";
             this.AboutToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.AboutToolStripMenuItem.Text = "关于";
+            this.AboutToolStripMenuItem.Text = Properties.Strings.TextAbout;
             this.AboutToolStripMenuItem.Click += new System.EventHandler(this.AboutAppToolStripMenuItem_Click);
 
             // 托盘菜单选项 - 退出
