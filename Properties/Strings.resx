@@ -60,4 +60,7 @@
     <data name="TextNoticeText" xml:space="preserve">
         <value>功率：限制{power_limit}W、实际{actual_power_limit}W</value>
     </data>
+    <data name="TextExit" xml:space="preserve">
+        <value>退出</value>
+    </data>
 </root>

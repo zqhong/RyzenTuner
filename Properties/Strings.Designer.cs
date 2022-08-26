@@ -150,6 +150,15 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 退出.
+        /// </summary>
+        internal static string TextExit {
+            get {
+                return ResourceManager.GetString("TextExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 功率：限制{power_limit}W、实际{actual_power_limit}W.
         /// </summary>
         internal static string TextNoticeText {
