@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-一个方便调节 Ryzen 移动处理器功率限制的工具。
+RyzenTuner 提供一个 GUI 界面，可以方便调节 Ryzen 移动处理器的功率限制，也支持调整 Windows 进程的 QoS 等级和优先级，从而提升电池使用时间和减少风扇噪声。
 
 ![preview.jpg](https://s2.loli.net/2022/08/25/YTA9yf8jqOtUEwn.jpg)
 
@@ -10,7 +10,7 @@
 
 ### 自动模式
 
-根据插电/电池/夜晚/活跃时间等不同条件，选择不同的工作模式（待机/平衡/性能）。
+根据插电/电池/夜晚/活跃时间等不同条件，自动选择不同的工作模式（待机/平衡/性能）。
 
 工作模式说明：
 
@@ -60,10 +60,16 @@
 
 [![Star History Chart](https://api.star-history.com/svg?repos=zqhong/RyzenTuner&type=Date)](#RyzenTuner)
 
-## 感谢
+## 依赖的项目
 
 * [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner)：基于该项目开发
 * [FlyGoat/RyzenAdj](https://github.com/FlyGoat/RyzenAdj)：Ryzen 移动处理器电源管理工具
 * [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar)：Windows 进程调度，可能有增加续航的效果（未测试）
 * [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)：获取硬件信息
 * [dahall/Vanara](https://github.com/dahall/Vanara)：一套 .NET 库，包含了许多 Windows 原生 API 的 PInvoke 调用的封装
+
+感谢以上名单的项目和作者。
+
+## License
+
+RyzenTuner 使用 [MIT](LICENSE.md) 开源协议。
