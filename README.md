@@ -2,7 +2,7 @@
 
 English | [简体中文](README-CN.md)
 
-A handy tool for adjusting the power limit of Ryzen mobile processors.
+RyzenTuner provides a GUI interface to easily adjust the power limit of Ryzen mobile processors, and also supports adjusting the QoS level and priority of Windows processes, thereby improving battery life and reducing fan noise.
 
 ![preview-en.jpg](https://s2.loli.net/2022/08/26/Pr1qiykJUOIEspD.jpg)
 
@@ -10,8 +10,7 @@ A handy tool for adjusting the power limit of Ryzen mobile processors.
 
 ### Automatic Mode
 
-Select different working modes (standby/balance/performance) according to different conditions such as
-plug-in/battery/night/active time.
+Different working modes (standby/balance/performance) are automatically selected according to different conditions such as plug-in/battery/night/active time.
 
 Description of working mode:
 
@@ -58,10 +57,17 @@ If you like or are using this project, please give it a star. Thanks!
 
 [![Star History Chart](https://api.star-history.com/svg?repos=zqhong/RyzenTuner&type=Date)](#RyzenTuner)
 
-## Grateful
+
+## Dependent project
 
 * [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner): Developed based on this project
 * [FlyGoat/RyzenAdj](https://github.com/FlyGoat/RyzenAdj): Ryzen mobile processor power management tool
 * [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar): Windows process scheduling, may have the effect of increasing battery life (not tested)
 * [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor): Get hardware information
 * [dahall/Vanara](https://github.com/dahall/Vanara): A set of .NET libraries that wraps many PInvoke calls to Windows native APIs
+
+Thanks to the projects and authors listed above.
+
+## License
+
+RyzenTuner is licensed under [MIT](LICENSE.md).
