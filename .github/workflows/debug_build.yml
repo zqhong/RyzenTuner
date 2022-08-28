@@ -30,6 +30,8 @@ jobs:
 
       - name: Setup NuGet
         uses: nuget/setup-nuget@v1
+
+      - name: Restore Packages
         run: nuget restore $env:Solution_Name
 
       - name: Build
