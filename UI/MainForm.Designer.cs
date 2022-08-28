@@ -360,6 +360,9 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem AboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ExitToolStripMenuItem;
+        
+        // 是否需要运行 BoostAllUserBackgroundProcesses 任务
+        private bool _needRunBoostAllBgProcesses;
     }
 }
 

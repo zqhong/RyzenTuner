@@ -32,6 +32,15 @@ namespace RyzenTuner.UI
         {
             Properties.Settings.Default.EnergyStar = checkBoxEnergyStar.Checked;
             Properties.Settings.Default.Save();
+
+            if (checkBoxEnergyStar.Checked)
+            {
+                _needRunBoostAllBgProcesses = false;
+            }
+            else
+            {
+                _needRunBoostAllBgProcesses = true;
+            }
         }
 
         private void keepAwakeCheckBox_CheckedChanged(object? sender, EventArgs e)
@@ -83,24 +92,9 @@ namespace RyzenTuner.UI
             _tickCount++;
             AppContainer.HardwareMonitor().Monitor();
 
-            // EnergyStar
-            if (checkBoxEnergyStar.Checked)
-            {
-                AppContainer.EnergyManager().HandleForeground();
+            DoPowerLimit();
 
-                // Throttle 当前用户的所有后台进程
-                if (
-                    // 首次运行 30 秒
-                    _tickCount == 15 ||
-                    // 每 5 分钟
-                    _tickCount % 150 == 0
-                )
-                {
-                    AppContainer.EnergyManager().ThrottleAllUserBackgroundProcesses();
-                }
-            }
-
-            ApplyEnergyMode();
+            DoProcessManage();
         }
 
 
@@ -113,11 +107,11 @@ namespace RyzenTuner.UI
                 Properties.Settings.Default.Save();
                 SyncEnergyModeSelection();
 
-                ApplyEnergyMode();
+                DoPowerLimit();
             }
         }
 
-        private void ApplyEnergyMode()
+        private void DoPowerLimit()
         {
             try
             {
@@ -146,6 +140,42 @@ namespace RyzenTuner.UI
                 MessageBox.Show(e.Message);
                 radioButton5.Checked = true;
                 ChangeEnergyMode(radioButton5, EventArgs.Empty);
+            }
+        }
+
+        /// <summary>
+        /// 执行进程管理任务（EnergyStar）
+        /// </summary>
+        private void DoProcessManage()
+        {
+            // 如果开启【EnergyStar】
+            if (checkBoxEnergyStar.Checked)
+            {
+                AppContainer.EnergyManager().HandleForeground();
+
+                // Throttle 当前用户的所有后台进程
+                if (
+                    // 首次运行 30 秒
+                    _tickCount == 15 ||
+                    // 每 5 分钟
+                    _tickCount % 150 == 0
+                )
+                {
+                    AppContainer.EnergyManager().ThrottleAllUserBackgroundProcesses();
+                }
+
+                return;
+            }
+
+            // 关闭【EnergyStar】的情况
+            if (_needRunBoostAllBgProcesses)
+            {
+                // Boost 当前用户的所有后台进程：每 5 分钟检查一次，一般只运行一次
+                if (_tickCount % 150 == 0)
+                {
+                    AppContainer.EnergyManager().BoostAllUserBackgroundProcesses();
+                    _needRunBoostAllBgProcesses = false;
+                }
             }
         }
 
