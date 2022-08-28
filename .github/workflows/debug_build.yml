@@ -33,9 +33,9 @@ jobs:
 
       - name: Restore Packages
         run: nuget restore $env:Solution_Name
-
+  
       - name: Build
-        run: msbuild $env:Solution_Name /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }}
+        run: msbuild $env:Solution_Name
 
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
