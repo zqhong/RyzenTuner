@@ -25,11 +25,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Initialization environment variables
-        working-directory: ./openwrt
-        run: |
-          echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
-
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v1.1
 
@@ -38,7 +33,7 @@ jobs:
 
       - name: Restore Packages
         run: nuget restore $env:Solution_Name
-  
+
       - name: Build
         run: msbuild $env:Solution_Name
 
@@ -56,8 +51,13 @@ jobs:
           cp win32/WinRing0x64.dll ./bin/Debug
           cp win32/WinRing0x64.sys ./bin/Debug
 
+      - name: Generate artifact name
+        id: generate-name
+        run: |
+          echo "::set-output name=artifact::${{ github.event.repository.name }}.${{ github.ref_name }}.${{ github.run_id }}.zip"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: RyzenTuner_${{ env.FILE_DATE }}
+          name: ${{ steps.generate-name.outputs.artifact }}
           path: "./bin/Debug"
