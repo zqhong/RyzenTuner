@@ -25,6 +25,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Initialization environment variables
+        working-directory: ./openwrt
+        run: |
+          echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v1.1
 
@@ -46,9 +51,13 @@ jobs:
         run: |
           wget -O libryzenadj-win64.zip https://github.com/FlyGoat/RyzenAdj/releases/download/v0.11.1/libryzenadj-win64.zip
           unzip libryzenadj-win64.zip
+          cp build/libryzenadj.dll ./bin/Debug
+          cp win32/inpoutx64.dll ./bin/Debug
+          cp win32/WinRing0x64.dll ./bin/Debug
+          cp win32/WinRing0x64.sys ./bin/Debug
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
-          name: RyzenTuner
-          path: "."
+          name: RyzenTuner_${{ env.FILE_DATE }}
+          path: "./bin/Debug"
