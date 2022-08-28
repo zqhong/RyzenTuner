@@ -317,10 +317,23 @@ namespace RyzenTuner.Common.EnergyStar
         /// </summary>
         public void ThrottleAllUserBackgroundProcesses()
         {
+            AppContainer.Logger().Debug("Throttle All User Background Processes");
+            _toggleAllBgProcessesMode(true);
+        }
+
+        /// <summary>
+        /// 将除了 PendingProcPid 和 BypassProcessList 外的所有进程，都切换到【普通模式】
+        /// </summary>
+        public void BoostAllUserBackgroundProcesses()
+        {
+            AppContainer.Logger().Debug("Boost All User Background Processes");
+            _toggleAllBgProcessesMode(false);
+        }
+
+        private void _toggleAllBgProcessesMode(bool enable)
+        {
             try
             {
-                AppContainer.Logger().Debug("Throttle All User Background Processes");
-
                 var runningProcesses = Process.GetProcesses();
                 var currentSessionId = Process.GetCurrentProcess().SessionId;
 
@@ -331,7 +344,7 @@ namespace RyzenTuner.Common.EnergyStar
                     try
                     {
                         var hProcess = NativeOpenProcess(proc.Id);
-                        ToggleEfficiencyMode(hProcess, true);
+                        ToggleEfficiencyMode(hProcess, enable);
                         Win32Api.CloseHandle(hProcess);
                     }
                     catch (Exception e)
