@@ -37,8 +37,18 @@ jobs:
       - name: Build
         run: msbuild $env:Solution_Name
 
+      - name: Install packages
+        run: |
+          choco install wget --no-progress
+          choco install unzip --no-progress
+
+      - name: Add dependencies
+        run: |
+          wget -O libryzenadj-win64.zip https://github.com/FlyGoat/RyzenAdj/releases/download/v0.11.1/libryzenadj-win64.zip
+          unzip libryzenadj-win64.zip
+
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
-          name: $env:Project_Name
-          path: "."     
+          name: RyzenTuner
+          path: "."
