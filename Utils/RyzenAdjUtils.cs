@@ -96,28 +96,6 @@ namespace RyzenTuner.Utils
 
         public static int GetTctlTemp()
         {
-            var powerLimit = GetPowerLimit();
-
-            if (RyzenTunerUtils.IsSleepMode(powerLimit))
-            {
-                return 50;
-            }
-
-            if (RyzenTunerUtils.IsPowerSaveModeMode(powerLimit))
-            {
-                return 55;
-            }
-
-            if (RyzenTunerUtils.IsBalancedMode(powerLimit))
-            {
-                return 60;
-            }
-
-            if (RyzenTunerUtils.IsPerformanceMode(powerLimit))
-            {
-                return 70;
-            }
-
             return 90;
         }
     }
