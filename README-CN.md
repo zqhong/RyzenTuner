@@ -54,6 +54,7 @@ RyzenTuner 提供一个 GUI 界面，可以方便调节 Ryzen 移动处理器的
 - [x] GitHub action
 - [ ] 添加设置面板
 - [ ] 添加是否允许修改电源计划的选项，默认关闭
+- [ ] 开机启动
 
 ## Give a Star! ⭐
 
