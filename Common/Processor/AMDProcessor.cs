@@ -45,10 +45,20 @@ namespace RyzenTuner.Common.Processor
                     break;
             }
         }
-
-        /**
-         * 可能返回 NaN
-         */
+        
+        /// <summary>
+        /// 返回 stamp limit 数据。
+        ///
+        /// 备注：
+        /// 该方法在部分 CPU 下会返回 NULL
+        /// 
+        /// 说明：
+        /// 测试处理器： AMD Ryzen™ 7 PRO 6850HS
+        /// 测试 RyzenAdj 方法：get_tctl_temp、get_fast_limit、get_slow_limit、get_stapm_limit
+        /// 返回结果：NaN
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public float GetStampLimit()
         {
             return RyzenAdj.get_stapm_limit(_ry);
