@@ -91,7 +91,7 @@ namespace RyzenTuner.UI
         {
             _tickCount++;
             AppContainer.HardwareMonitor().Monitor();
-
+            
             DoPowerLimit();
 
             DoProcessManage();
