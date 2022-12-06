@@ -51,7 +51,7 @@ jobs:
 
       - name: Add dependencies
         run: |
-          wget -O libryzenadj-win64.zip https://github.com/FlyGoat/RyzenAdj/releases/download/v0.11.1/libryzenadj-win64.zip
+          wget -O libryzenadj-win64.zip https://github.com/FlyGoat/RyzenAdj/releases/download/v0.12.0/libryzenadj-win64.zip
           unzip libryzenadj-win64.zip
           cp build/libryzenadj.dll ./bin/Debug
           cp win32/inpoutx64.dll ./bin/Debug
