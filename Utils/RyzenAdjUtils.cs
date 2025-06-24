@@ -96,7 +96,7 @@ namespace RyzenTuner.Utils
 
         public static int GetTctlTemp()
         {
-            return 90;
+            return 100;
         }
     }
 }
