@@ -25,9 +25,9 @@ using System.Runtime.InteropServices;
 // Major.Minor.Build.Revision
 // 程序集的版本信息由下列四个值组成: 
 //
-//      主版本
-//      次版本
-//      生成号
+//      年份
+//      月份
+//      版本号
 //      修订号
-[assembly: AssemblyVersion("1.3.1.000")]
-[assembly: AssemblyFileVersion("1.3.1.000")]
+[assembly: AssemblyVersion("2025.6.0.000")]
+[assembly: AssemblyFileVersion("2025.6.0.000")]
