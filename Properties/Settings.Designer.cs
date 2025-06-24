@@ -153,5 +153,41 @@ namespace RyzenTuner.Properties {
                 this["EnergyStarBypassProcessList"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int TctlTemp {
+            get {
+                return ((int)(this["TctlTemp"]));
+            }
+            set {
+                this["TctlTemp"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("51")]
+        public int FastPPT {
+            get {
+                return ((int)(this["FastPPT"]));
+            }
+            set {
+                this["FastPPT"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("45")]
+        public int SlowPPT {
+            get {
+                return ((int)(this["SlowPPT"]));
+            }
+            set {
+                this["SlowPPT"] = value;
+            }
+        }
     }
 }
