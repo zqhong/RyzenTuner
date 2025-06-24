@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using RyzenTuner.Common;
 using RyzenTuner.Common.Container;
+using RyzenTuner.Properties;
 using RyzenTuner.Utils;
 
 namespace RyzenTuner.UI
@@ -103,8 +104,8 @@ namespace RyzenTuner.UI
             if (((RadioButton)sender).Checked)
             {
                 var checkedMode = ((RadioButton)sender).Tag.ToString();
-                Properties.Settings.Default.CurrentMode = checkedMode;
-                Properties.Settings.Default.Save();
+                Settings.Default.CurrentMode = checkedMode;
+                Settings.Default.Save();
                 SyncEnergyModeSelection();
 
                 DoPowerLimit();
@@ -116,17 +117,39 @@ namespace RyzenTuner.UI
             try
             {
                 notifyIcon1.Text = RyzenTunerUtils.GetNoticeText();
+                var processor = AppContainer.AmdProcessor();
 
-                var powerLimit = RyzenAdjUtils.GetPowerLimit();
+                var stampLimit = RyzenAdjUtils.GetPowerLimit();
                 var tctlTemp = RyzenAdjUtils.GetTctlTemp();
-
+                var fastPpt = Settings.Default.FastPPT;
+                var slowPpt = Settings.Default.SlowPPT;
+                
+                AppContainer.Logger().Debug($"fastPPT: {fastPpt}, slowPPT: {slowPpt}, stampPPT: {stampLimit}, tctlTemp: {tctlTemp}");
+                
                 // 调用 ryzenadj 调整 Cpu 设置
-                AppContainer.AmdProcessor().SetAllTdpLimit(powerLimit);
+                // 说明：
+                // 假设 fastPPT 为 51 瓦，slowPPT 为 45 瓦，stampPPT 为 30 瓦。
+                // 假设没有撞到功耗墙
+                // 当打开网页的时候，处理器功耗会升到 51 瓦（fastPPT 定义）
+                // 过了 x 秒后（由 SLOW PPT TIME CONSTANT定义） ，处理器功耗变为 45 瓦（slowPPT 定义）
+                // 再过了 x 后秒（由 STAPM TIME CONSTANT 定义），处理器功耗变为 30 瓦（stampPPT 定义）
+                // 之后，一直维持在 30 瓦
+                
+                // 备注：
+                // ryzenadj 0.17.0 以及部分旧版本测试在当前环境存在问题：
+                // 1、stamp limit 设置不生效
+                // 2、调整 fast limit，会同时修改 fast limit 和 stamp limit
+                // 因此，设置 fastPPT 的值跟 stamp 一样
+                // 这样子的话，前期不会有性能爆发，在后面会有一段性能爆发
+                processor.SetFastPPT(stampLimit);
+                processor.SetSlowPPT(slowPpt);
+                processor.SetStampPPT(stampLimit);
+
                 AppContainer.AmdProcessor().SetTctlTemp((uint)tctlTemp);
 
                 // 配置系统电源计划
                 // 1、仅在【性能模式】下开启睿频
-                if (RyzenTunerUtils.IsPerformanceMode(powerLimit))
+                if (RyzenTunerUtils.IsPerformanceMode(stampLimit))
                 {
                     AppContainer.PowerConfig().EnableCpuBoost();
                 }

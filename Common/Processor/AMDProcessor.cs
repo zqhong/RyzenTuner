@@ -1,17 +1,18 @@
 ﻿using System;
+using RyzenTuner.Common.Container;
 
 namespace RyzenTuner.Common.Processor
 {
-    public enum PowerType
-    {
-        // long
-        Slow = 0,
-        Stapm = 1,
-        Fast = 2,
-    }
-
     public class AmdProcessor
     {
+        public enum PowerType
+        {
+            // long
+            Slow = 0,
+            Stapm = 1,
+            Fast = 2,
+        }
+        
         private readonly IntPtr _ry;
         private readonly bool _canChangeTdp;
 
@@ -79,15 +80,7 @@ namespace RyzenTuner.Common.Processor
         {
             return RyzenAdj.get_stapm_limit(_ry);
         }
-
-        public bool SetAllTdpLimit(double limit)
-        {
-            var r1 = SetTdpLimit(PowerType.Slow, limit);
-            var r2 = SetTdpLimit(PowerType.Stapm, limit);
-            var r3 = SetTdpLimit(PowerType.Fast, limit);
-
-            return r1 && r2 && r3;
-        }
+        
 
         public bool SetTctlTemp(uint temp)
         {
@@ -102,9 +95,9 @@ namespace RyzenTuner.Common.Processor
                 return false;
             }
 
-            // 15W : 15000
+            // 例如：15W : 15000 mW
             limit *= 1000;
-
+            
             var result = type switch
             {
                 PowerType.Fast => RyzenAdj.set_fast_limit(_ry, (uint)limit),
@@ -112,8 +105,25 @@ namespace RyzenTuner.Common.Processor
                 PowerType.Stapm => RyzenAdj.set_stapm_limit(_ry, (uint)limit),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
+            
+            AppContainer.Logger().Debug($"AMDProcessor.SetTdpLimit: type {type}, limit: {(uint)limit}, result: {result}");
 
             return result == (int)ErrCode.AdjErrNone;
+        }
+
+        public bool SetFastPPT(double limit)
+        {
+            return SetTdpLimit(PowerType.Fast, limit);
+        }
+        
+        public bool SetSlowPPT(double limit)
+        {
+            return SetTdpLimit(PowerType.Slow, limit);
+        }
+        
+        public bool SetStampPPT(double limit)
+        {
+            return SetTdpLimit(PowerType.Stapm, limit);
         }
     }
 }

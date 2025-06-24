@@ -15,16 +15,16 @@
       <Value Profile="(Default)">16</Value>
     </Setting>
     <Setting Name="SleepMode" Type="System.String" Scope="User">
-      <Value Profile="(Default)">5</Value>
+      <Value Profile="(Default)">8</Value>
     </Setting>
     <Setting Name="PowerSaveMode" Type="System.String" Scope="User">
-      <Value Profile="(Default)">10</Value>
-    </Setting>
-    <Setting Name="BalancedMode" Type="System.String" Scope="User">
       <Value Profile="(Default)">16</Value>
     </Setting>
-    <Setting Name="PerformanceMode" Type="System.String" Scope="User">
+    <Setting Name="BalancedMode" Type="System.String" Scope="User">
       <Value Profile="(Default)">26</Value>
+    </Setting>
+    <Setting Name="PerformanceMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">45</Value>
     </Setting>
     <Setting Name="CurrentMode" Type="System.String" Scope="User">
       <Value Profile="(Default)">AutoMode</Value>

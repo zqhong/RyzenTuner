@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using RyzenTuner.Common.Container;
+using RyzenTuner.Properties;
 
 namespace RyzenTuner.Utils
 {
@@ -80,7 +81,7 @@ namespace RyzenTuner.Utils
             var powerLimit = RyzenTunerUtils.GetPowerLimitByMode(Properties.Settings.Default.CurrentMode);
 
             // 自动模式下，根据系统状态自动调整
-            if (Properties.Settings.Default.CurrentMode == "AutoMode")
+            if (Settings.Default.CurrentMode == "AutoMode")
             {
                 powerLimit = AutoModePowerLimit();
             }
@@ -96,7 +97,7 @@ namespace RyzenTuner.Utils
 
         public static int GetTctlTemp()
         {
-            return 100;
+            return Settings.Default.TctlTemp;
         }
     }
 }
