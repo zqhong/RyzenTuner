@@ -23,7 +23,7 @@
     <Setting Name="BalancedMode" Type="System.String" Scope="User">
       <Value Profile="(Default)">16</Value>
     </Setting>
-    <Setting Name="PerformanceMode" Type="System.String" Scope="Application">
+    <Setting Name="PerformanceMode" Type="System.String" Scope="User">
       <Value Profile="(Default)">26</Value>
     </Setting>
     <Setting Name="CurrentMode" Type="System.String" Scope="User">
