@@ -106,12 +106,15 @@ namespace RyzenTuner.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("26")]
         public string PerformanceMode {
             get {
                 return ((string)(this["PerformanceMode"]));
+            }
+            set {
+                this["PerformanceMode"] = value;
             }
         }
         
