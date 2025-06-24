@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 // 产品名称
 [assembly: AssemblyProduct("RyzenTuner")]
 // 版权
-[assembly: AssemblyCopyright("Copyright ©  2022")]
+[assembly: AssemblyCopyright("Copyright ©  2025")]
 // 合法商标
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      次版本
 //      生成号
 //      修订号
-[assembly: AssemblyVersion("1.3.0.400")]
-[assembly: AssemblyFileVersion("1.3.0.400")]
+[assembly: AssemblyVersion("1.3.1.000")]
+[assembly: AssemblyFileVersion("1.3.1.000")]
