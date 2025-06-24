@@ -17,32 +17,48 @@ namespace RyzenTuner.Common.Processor
 
         public AmdProcessor()
         {
-            _ry = RyzenAdj.init_ryzenadj();
-            if (_ry == IntPtr.Zero)
+            try
             {
-                throw new Exception("init ryzenadj failed");
+                _ry = RyzenAdj.init_ryzenadj();
+                if (_ry == IntPtr.Zero)
+                {
+                    throw new Exception("init ryzenadj failed");
+                }
+
+                var family = RyzenAdj.get_cpu_family(_ry);
+
+                switch (family)
+                {
+                    case RyzenFamily.FamUnknown:
+                    case RyzenFamily.FamEnd:
+                    default:
+                        _canChangeTdp = false;
+                        break;
+
+                    case RyzenFamily.FamRaven:
+                    case RyzenFamily.FamPicasso:
+                    case RyzenFamily.FamDali:
+                    case RyzenFamily.FamRenoir:
+                    case RyzenFamily.FamLucienne:
+                    case RyzenFamily.FamCezanne:
+                    case RyzenFamily.FamVangogh:
+                    case RyzenFamily.FamRembrandt:
+                        _canChangeTdp = true;
+                        break;
+                }
+
             }
-
-            var family = RyzenAdj.get_cpu_family(_ry);
-
-            switch (family)
+            catch (DllNotFoundException ex)
             {
-                case RyzenFamily.FamUnknown:
-                case RyzenFamily.FamEnd:
-                default:
-                    _canChangeTdp = false;
-                    break;
-
-                case RyzenFamily.FamRaven:
-                case RyzenFamily.FamPicasso:
-                case RyzenFamily.FamDali:
-                case RyzenFamily.FamRenoir:
-                case RyzenFamily.FamLucienne:
-                case RyzenFamily.FamCezanne:
-                case RyzenFamily.FamVangogh:
-                case RyzenFamily.FamRembrandt:
-                    _canChangeTdp = true;
-                    break;
+                throw new Exception($"Failed to load libryzenadj.dll: {ex.Message}", ex);
+            }
+            catch (BadImageFormatException ex)
+            {
+                throw new Exception($"libryzenadj.dll architecture mismatch (32/64-bit?)", ex);
+            }
+            catch (Exception ex) 
+            {
+                throw new Exception($"init ryzenadj failed: {ex.Message}", ex);
             }
         }
         

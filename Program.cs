@@ -13,24 +13,51 @@ namespace RyzenTuner
         [STAThread]
         private static void Main()
         {
-            Application.ThreadException += Application_ThreadException;
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
-            if (Environment.OSVersion.Version.Major >= 6)
+            try
             {
-                SetProcessDPIAware();
+                Application.ThreadException += Application_ThreadException;
+                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+                if (Environment.OSVersion.Version.Major >= 6)
+                {
+                    SetProcessDPIAware();
+                }
+
+                AutoSelectLang();
+
+                if (Process.GetProcessesByName("RyzenTuner").Length > 1)
+                {
+                    throw new Exception(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
+                }
+
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new MainForm());
             }
-
-            AutoSelectLang();
-
-            if (Process.GetProcessesByName("RyzenTuner").Length > 1)
+            catch (Exception ex)
             {
-                throw new Exception(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
+                // 检查是否是初始化失败导致的异常
+                if (ex.InnerException?.GetType() == typeof(DllNotFoundException) ||
+                    ex.Message.Contains("libryzenadj.dll"))
+                {
+                    ShowErrorAndExit("Critical Error", 
+                        "libryzenadj.dll not found! This component is required.\n\n" +
+                        "Please download it from the official repository: " +
+                        "https://github.com/FlyGoat/RyzenAdj");
+                }
+                else
+                {
+                    ShowErrorAndExit("Fatal Error", $"Unhandled exception: {ex.Message}");
+                }
             }
-
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+        }
+        
+        // 显示错误并退出的辅助方法
+        static void ShowErrorAndExit(string title, string message)
+        {
+            MessageBox.Show(message, title, 
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Environment.Exit(1);
         }
 
         /// <summary>

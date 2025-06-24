@@ -40,7 +40,7 @@ namespace RyzenTuner.Common.Processor
      * WinRing0x64.dll
      * WinRing0x64.sys
      *
-     * 当前 ryzenadj 版本：v0.11.1
+     * 当前 ryzenadj 版本：v0.17.0
      */
     public class RyzenAdj
     {
