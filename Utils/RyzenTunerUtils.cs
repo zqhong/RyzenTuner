@@ -28,21 +28,19 @@ namespace RyzenTuner.Utils
          */
         public static int GetIdleSecond()
         {
-            var idleTime = 0;
             var lastInputInfo = new LASTINPUTINFO();
             lastInputInfo.cbSize = Marshal.SizeOf(lastInputInfo);
             lastInputInfo.dwTime = 0;
 
-            var envTicks = Environment.TickCount;
-
-            if (GetLastInputInfo(ref lastInputInfo))
+            if (!GetLastInputInfo(ref lastInputInfo))
             {
-                var lastInputTick = (int)lastInputInfo.dwTime;
-
-                idleTime = envTicks - lastInputTick;
+                return 0;
             }
 
-            return ((idleTime > 0) ? (idleTime / 1000) : idleTime);
+            uint envTicks = unchecked((uint)Environment.TickCount);
+            uint idleTime = envTicks - lastInputInfo.dwTime;
+
+            return (int)(idleTime / 1000);
         }
 
 
