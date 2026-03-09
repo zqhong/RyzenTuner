@@ -18,13 +18,14 @@ jobs:
     strategy:
       matrix:
         configuration: [ Debug ]
-        platform: [ x64 ]
+        platform: [ Any CPU ]
 
     runs-on: windows-latest
     
     env:
       Solution_Name: RyzenTuner.sln
       Project_Name: RyzenTuner
+      Output_Dir: bin/Debug
 
     steps:
       - name: Checkout
@@ -42,21 +43,26 @@ jobs:
         run: nuget restore $env:Solution_Name
 
       - name: Build
-        run: msbuild $env:Solution_Name
+        run: msbuild $env:Solution_Name /p:Configuration="$env:configuration" /p:Platform="$env:platform"
+        env:
+          configuration: ${{ matrix.configuration }}
+          platform: ${{ matrix.platform }}
 
       - name: Verify native dependencies
         shell: pwsh
         run: |
+          $outputDir = $env:Output_Dir
           $requiredFiles = @(
-            "bin/Debug/libryzenadj.dll",
-            "bin/Debug/inpoutx64.dll",
-            "bin/Debug/WinRing0x64.dll",
-            "bin/Debug/WinRing0x64.sys"
+            "libryzenadj.dll",
+            "inpoutx64.dll",
+            "WinRing0x64.dll",
+            "WinRing0x64.sys"
           )
 
           foreach ($file in $requiredFiles) {
-            if (-not (Test-Path $file)) {
-              throw "Missing required native dependency: $file"
+            $matches = Get-ChildItem -Path $outputDir -Filter $file -Recurse -File
+            if ($matches.Count -eq 0) {
+              throw "Missing required native dependency: $outputDir/$file"
             }
           }
 
@@ -69,4 +75,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.generate-name.outputs.artifact }}
-          path: "./bin/Debug"
+          path: ./${{ env.Output_Dir }}
