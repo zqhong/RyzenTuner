@@ -12,6 +12,7 @@ using RyzenTuner.Properties;
 namespace RyzenTuner.Common.EnergyStar
 {
     public class EnergyManager
+        : IDisposable
     {
         private const string UnknownProcessName = "Unknown-K7Ncy4PUIQBNyGTl.exe";
 
@@ -105,6 +106,7 @@ namespace RyzenTuner.Common.EnergyStar
         private readonly IntPtr _pThrottleOn;
         private readonly IntPtr _pThrottleOff;
         private readonly int _szControlBlock;
+        private bool _disposed;
 
         public const string UwpFrameHostApp = "ApplicationFrameHost.exe";
 
@@ -160,6 +162,11 @@ namespace RyzenTuner.Common.EnergyStar
 
             Marshal.StructureToPtr(throttleState, _pThrottleOn, false);
             Marshal.StructureToPtr(unThrottleState, _pThrottleOff, false);
+        }
+
+        ~EnergyManager()
+        {
+            Dispose(false);
         }
 
         /// <summary>
@@ -335,17 +342,24 @@ namespace RyzenTuner.Common.EnergyStar
             try
             {
                 var runningProcesses = Process.GetProcesses();
-                var currentSessionId = Process.GetCurrentProcess().SessionId;
+                using var currentProcess = Process.GetCurrentProcess();
+                var currentSessionId = currentProcess.SessionId;
 
-                var sameAsThisSession = runningProcesses.Where(p => p.SessionId == currentSessionId);
-
-                foreach (var proc in sameAsThisSession)
+                foreach (var proc in runningProcesses)
                 {
                     try
                     {
-                        var hProcess = NativeOpenProcess(proc.Id);
-                        ToggleEfficiencyMode(hProcess, enable);
-                        Win32Api.CloseHandle(hProcess);
+                        using (proc)
+                        {
+                            if (proc.SessionId != currentSessionId)
+                            {
+                                continue;
+                            }
+
+                            var hProcess = NativeOpenProcess(proc.Id);
+                            ToggleEfficiencyMode(hProcess, enable);
+                            Win32Api.CloseHandle(hProcess);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -357,6 +371,32 @@ namespace RyzenTuner.Common.EnergyStar
             {
                 AppContainer.Logger().LogException(e);
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (_pThrottleOn != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(_pThrottleOn);
+            }
+
+            if (_pThrottleOff != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(_pThrottleOff);
+            }
+
+            _disposed = true;
         }
     }
 }

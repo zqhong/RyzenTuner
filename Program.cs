@@ -33,6 +33,7 @@ namespace RyzenTuner
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new MainForm());
+                AppContainer.Dispose();
             }
             catch (Exception ex)
             {
@@ -57,6 +58,7 @@ namespace RyzenTuner
         {
             MessageBox.Show(message, title, 
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
+            AppContainer.Dispose();
             Environment.Exit(1);
         }
 
@@ -93,6 +95,7 @@ namespace RyzenTuner
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             AppContainer.Logger().LogException(ex);
+            AppContainer.Dispose();
 
             Application.Exit();
         }

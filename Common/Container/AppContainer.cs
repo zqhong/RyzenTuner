@@ -10,6 +10,7 @@ namespace RyzenTuner.Common.Container
     public static class AppContainer
     {
         private static readonly Container Container;
+        private static bool _disposed;
 
         static AppContainer()
         {
@@ -59,6 +60,17 @@ namespace RyzenTuner.Common.Container
         public static SimpleLogger Logger()
         {
             return Container.Resolve<SimpleLogger>();
+        }
+
+        public static void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            Container.Dispose();
+            _disposed = true;
         }
     }
 }
