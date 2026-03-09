@@ -25,7 +25,7 @@ namespace RyzenTuner.Common.Processor
                 _ry = RyzenAdj.init_ryzenadj();
                 if (_ry == IntPtr.Zero)
                 {
-                    throw new Exception("init ryzenadj failed");
+                    throw new Exception(Properties.Strings.TextRyzenAdjInitFailed);
                 }
 
                 _ = RyzenAdj.get_table_ver(_ry);
@@ -63,19 +63,19 @@ namespace RyzenTuner.Common.Processor
             }
             catch (DllNotFoundException ex)
             {
-                throw new Exception($"Failed to load libryzenadj.dll: {ex.Message}", ex);
+                throw new Exception(Properties.Strings.TextLibRyzenAdjLoadFailed.Replace("{message}", ex.Message), ex);
             }
             catch (BadImageFormatException ex)
             {
-                throw new Exception($"libryzenadj.dll architecture mismatch (32/64-bit?)", ex);
+                throw new Exception(Properties.Strings.TextLibRyzenAdjArchitectureMismatch, ex);
             }
             catch (EntryPointNotFoundException ex)
             {
-                throw new Exception("libryzenadj.dll version is too old. Please update it to v0.18.0 or newer.", ex);
+                throw new Exception(Properties.Strings.TextLibRyzenAdjTooOld, ex);
             }
             catch (Exception ex) 
             {
-                throw new Exception($"init ryzenadj failed: {ex.Message}", ex);
+                throw new Exception(Properties.Strings.TextRyzenAdjInitFailedWithMessage.Replace("{message}", ex.Message), ex);
             }
         }
         

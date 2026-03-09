@@ -276,7 +276,10 @@ namespace RyzenTuner.UI
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                MessageBox.Show(e.Message,
+                    Properties.Strings.TextExceptionTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 radioButton5.Checked = true;
                 ChangeEnergyMode(radioButton5, EventArgs.Empty);
             }

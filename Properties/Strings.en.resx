@@ -61,10 +61,22 @@
 
 Please download it from the official repository: https://github.com/FlyGoat/RyzenAdj</value>
     </data>
+    <data name="TextLibRyzenAdjLoadFailed" xml:space="preserve">
+        <value>Failed to load libryzenadj.dll: {message}</value>
+    </data>
+    <data name="TextLibRyzenAdjArchitectureMismatch" xml:space="preserve">
+        <value>libryzenadj.dll architecture mismatch (32/64-bit?)</value>
+    </data>
     <data name="TextLibRyzenAdjTooOld" xml:space="preserve">
         <value>libryzenadj.dll is too old for this version of RyzenTuner.
 
 Please update libryzenadj.dll to v0.18.0 or newer.</value>
+    </data>
+    <data name="TextRyzenAdjInitFailed" xml:space="preserve">
+        <value>Failed to initialize ryzenadj</value>
+    </data>
+    <data name="TextRyzenAdjInitFailedWithMessage" xml:space="preserve">
+        <value>Failed to initialize ryzenadj: {message}</value>
     </data>
     <data name="TextUnhandledException" xml:space="preserve">
         <value>Unhandled exception: {message}</value>

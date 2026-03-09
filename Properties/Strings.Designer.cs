@@ -206,6 +206,24 @@ namespace RyzenTuner.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to 加载 libryzenadj.dll 失败：{message}.
+        /// </summary>
+        internal static string TextLibRyzenAdjLoadFailed {
+            get {
+                return ResourceManager.GetString("TextLibRyzenAdjLoadFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to libryzenadj.dll 的体系结构不匹配（32/64 位错误）。.
+        /// </summary>
+        internal static string TextLibRyzenAdjArchitectureMismatch {
+            get {
+                return ResourceManager.GetString("TextLibRyzenAdjArchitectureMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to libryzenadj.dll 版本过旧，不适用于当前版本的 RyzenTuner。
 
 请将 libryzenadj.dll 更新到 v0.18.0 或更高版本。.
@@ -213,6 +231,24 @@ namespace RyzenTuner.Properties {
         internal static string TextLibRyzenAdjTooOld {
             get {
                 return ResourceManager.GetString("TextLibRyzenAdjTooOld", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 初始化 ryzenadj 失败.
+        /// </summary>
+        internal static string TextRyzenAdjInitFailed {
+            get {
+                return ResourceManager.GetString("TextRyzenAdjInitFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 初始化 ryzenadj 失败：{message}.
+        /// </summary>
+        internal static string TextRyzenAdjInitFailedWithMessage {
+            get {
+                return ResourceManager.GetString("TextRyzenAdjInitFailedWithMessage", resourceCulture);
             }
         }
 
