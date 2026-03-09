@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using RyzenTuner.Common.Container;
 
@@ -78,7 +79,26 @@ namespace RyzenTuner.Utils
 
         public static float GetPowerLimitByMode(string mode)
         {
-            return float.Parse(Properties.Settings.Default[mode].ToString());
+            if (TryGetPowerLimitByMode(mode, out var powerLimit))
+            {
+                return powerLimit;
+            }
+
+            throw new FormatException($"Invalid power limit setting: {mode}");
+        }
+
+        public static bool TryGetPowerLimitByMode(string mode, out float powerLimit)
+        {
+            powerLimit = 0;
+            var value = Properties.Settings.Default[mode]?.ToString();
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return float.TryParse(value, NumberStyles.Float, CultureInfo.CurrentCulture, out powerLimit) ||
+                   float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out powerLimit);
         }
 
         public static string GetNoticeText()
