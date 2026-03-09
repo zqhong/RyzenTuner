@@ -16,6 +16,8 @@ namespace RyzenTuner.Common.Processor
         private readonly IntPtr _ry;
         private readonly bool _canChangeTdp;
 
+        public bool CanChangeTdp => _canChangeTdp;
+
         public AmdProcessor()
         {
             try
@@ -44,6 +46,12 @@ namespace RyzenTuner.Common.Processor
                     case RyzenFamily.FamCezanne:
                     case RyzenFamily.FamVangogh:
                     case RyzenFamily.FamRembrandt:
+                    case RyzenFamily.FamPhoenix:
+                    case RyzenFamily.FamHawkPoint:
+                    case RyzenFamily.FamDragonRange:
+                    case RyzenFamily.FamStrixPoint:
+                    case RyzenFamily.FamStrixHalo:
+                    case RyzenFamily.FamFireRange:
                         _canChangeTdp = true;
                         break;
                 }
