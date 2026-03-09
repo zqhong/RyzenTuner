@@ -49,13 +49,19 @@ namespace RyzenTuner
             catch (Exception ex)
             {
                 // 检查是否是初始化失败导致的异常
-                if (ex.InnerException?.GetType() == typeof(DllNotFoundException) ||
+                if (HasException<DllNotFoundException>(ex) ||
                     ex.Message.Contains("libryzenadj.dll"))
                 {
                     ShowErrorAndExit("Critical Error", 
                         "libryzenadj.dll not found! This component is required.\n\n" +
                         "Please download it from the official repository: " +
                         "https://github.com/FlyGoat/RyzenAdj");
+                }
+                else if (HasException<EntryPointNotFoundException>(ex))
+                {
+                    ShowErrorAndExit("Critical Error",
+                        "libryzenadj.dll is too old for this version of RyzenTuner.\n\n" +
+                        "Please update libryzenadj.dll to v0.18.0 or newer.");
                 }
                 else
                 {
@@ -109,6 +115,21 @@ namespace RyzenTuner
             AppContainer.Dispose();
 
             Application.Exit();
+        }
+
+        private static bool HasException<T>(Exception ex) where T : Exception
+        {
+            while (ex != null)
+            {
+                if (ex is T)
+                {
+                    return true;
+                }
+
+                ex = ex.InnerException;
+            }
+
+            return false;
         }
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
