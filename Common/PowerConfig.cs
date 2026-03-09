@@ -27,7 +27,7 @@ namespace RyzenTuner.Common
         /**
          * 检查是否开启了 Cpu Boost
          */
-        private bool IsEnableCpuBoost()
+        public bool IsCpuBoostEnabled()
         {
             HKEY powerKey = default;
             var activeGuid = GetActiveScheme();
@@ -56,7 +56,7 @@ namespace RyzenTuner.Common
          */
         public bool EnableCpuBoost()
         {
-            if (IsEnableCpuBoost())
+            if (IsCpuBoostEnabled())
             {
                 return true;
             }
@@ -90,7 +90,7 @@ namespace RyzenTuner.Common
          */
         public bool DisableCpuBoost()
         {
-            if (!IsEnableCpuBoost())
+            if (!IsCpuBoostEnabled())
             {
                 return true;
             }

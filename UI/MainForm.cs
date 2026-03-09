@@ -34,6 +34,7 @@ namespace RyzenTuner.UI
             checkBoxEnergyStar.Checked = Properties.Settings.Default.EnergyStar;
             keepAwakeCheckBox.Checked = Properties.Settings.Default.KeepAwake;
             SyncLaunchAtLogonSetting();
+            SyncCpuBoostSetting();
             textBox1.Text = Properties.Settings.Default.CustomMode;
             UpdateCustomModeInputState(false);
             SyncEnergyModeSelection();
@@ -110,6 +111,19 @@ namespace RyzenTuner.UI
             }
         }
 
+        private void cpuBoostCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (_isInitializingOptions)
+            {
+                return;
+            }
+
+            Properties.Settings.Default.CpuBoostEnabled = cpuBoostCheckBox.Checked;
+            Properties.Settings.Default.Save();
+
+            DoPowerLimit();
+        }
+
         private void AboutAppToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using var aboutForm = new AboutForm();
@@ -181,7 +195,7 @@ namespace RyzenTuner.UI
                 var tctlTemp = RyzenAdjUtils.GetTctlTemp();
                 var fastPpt = Settings.Default.FastPPT;
                 var slowPpt = Settings.Default.SlowPPT;
-                var shouldEnableCpuBoost = RyzenTunerUtils.IsPerformanceMode(stampLimit);
+                var shouldEnableCpuBoost = Settings.Default.CpuBoostEnabled;
 
                 notifyIcon1.Text = RyzenTunerUtils.GetNoticeText(stampLimit);
                 
@@ -245,9 +259,8 @@ namespace RyzenTuner.UI
                 }
 
                 // 配置系统电源计划
-                // 1、仅在【性能模式】下开启睿频
-                // 2、仅在支持 TDP 调整的 CPU 上修改睿频，避免主功能不生效但副作用先生效
-                if (processor.CanChangeTdp && _lastCpuBoostEnabled != shouldEnableCpuBoost)
+                // 睿频改为显式开关，仅在用户手动切换后同步系统电源计划
+                if (_lastCpuBoostEnabled != shouldEnableCpuBoost)
                 {
                     var boostChanged = false;
                     var boostApplied = shouldEnableCpuBoost
@@ -414,6 +427,28 @@ namespace RyzenTuner.UI
             {
                 launchAtLogonCheckBox.Checked = Properties.Settings.Default.LaunchAtLogon;
                 AppContainer.Logger().Warning($"Failed to query launch at logon status: {ex.Message}");
+            }
+        }
+
+        private void SyncCpuBoostSetting()
+        {
+            try
+            {
+                var isEnabled = AppContainer.PowerConfig().IsCpuBoostEnabled();
+                cpuBoostCheckBox.Checked = isEnabled;
+                _lastCpuBoostEnabled = isEnabled;
+
+                if (Properties.Settings.Default.CpuBoostEnabled != isEnabled)
+                {
+                    Properties.Settings.Default.CpuBoostEnabled = isEnabled;
+                    Properties.Settings.Default.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                cpuBoostCheckBox.Checked = Properties.Settings.Default.CpuBoostEnabled;
+                _lastCpuBoostEnabled = Properties.Settings.Default.CpuBoostEnabled;
+                AppContainer.Logger().Warning($"Failed to query cpu boost status: {ex.Message}");
             }
         }
 
