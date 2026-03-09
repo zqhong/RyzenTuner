@@ -9,7 +9,10 @@ namespace RyzenTuner.UI
         {
             if (e.Item is ToolStripMenuItem { Checked: true } item)
             {
-                e.TextFont = new Font(item.Font, FontStyle.Bold);
+                using var boldFont = new Font(item.Font, FontStyle.Bold);
+                e.TextFont = boldFont;
+                base.OnRenderItemText(e);
+                return;
             }
 
             base.OnRenderItemText(e);
