@@ -103,8 +103,12 @@ namespace RyzenTuner.Utils
 
         public static string GetNoticeText()
         {
+            return GetNoticeText(RyzenAdjUtils.GetPowerLimit());
+        }
+
+        public static string GetNoticeText(float powerLimit)
+        {
             var hardwareMonitor = AppContainer.HardwareMonitor();
-            var powerLimit = RyzenAdjUtils.GetPowerLimit();
 
             var powerLimitText = Properties.Strings.TextNoticeText
                 .Replace("{power_limit}", $"{powerLimit:0}")

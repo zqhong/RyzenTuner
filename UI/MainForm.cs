@@ -16,6 +16,11 @@ namespace RyzenTuner.UI
         private readonly Color _customModeInputDefaultBackColor = SystemColors.Window;
         private readonly Color _customModeInputInvalidBackColor = Color.MistyRose;
         private string _lastPowerLimitApplyError = string.Empty;
+        private float? _lastAppliedFastPpt;
+        private float? _lastAppliedSlowPpt;
+        private float? _lastAppliedStampLimit;
+        private int? _lastAppliedTctlTemp;
+        private bool? _lastCpuBoostEnabled;
 
         public MainForm()
         {
@@ -130,13 +135,15 @@ namespace RyzenTuner.UI
         {
             try
             {
-                notifyIcon1.Text = RyzenTunerUtils.GetNoticeText();
                 var processor = AppContainer.AmdProcessor();
 
                 var stampLimit = RyzenAdjUtils.GetPowerLimit();
                 var tctlTemp = RyzenAdjUtils.GetTctlTemp();
                 var fastPpt = Settings.Default.FastPPT;
                 var slowPpt = Settings.Default.SlowPPT;
+                var shouldEnableCpuBoost = RyzenTunerUtils.IsPerformanceMode(stampLimit);
+
+                notifyIcon1.Text = RyzenTunerUtils.GetNoticeText(stampLimit);
                 
                 AppContainer.Logger().Debug($"fastPPT: {fastPpt}, slowPPT: {slowPpt}, stampPPT: {stampLimit}, tctlTemp: {tctlTemp}");
                 
@@ -157,20 +164,64 @@ namespace RyzenTuner.UI
                 // 这样子的话，前期不会有性能爆发，在后面会有一段性能爆发
                 var applyErrors = new List<string>();
 
-                if (!processor.SetFastPPT(stampLimit)) applyErrors.Add($"SetFastPPT({stampLimit:0.##}W)");
-                if (!processor.SetSlowPPT(slowPpt)) applyErrors.Add($"SetSlowPPT({slowPpt:0.##}W)");
-                if (!processor.SetStampPPT(stampLimit)) applyErrors.Add($"SetStampPPT({stampLimit:0.##}W)");
-                if (!processor.SetTctlTemp((uint)tctlTemp)) applyErrors.Add($"SetTctlTemp({tctlTemp}C)");
+                if (!TryApplyPowerLimit(_lastAppliedFastPpt, stampLimit, () => processor.SetFastPPT(stampLimit), out var fastPptChanged))
+                {
+                    applyErrors.Add($"SetFastPPT({stampLimit:0.##}W)");
+                }
+
+                if (fastPptChanged)
+                {
+                    _lastAppliedFastPpt = stampLimit;
+                }
+
+                if (!TryApplyPowerLimit(_lastAppliedSlowPpt, slowPpt, () => processor.SetSlowPPT(slowPpt), out var slowPptChanged))
+                {
+                    applyErrors.Add($"SetSlowPPT({slowPpt:0.##}W)");
+                }
+
+                if (slowPptChanged)
+                {
+                    _lastAppliedSlowPpt = slowPpt;
+                }
+
+                if (!TryApplyPowerLimit(_lastAppliedStampLimit, stampLimit, () => processor.SetStampPPT(stampLimit), out var stampPptChanged))
+                {
+                    applyErrors.Add($"SetStampPPT({stampLimit:0.##}W)");
+                }
+
+                if (stampPptChanged)
+                {
+                    _lastAppliedStampLimit = stampLimit;
+                }
+
+                if (!TryApplyTctlTemp(tctlTemp, () => processor.SetTctlTemp((uint)tctlTemp), out var tctlTempChanged))
+                {
+                    applyErrors.Add($"SetTctlTemp({tctlTemp}C)");
+                }
+
+                if (tctlTempChanged)
+                {
+                    _lastAppliedTctlTemp = tctlTemp;
+                }
 
                 // 配置系统电源计划
                 // 1、仅在【性能模式】下开启睿频
-                if (RyzenTunerUtils.IsPerformanceMode(stampLimit))
+                if (_lastCpuBoostEnabled != shouldEnableCpuBoost)
                 {
-                    if (!AppContainer.PowerConfig().EnableCpuBoost()) applyErrors.Add("EnableCpuBoost()");
-                }
-                else
-                {
-                    if (!AppContainer.PowerConfig().DisableCpuBoost()) applyErrors.Add("DisableCpuBoost()");
+                    var boostChanged = false;
+                    var boostApplied = shouldEnableCpuBoost
+                        ? TryApplyCpuBoost(true, () => AppContainer.PowerConfig().EnableCpuBoost(), out boostChanged)
+                        : TryApplyCpuBoost(false, () => AppContainer.PowerConfig().DisableCpuBoost(), out boostChanged);
+
+                    if (!boostApplied)
+                    {
+                        applyErrors.Add(shouldEnableCpuBoost ? "EnableCpuBoost()" : "DisableCpuBoost()");
+                    }
+
+                    if (boostChanged)
+                    {
+                        _lastCpuBoostEnabled = shouldEnableCpuBoost;
+                    }
                 }
 
                 if (applyErrors.Count > 0)
@@ -188,6 +239,39 @@ namespace RyzenTuner.UI
                 radioButton5.Checked = true;
                 ChangeEnergyMode(radioButton5, EventArgs.Empty);
             }
+        }
+
+        private static bool TryApplyPowerLimit(float? lastAppliedValue, float targetValue, Func<bool> applyAction, out bool changed)
+        {
+            changed = !lastAppliedValue.HasValue || Math.Abs(lastAppliedValue.Value - targetValue) >= 0.01f;
+            if (!changed)
+            {
+                return true;
+            }
+
+            return applyAction();
+        }
+
+        private bool TryApplyTctlTemp(int targetValue, Func<bool> applyAction, out bool changed)
+        {
+            changed = !_lastAppliedTctlTemp.HasValue || _lastAppliedTctlTemp.Value != targetValue;
+            if (!changed)
+            {
+                return true;
+            }
+
+            return applyAction();
+        }
+
+        private bool TryApplyCpuBoost(bool targetValue, Func<bool> applyAction, out bool changed)
+        {
+            changed = !_lastCpuBoostEnabled.HasValue || _lastCpuBoostEnabled.Value != targetValue;
+            if (!changed)
+            {
+                return true;
+            }
+
+            return applyAction();
         }
 
         private void ReportPowerLimitApplyError(string errorText)
