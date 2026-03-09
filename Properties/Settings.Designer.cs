@@ -45,7 +45,19 @@ namespace RyzenTuner.Properties {
                 this["KeepAwake"] = value;
             }
         }
-        
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool LaunchAtLogon {
+            get {
+                return ((bool)(this["LaunchAtLogon"]));
+            }
+            set {
+                this["LaunchAtLogon"] = value;
+            }
+        }
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("16")]

@@ -22,6 +22,9 @@ RyzenTuner 提供一个 GUI 界面，可以方便调节 Ryzen 移动处理器的
 
 你可以直接到 [Release](https://github.com/zqhong/RyzenTuner/releases) 下载编译好的程序使用。
 
+如果你希望 RyzenTuner 在登录 Windows 后自动启动，可在应用内勾选 `开机后自动启动`。
+程序会为当前用户创建一个计划任务，并以高权限在后台静默启动。
+
 ## FAQ
 
 ### 如何修改待机模式等其他模式的功率
@@ -52,7 +55,7 @@ RyzenTuner 提供一个 GUI 界面，可以方便调节 Ryzen 移动处理器的
 
 - [x] 多语言支持
 - [x] GitHub action
-- [ ] 开机启动
+- [x] 开机启动
 - [ ] 添加设置面板
 - [ ] 添加是否允许修改电源计划的选项，默认关闭
 - [ ] 添加应用策略，支持不同应用自定义切换不同的功率限制模式
