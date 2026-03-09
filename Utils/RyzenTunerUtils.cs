@@ -109,14 +109,21 @@ namespace RyzenTuner.Utils
         public static string GetNoticeText(float powerLimit)
         {
             var hardwareMonitor = AppContainer.HardwareMonitor();
+            var localizedMode = GetLocalizedModeName(Properties.Settings.Default.CurrentMode);
 
             var powerLimitText = Properties.Strings.TextNoticeText
                 .Replace("{power_limit}", $"{powerLimit:0}")
                 .Replace("{actual_power_limit}", $"{hardwareMonitor.CpuPackagePower:0.00}");
 
-            var noticeText = $@"{Properties.Settings.Default.CurrentMode}
+            var metricsText = Properties.Strings.TextNotifyMetrics
+                .Replace("{cpu_usage}", $"{hardwareMonitor.CpuUsage:0}")
+                .Replace("{cpu_temp}", $"{hardwareMonitor.CpuTemperature:0}")
+                .Replace("{cpu_freq}", $"{hardwareMonitor.CpuFreq:0}")
+                .Replace("{gpu_usage}", $"{hardwareMonitor.VideoCard3DUsage:0}");
+
+            var noticeText = $@"{localizedMode}
 {powerLimitText}
-CPU: {hardwareMonitor.CpuUsage:0}%、{hardwareMonitor.CpuTemperature:0}℃、{hardwareMonitor.CpuFreq:0}MHz，GPU: {hardwareMonitor.VideoCard3DUsage:0}%";
+{metricsText}";
             if (noticeText.Length >= 64)
             {
                 noticeText = noticeText.Substring(0, 63);
@@ -128,6 +135,11 @@ CPU: {hardwareMonitor.CpuUsage:0}%、{hardwareMonitor.CpuTemperature:0}℃、{ha
         public static string GetModeDetailText(string mode)
         {
             return $"{Properties.Strings.ResourceManager.GetString(mode)}-{GetPowerLimitByMode(mode)}W";
+        }
+
+        public static string GetLocalizedModeName(string mode)
+        {
+            return Properties.Strings.ResourceManager.GetString(mode) ?? mode;
         }
     }
 }

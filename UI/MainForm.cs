@@ -317,7 +317,7 @@ namespace RyzenTuner.UI
 
         private void ReportPowerLimitApplyError(string errorText)
         {
-            var message = $"Failed to apply some RyzenAdj settings: {errorText}";
+            var message = Properties.Strings.TextRyzenAdjApplyError.Replace("{errors}", errorText);
             AppContainer.Logger().Warning(message);
 
             if (_lastPowerLimitApplyError == message)
@@ -439,7 +439,10 @@ namespace RyzenTuner.UI
 
             if (showError)
             {
-                MessageBox.Show("Custom power limit must be a valid number greater than 0.");
+                MessageBox.Show(Properties.Strings.TextCustomPowerLimitInvalid,
+                    Properties.Strings.TextExceptionTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
             }
 
             return false;

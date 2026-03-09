@@ -47,11 +47,33 @@
     <data name="TextExceptionTitle" xml:space="preserve">
         <value>RyzenTuner encountered an error</value>
     </data>
+    <data name="TextCriticalError" xml:space="preserve">
+        <value>Critical Error</value>
+    </data>
+    <data name="TextFatalError" xml:space="preserve">
+        <value>Fatal Error</value>
+    </data>
     <data name="TextExceptionOnlyOneProgramIsAllowedToRun" xml:space="preserve">
         <value>Only one instance of RyzenTuner can run at a time</value>
     </data>
+    <data name="TextLibRyzenAdjMissing" xml:space="preserve">
+        <value>libryzenadj.dll was not found! This component is required.
+
+Please download it from the official repository: https://github.com/FlyGoat/RyzenAdj</value>
+    </data>
+    <data name="TextLibRyzenAdjTooOld" xml:space="preserve">
+        <value>libryzenadj.dll is too old for this version of RyzenTuner.
+
+Please update libryzenadj.dll to v0.18.0 or newer.</value>
+    </data>
+    <data name="TextUnhandledException" xml:space="preserve">
+        <value>Unhandled exception: {message}</value>
+    </data>
     <data name="TextNoticeText" xml:space="preserve">
         <value>Power: Limit {power_limit} W, Actual {actual_power_limit} W</value>
+    </data>
+    <data name="TextNotifyMetrics" xml:space="preserve">
+        <value>CPU: {cpu_usage}%, {cpu_temp} C, {cpu_freq} MHz, GPU: {gpu_usage}%</value>
     </data>
     <data name="TextExit" xml:space="preserve">
         <value>Exit</value>
@@ -61,5 +83,11 @@
     </data>
     <data name="TextLaunchAtLogon" xml:space="preserve">
         <value>Launch at logon</value>
+    </data>
+    <data name="TextRyzenAdjApplyError" xml:space="preserve">
+        <value>Failed to apply some RyzenAdj settings: {errors}</value>
+    </data>
+    <data name="TextCustomPowerLimitInvalid" xml:space="preserve">
+        <value>Custom power limit must be a valid number greater than 0.</value>
     </data>
 </root>

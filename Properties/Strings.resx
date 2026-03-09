@@ -54,11 +54,33 @@
     <data name="TextExceptionTitle" xml:space="preserve">
         <value>RyzenTuner 出现错误</value>
     </data>
+    <data name="TextCriticalError" xml:space="preserve">
+        <value>严重错误</value>
+    </data>
+    <data name="TextFatalError" xml:space="preserve">
+        <value>致命错误</value>
+    </data>
     <data name="TextExceptionOnlyOneProgramIsAllowedToRun" xml:space="preserve">
         <value>同一时间只允许运行一个 RyzenTuner 实例</value>
     </data>
+    <data name="TextLibRyzenAdjMissing" xml:space="preserve">
+        <value>未找到 libryzenadj.dll！此组件为必需项。
+
+请从官方仓库下载： https://github.com/FlyGoat/RyzenAdj</value>
+    </data>
+    <data name="TextLibRyzenAdjTooOld" xml:space="preserve">
+        <value>libryzenadj.dll 版本过旧，不适用于当前版本的 RyzenTuner。
+
+请将 libryzenadj.dll 更新到 v0.18.0 或更高版本。</value>
+    </data>
+    <data name="TextUnhandledException" xml:space="preserve">
+        <value>未处理异常：{message}</value>
+    </data>
     <data name="TextNoticeText" xml:space="preserve">
         <value>功率：限制 {power_limit} W，实际 {actual_power_limit} W</value>
+    </data>
+    <data name="TextNotifyMetrics" xml:space="preserve">
+        <value>CPU：{cpu_usage}%、{cpu_temp}℃、{cpu_freq}MHz，GPU：{gpu_usage}%</value>
     </data>
     <data name="TextExit" xml:space="preserve">
         <value>退出</value>
@@ -68,5 +90,11 @@
     </data>
     <data name="TextLaunchAtLogon" xml:space="preserve">
         <value>登录时启动</value>
+    </data>
+    <data name="TextRyzenAdjApplyError" xml:space="preserve">
+        <value>部分 RyzenAdj 设置应用失败：{errors}</value>
+    </data>
+    <data name="TextCustomPowerLimitInvalid" xml:space="preserve">
+        <value>手动功率限制必须是大于 0 的有效数字。</value>
     </data>
 </root>
