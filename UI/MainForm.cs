@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
@@ -14,6 +15,7 @@ namespace RyzenTuner.UI
         private Int64 _tickCount;
         private readonly Color _customModeInputDefaultBackColor = SystemColors.Window;
         private readonly Color _customModeInputInvalidBackColor = Color.MistyRose;
+        private string _lastPowerLimitApplyError = string.Empty;
 
         public MainForm()
         {
@@ -153,21 +155,31 @@ namespace RyzenTuner.UI
                 // 2、调整 fast limit，会同时修改 fast limit 和 stamp limit
                 // 因此，设置 fastPPT 的值跟 stamp 一样
                 // 这样子的话，前期不会有性能爆发，在后面会有一段性能爆发
-                processor.SetFastPPT(stampLimit);
-                processor.SetSlowPPT(slowPpt);
-                processor.SetStampPPT(stampLimit);
+                var applyErrors = new List<string>();
 
-                AppContainer.AmdProcessor().SetTctlTemp((uint)tctlTemp);
+                if (!processor.SetFastPPT(stampLimit)) applyErrors.Add($"SetFastPPT({stampLimit:0.##}W)");
+                if (!processor.SetSlowPPT(slowPpt)) applyErrors.Add($"SetSlowPPT({slowPpt:0.##}W)");
+                if (!processor.SetStampPPT(stampLimit)) applyErrors.Add($"SetStampPPT({stampLimit:0.##}W)");
+                if (!processor.SetTctlTemp((uint)tctlTemp)) applyErrors.Add($"SetTctlTemp({tctlTemp}C)");
 
                 // 配置系统电源计划
                 // 1、仅在【性能模式】下开启睿频
                 if (RyzenTunerUtils.IsPerformanceMode(stampLimit))
                 {
-                    AppContainer.PowerConfig().EnableCpuBoost();
+                    if (!AppContainer.PowerConfig().EnableCpuBoost()) applyErrors.Add("EnableCpuBoost()");
                 }
                 else
                 {
-                    AppContainer.PowerConfig().DisableCpuBoost();
+                    if (!AppContainer.PowerConfig().DisableCpuBoost()) applyErrors.Add("DisableCpuBoost()");
+                }
+
+                if (applyErrors.Count > 0)
+                {
+                    ReportPowerLimitApplyError(string.Join(", ", applyErrors));
+                }
+                else
+                {
+                    _lastPowerLimitApplyError = string.Empty;
                 }
             }
             catch (Exception e)
@@ -176,6 +188,22 @@ namespace RyzenTuner.UI
                 radioButton5.Checked = true;
                 ChangeEnergyMode(radioButton5, EventArgs.Empty);
             }
+        }
+
+        private void ReportPowerLimitApplyError(string errorText)
+        {
+            var message = $"Failed to apply some RyzenAdj settings: {errorText}";
+            AppContainer.Logger().Warning(message);
+
+            if (_lastPowerLimitApplyError == message)
+            {
+                return;
+            }
+
+            _lastPowerLimitApplyError = message;
+            notifyIcon1.BalloonTipTitle = "RyzenTuner";
+            notifyIcon1.BalloonTipText = message;
+            notifyIcon1.ShowBalloonTip(3000);
         }
 
         /// <summary>
