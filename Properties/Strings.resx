@@ -68,10 +68,22 @@
 
 请从官方仓库下载： https://github.com/FlyGoat/RyzenAdj</value>
     </data>
+    <data name="TextLibRyzenAdjLoadFailed" xml:space="preserve">
+        <value>加载 libryzenadj.dll 失败：{message}</value>
+    </data>
+    <data name="TextLibRyzenAdjArchitectureMismatch" xml:space="preserve">
+        <value>libryzenadj.dll 的体系结构不匹配（32/64 位错误）。</value>
+    </data>
     <data name="TextLibRyzenAdjTooOld" xml:space="preserve">
         <value>libryzenadj.dll 版本过旧，不适用于当前版本的 RyzenTuner。
 
 请将 libryzenadj.dll 更新到 v0.18.0 或更高版本。</value>
+    </data>
+    <data name="TextRyzenAdjInitFailed" xml:space="preserve">
+        <value>初始化 ryzenadj 失败</value>
+    </data>
+    <data name="TextRyzenAdjInitFailedWithMessage" xml:space="preserve">
+        <value>初始化 ryzenadj 失败：{message}</value>
     </data>
     <data name="TextUnhandledException" xml:space="preserve">
         <value>未处理异常：{message}</value>
