@@ -246,7 +246,8 @@ namespace RyzenTuner.UI
 
                 // 配置系统电源计划
                 // 1、仅在【性能模式】下开启睿频
-                if (_lastCpuBoostEnabled != shouldEnableCpuBoost)
+                // 2、仅在支持 TDP 调整的 CPU 上修改睿频，避免主功能不生效但副作用先生效
+                if (processor.CanChangeTdp && _lastCpuBoostEnabled != shouldEnableCpuBoost)
                 {
                     var boostChanged = false;
                     var boostApplied = shouldEnableCpuBoost

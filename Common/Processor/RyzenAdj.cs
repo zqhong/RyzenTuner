@@ -1,11 +1,12 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 namespace RyzenTuner.Common.Processor
 {
-    // 参考：https://github.com/FlyGoat/RyzenAdj/blob/master/lib/ryzenadj.h#L15-L26
+    // 参考：https://github.com/FlyGoat/RyzenAdj/blob/master/lib/ryzenadj.h
     public enum RyzenFamily
     {
+        WaitForLoad = -2,
         FamUnknown = -1,
         FamRaven = 0,
         FamPicasso,
@@ -15,10 +16,18 @@ namespace RyzenTuner.Common.Processor
         FamLucienne,
         FamVangogh,
         FamRembrandt,
+        FamMendocino,
+        FamPhoenix,
+        FamHawkPoint,
+        FamDragonRange,
+        FamKrackanPoint,
+        FamStrixPoint,
+        FamStrixHalo,
+        FamFireRange,
         FamEnd
     }
 
-    // 错误码，参考：https://github.com/FlyGoat/RyzenAdj/blob/master/lib/ryzenadj.h#L52-L56
+    // 错误码，参考：https://github.com/FlyGoat/RyzenAdj/blob/master/lib/ryzenadj.h
     public enum ErrCode
     {
         AdjErrNone = 0,
@@ -40,12 +49,36 @@ namespace RyzenTuner.Common.Processor
      * WinRing0x64.dll
      * WinRing0x64.sys
      *
-     * 当前 ryzenadj 版本：v0.17.0
+     * 当前 ryzenadj 版本：v0.18.0
      */
     public class RyzenAdj
     {
         [DllImport("libryzenadj.dll")]
         public static extern IntPtr init_ryzenadj();
+
+        [DllImport("libryzenadj.dll")]
+        public static extern void cleanup_ryzenadj(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern RyzenFamily get_cpu_family(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int get_bios_if_ver(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int init_table(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern uint get_table_ver(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern UIntPtr get_table_size(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern IntPtr get_table_values(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int refresh_table(IntPtr ry);
 
         [DllImport("libryzenadj.dll")]
         public static extern int set_stapm_limit(IntPtr ry, [In] uint value);
@@ -72,7 +105,16 @@ namespace RyzenTuner.Common.Processor
         public static extern int set_vrmsoc_current(IntPtr ry, [In] uint value);
 
         [DllImport("libryzenadj.dll")]
+        public static extern int set_vrmgfx_current(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int set_vrmcvip_current(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
         public static extern int set_vrmmax_current(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int set_vrmgfxmax_current(IntPtr ry, [In] uint value);
 
         [DllImport("libryzenadj.dll")]
         public static extern int set_vrmsocmax_current(IntPtr ry, [In] uint value);
@@ -81,7 +123,13 @@ namespace RyzenTuner.Common.Processor
         public static extern int set_psi0_current(IntPtr ry, [In] uint value);
 
         [DllImport("libryzenadj.dll")]
+        public static extern int set_psi3cpu_current(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
         public static extern int set_psi0soc_current(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int set_psi3gfx_current(IntPtr ry, [In] uint value);
 
         [DllImport("libryzenadj.dll")]
         public static extern int set_max_gfxclk_freq(IntPtr ry, [In] uint value);
@@ -114,24 +162,6 @@ namespace RyzenTuner.Common.Processor
         public static extern int set_min_lclk(IntPtr ry, [In] uint value);
 
         [DllImport("libryzenadj.dll")]
-        public static extern int set_gfx_clk(IntPtr ry, [In] uint value);
-
-        [DllImport("libryzenadj.dll")]
-        public static extern int set_oc_clk(IntPtr ry, [In] uint value);
-
-        [DllImport("libryzenadj.dll")]
-        public static extern int set_per_core_oc_clk(IntPtr ry, [In] uint value);
-
-        [DllImport("libryzenadj.dll")]
-        public static extern int set_oc_volt(IntPtr ry, [In] uint value);
-
-        [DllImport("libryzenadj.dll")]
-        public static extern int disable_oc(IntPtr ry);
-
-        [DllImport("libryzenadj.dll")]
-        public static extern int enable_oc(IntPtr ry);
-
-        [DllImport("libryzenadj.dll")]
         public static extern int set_prochot_deassertion_ramp(IntPtr ry, [In] uint value);
 
         [DllImport("libryzenadj.dll")]
@@ -144,25 +174,46 @@ namespace RyzenTuner.Common.Processor
         public static extern int set_apu_slow_limit(IntPtr ry, [In] uint value);
 
         [DllImport("libryzenadj.dll")]
+        public static extern int set_skin_temp_power_limit(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int set_gfx_clk(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int set_oc_clk(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int set_per_core_oc_clk(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int set_oc_volt(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int set_disable_oc(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int set_enable_oc(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
         public static extern int set_power_saving(IntPtr ry);
 
         [DllImport("libryzenadj.dll")]
         public static extern int set_max_performance(IntPtr ry);
 
         [DllImport("libryzenadj.dll")]
-        public static extern int refresh_table(IntPtr ry);
+        public static extern int set_coall(IntPtr ry, [In] uint value);
 
         [DllImport("libryzenadj.dll")]
-        public static extern IntPtr get_table_values(IntPtr ry);
+        public static extern int set_coper(IntPtr ry, [In] uint value);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern int set_cogfx(IntPtr ry, [In] uint value);
 
         [DllImport("libryzenadj.dll")]
         public static extern float get_stapm_limit(IntPtr ry);
 
         [DllImport("libryzenadj.dll")]
         public static extern float get_stapm_value(IntPtr ry);
-
-        [DllImport("libryzenadj.dll")]
-        public static extern float get_stapm_time(IntPtr ry);
 
         [DllImport("libryzenadj.dll")]
         public static extern float get_fast_limit(IntPtr ry);
@@ -225,16 +276,37 @@ namespace RyzenTuner.Common.Processor
         public static extern float get_dgpu_skin_temp_value(IntPtr ry);
 
         [DllImport("libryzenadj.dll")]
+        public static extern float get_psi0_current(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern float get_psi0soc_current(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern float get_stapm_time(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern float get_slow_time(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern float get_cclk_setpoint(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern float get_cclk_busy_value(IntPtr ry);
+
+        [DllImport("libryzenadj.dll")]
         public static extern float get_core_clk(IntPtr ry, uint value);
 
         [DllImport("libryzenadj.dll")]
-        public static extern float get_core_temp(IntPtr ry, uint value);
+        public static extern float get_core_volt(IntPtr ry, uint value);
 
         [DllImport("libryzenadj.dll")]
         public static extern float get_core_power(IntPtr ry, uint value);
 
         [DllImport("libryzenadj.dll")]
-        public static extern float get_core_volt(IntPtr ry, uint value);
+        public static extern float get_core_temp(IntPtr ry, uint value);
+
+        [DllImport("libryzenadj.dll")]
+        public static extern float get_l3_clk(IntPtr ry);
 
         [DllImport("libryzenadj.dll")]
         public static extern float get_l3_logic(IntPtr ry);
@@ -244,9 +316,6 @@ namespace RyzenTuner.Common.Processor
 
         [DllImport("libryzenadj.dll")]
         public static extern float get_l3_temp(IntPtr ry);
-
-        [DllImport("libryzenadj.dll")]
-        public static extern float get_l3_clk(IntPtr ry);
 
         [DllImport("libryzenadj.dll")]
         public static extern float get_gfx_clk(IntPtr ry);
@@ -271,8 +340,5 @@ namespace RyzenTuner.Common.Processor
 
         [DllImport("libryzenadj.dll")]
         public static extern float get_socket_power(IntPtr ry);
-
-        [DllImport("libryzenadj.dll")]
-        public static extern RyzenFamily get_cpu_family(IntPtr ry);
     }
 }
