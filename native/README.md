@@ -1,20 +1,20 @@
-Place the required native RyzenAdj runtime files in this directory.
+请将 RyzenAdj 所需的原生运行时文件放到这个目录。
 
-Expected files:
+需要包含的文件：
 - libryzenadj.dll
 - inpoutx64.dll
 - WinRing0x64.dll
 - WinRing0x64.sys
 
-Source used in this repository:
+本仓库当前使用的来源：
 - https://github.com/FlyGoat/RyzenAdj/actions/runs/21075792534
-- Build time: 2025/1/17
+- 编译时间：2026/1/27
 
-Why this build is used:
-- The official releases currently only provide v0.17.0.
-- This project requires a newer libryzenadj build than the public release provides, so it uses the artifact from the workflow run above.
+使用这个构建产物的原因：
+- 官方 release 目前只有 v0.17.0。
+- 本项目需要比公开 release 更新的 libryzenadj，因此改用上述 GitHub Actions 产物。
 
-MSBuild copies any `.dll` and `.sys` files under `native/` to the build output directory.
-Typical output folders:
+MSBuild 会把 `native/` 目录下的 `.dll` 和 `.sys` 自动复制到编译输出目录。
+常见输出目录：
 - bin/Debug/
 - bin/Release/
