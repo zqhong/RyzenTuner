@@ -52,20 +52,18 @@ namespace RyzenTuner
                 if (HasException<DllNotFoundException>(ex) ||
                     ex.Message.Contains("libryzenadj.dll"))
                 {
-                    ShowErrorAndExit("Critical Error", 
-                        "libryzenadj.dll not found! This component is required.\n\n" +
-                        "Please download it from the official repository: " +
-                        "https://github.com/FlyGoat/RyzenAdj");
+                    ShowErrorAndExit(Properties.Strings.TextCriticalError,
+                        Properties.Strings.TextLibRyzenAdjMissing);
                 }
                 else if (HasException<EntryPointNotFoundException>(ex))
                 {
-                    ShowErrorAndExit("Critical Error",
-                        "libryzenadj.dll is too old for this version of RyzenTuner.\n\n" +
-                        "Please update libryzenadj.dll to v0.18.0 or newer.");
+                    ShowErrorAndExit(Properties.Strings.TextCriticalError,
+                        Properties.Strings.TextLibRyzenAdjTooOld);
                 }
                 else
                 {
-                    ShowErrorAndExit("Fatal Error", $"Unhandled exception: {ex.Message}");
+                    ShowErrorAndExit(Properties.Strings.TextFatalError,
+                        Properties.Strings.TextUnhandledException.Replace("{message}", ex.Message));
                 }
             }
         }

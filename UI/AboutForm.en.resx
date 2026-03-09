@@ -11,4 +11,17 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
+    <data name="richTextBox1.Text" xml:space="preserve">
+        <value>RyzenTuner {version}
+© 2022-{copyright_year} By zqhong
+
+This project uses the following third-party libraries:
+FlyGoat/RyzenAdj
+EnergyStar
+LibreHardwareMonitor
+dahall/Vanara
+
+Project URL:
+https://github.com/zqhong/RyzenTuner</value>
+    </data>
 </root>

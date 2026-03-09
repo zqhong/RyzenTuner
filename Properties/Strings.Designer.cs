@@ -60,7 +60,7 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 自动模式.
+        ///   Looks up a localized string similar to 自动.
         /// </summary>
         internal static string AutoMode {
             get {
@@ -69,7 +69,7 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 平衡模式.
+        ///   Looks up a localized string similar to 平衡.
         /// </summary>
         internal static string BalancedMode {
             get {
@@ -78,7 +78,7 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 手动模式.
+        ///   Looks up a localized string similar to 手动.
         /// </summary>
         internal static string CustomMode {
             get {
@@ -87,7 +87,7 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 性能模式.
+        ///   Looks up a localized string similar to 性能.
         /// </summary>
         internal static string PerformanceMode {
             get {
@@ -96,7 +96,7 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 省电模式.
+        ///   Looks up a localized string similar to 省电.
         /// </summary>
         internal static string PowerSaveMode {
             get {
@@ -105,7 +105,7 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 待机模式.
+        ///   Looks up a localized string similar to 睡眠.
         /// </summary>
         internal static string SleepMode {
             get {
@@ -121,9 +121,27 @@ namespace RyzenTuner.Properties {
                 return ResourceManager.GetString("TextAbout", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 严重错误.
+        /// </summary>
+        internal static string TextCriticalError {
+            get {
+                return ResourceManager.GetString("TextCriticalError", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 手动功率限制必须是大于 0 的有效数字。.
+        /// </summary>
+        internal static string TextCustomPowerLimitInvalid {
+            get {
+                return ResourceManager.GetString("TextCustomPowerLimitInvalid", resourceCulture);
+            }
+        }
         
         /// <summary>
-        ///   Looks up a localized string similar to 开启 EnergyStar.
+        ///   Looks up a localized string similar to 启用 Energy Star.
         /// </summary>
         internal static string TextEnableEnergyStar {
             get {
@@ -132,11 +150,20 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 同一时间内，只允许运行一个 RyzenTuner 程序.
+        ///   Looks up a localized string similar to 同一时间只允许运行一个 RyzenTuner 实例.
         /// </summary>
         internal static string TextExceptionOnlyOneProgramIsAllowedToRun {
             get {
                 return ResourceManager.GetString("TextExceptionOnlyOneProgramIsAllowedToRun", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 致命错误.
+        /// </summary>
+        internal static string TextFatalError {
+            get {
+                return ResourceManager.GetString("TextFatalError", resourceCulture);
             }
         }
         
@@ -168,7 +195,29 @@ namespace RyzenTuner.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 开机后自动启动.
+        ///   Looks up a localized string similar to 未找到 libryzenadj.dll！此组件为必需项。
+
+请从官方仓库下载： https://github.com/FlyGoat/RyzenAdj.
+        /// </summary>
+        internal static string TextLibRyzenAdjMissing {
+            get {
+                return ResourceManager.GetString("TextLibRyzenAdjMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to libryzenadj.dll 版本过旧，不适用于当前版本的 RyzenTuner。
+
+请将 libryzenadj.dll 更新到 v0.18.0 或更高版本。.
+        /// </summary>
+        internal static string TextLibRyzenAdjTooOld {
+            get {
+                return ResourceManager.GetString("TextLibRyzenAdjTooOld", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 登录时启动.
         /// </summary>
         internal static string TextLaunchAtLogon {
             get {
@@ -177,11 +226,20 @@ namespace RyzenTuner.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to 功率：限制{power_limit}W、实际{actual_power_limit}W.
+        ///   Looks up a localized string similar to 功率：限制 {power_limit} W，实际 {actual_power_limit} W.
         /// </summary>
         internal static string TextNoticeText {
             get {
                 return ResourceManager.GetString("TextNoticeText", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CPU：{cpu_usage}%、{cpu_temp}℃、{cpu_freq}MHz，GPU：{gpu_usage}%.
+        /// </summary>
+        internal static string TextNotifyMetrics {
+            get {
+                return ResourceManager.GetString("TextNotifyMetrics", resourceCulture);
             }
         }
         
@@ -202,6 +260,15 @@ namespace RyzenTuner.Properties {
                 return ResourceManager.GetString("TextPowerLimit", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 部分 RyzenAdj 设置应用失败：{errors}.
+        /// </summary>
+        internal static string TextRyzenAdjApplyError {
+            get {
+                return ResourceManager.GetString("TextRyzenAdjApplyError", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to 保持唤醒.
@@ -209,6 +276,15 @@ namespace RyzenTuner.Properties {
         internal static string TextStayAwake {
             get {
                 return ResourceManager.GetString("TextStayAwake", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 未处理异常：{message}.
+        /// </summary>
+        internal static string TextUnhandledException {
+            get {
+                return ResourceManager.GetString("TextUnhandledException", resourceCulture);
             }
         }
     }
