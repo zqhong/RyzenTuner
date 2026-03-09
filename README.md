@@ -2,41 +2,38 @@
 
 English | [简体中文](README-CN.md)
 
-RyzenTuner provides a GUI interface to easily adjust the power limit of Ryzen mobile processors, and also supports adjusting the QoS level and priority of Windows processes, thereby improving battery life and reducing fan noise.
+RyzenTuner provides a GUI for adjusting the power limits of Ryzen mobile processors. It also lets you tune the QoS level and priority of Windows processes to improve battery life and reduce fan noise.
 
 ![preview-en.jpg](https://s2.loli.net/2022/08/26/Pr1qiykJUOIEspD.jpg)
 
-## Feature
+## Features
 
 ### Automatic Mode
 
-Different working modes (standby/balance/performance) are automatically selected according to different conditions such as plug-in/battery/night/active time.
+RyzenTuner automatically switches between different modes (Standby / Balanced / Performance) based on conditions such as AC power, battery, nighttime, and user activity.
 
-Description of working mode:
+Mode descriptions:
 
-* Standby mode: in the lowest energy consumption state, can only deal with ultra-low load work
-* Balanced Mode: The state with the highest energy consumption ratio, to deal with sudden tasks, such as opening web
-  pages, Photoshop
-* Performance Mode: for scenarios that require high performance, such as compiling software, playing large games,
-  rendering, etc.
+* Standby Mode: Uses the lowest power consumption and is suitable only for very light workloads.
+* Balanced Mode: Offers the best balance between performance and power efficiency, and handles short bursts of work such as opening web pages or using Photoshop.
+* Performance Mode: Designed for demanding tasks such as compiling software, gaming, or rendering.
 
 ## Usage
 
-You can directly go to [Release](https://github.com/zqhong/RyzenTuner/releases) to download the compiled program and use
-it.
+You can download the prebuilt application from [Releases](https://github.com/zqhong/RyzenTuner/releases).
 
-If you want RyzenTuner to start automatically after you sign in to Windows, enable `Launch at logon` in the app.
+If you want RyzenTuner to start automatically when you sign in to Windows, enable `Launch at logon` in the app.
 RyzenTuner will create a per-user scheduled task and start itself with elevated privileges in the background.
 
 ## FAQ
 
-### How to modify the power of other modes such as standby mode
+### How do I change the power limit for other modes, such as Standby Mode?
 
-Close `RyzenTuner`. Open the `RyzenTuner.exe.config` file and modify the corresponding parameters. For example, `SleepMode` is the sleep mode, modify the value in it.
+Close `RyzenTuner`, then open `RyzenTuner.exe.config` and edit the corresponding setting. For example, `SleepMode` controls Standby Mode, so you can change its value directly.
 
-Example: Change sleep mode from 1 W to 2 W
+Example: change Standby Mode from 1 W to 2 W
 
-Before update
+Before
 
 ```xml
 
@@ -45,7 +42,7 @@ Before update
 </setting>
 ```
 
-After update
+After
 
 ```xml
 
@@ -54,20 +51,20 @@ After update
 </setting>
 ```
 
-## Give a Star! ⭐
+## Give It a Star! ⭐
 
-If you like or are using this project, please give it a star. Thanks!
+If you like this project or use it in your daily workflow, please consider giving it a star. Thanks!
 
 [![Star History Chart](https://api.star-history.com/svg?repos=zqhong/RyzenTuner&type=Date)](#RyzenTuner)
 
 
-## Dependent project
+## Related Projects
 
-* [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner): Developed based on this project
-* [FlyGoat/RyzenAdj](https://github.com/FlyGoat/RyzenAdj): Ryzen mobile processor power management tool
-* [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar): Windows process scheduling, may have the effect of increasing battery life (not tested)
-* [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor): Get hardware information
-* [dahall/Vanara](https://github.com/dahall/Vanara): A set of .NET libraries that wraps many PInvoke calls to Windows native APIs
+* [Archeb/RyzenTuner](https://github.com/Archeb/RyzenTuner): A project built on top of this one
+* [FlyGoat/RyzenAdj](https://github.com/FlyGoat/RyzenAdj): A power management tool for Ryzen mobile processors
+* [imbushuo/EnergyStar](https://github.com/imbushuo/EnergyStar): A Windows process scheduling tool that may help improve battery life (not tested)
+* [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor): Provides hardware monitoring information
+* [dahall/Vanara](https://github.com/dahall/Vanara): A collection of .NET libraries that wrap many P/Invoke calls to native Windows APIs
 
 Thanks to the projects and authors listed above.
 
