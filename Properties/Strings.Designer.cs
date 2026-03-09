@@ -148,6 +148,15 @@ namespace RyzenTuner.Properties {
                 return ResourceManager.GetString("TextEnableEnergyStar", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 启用睿频.
+        /// </summary>
+        internal static string TextEnableCpuBoost {
+            get {
+                return ResourceManager.GetString("TextEnableCpuBoost", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to 同一时间只允许运行一个 RyzenTuner 实例.

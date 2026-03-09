@@ -41,6 +41,9 @@
     <data name="TextEnableEnergyStar" xml:space="preserve">
         <value>Enable Energy Star</value>
     </data>
+    <data name="TextEnableCpuBoost" xml:space="preserve">
+        <value>Enable CPU Boost</value>
+    </data>
     <data name="TextAbout" xml:space="preserve">
         <value>About</value>
     </data>

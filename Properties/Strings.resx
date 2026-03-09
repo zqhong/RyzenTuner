@@ -48,6 +48,9 @@
     <data name="TextEnableEnergyStar" xml:space="preserve">
         <value>启用 Energy Star</value>
     </data>
+    <data name="TextEnableCpuBoost" xml:space="preserve">
+        <value>启用睿频</value>
+    </data>
     <data name="TextAbout" xml:space="preserve">
         <value>关于</value>
     </data>

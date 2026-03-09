@@ -69,14 +69,6 @@ namespace RyzenTuner.Utils
             return Math.Abs(powerLimit - GetPowerLimitByMode("BalancedMode")) < 0.01;
         }
 
-        /**
-         * 检查当前是否处于【性能模式】
-         */
-        public static bool IsPerformanceMode(float powerLimit)
-        {
-            return Math.Abs(powerLimit - GetPowerLimitByMode("PerformanceMode")) < 0.01;
-        }
-
         public static float GetPowerLimitByMode(string mode)
         {
             if (TryGetPowerLimitByMode(mode, out var powerLimit))

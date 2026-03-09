@@ -74,6 +74,7 @@ namespace RyzenTuner.UI
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.launchAtLogonCheckBox = new System.Windows.Forms.CheckBox();
+            this.cpuBoostCheckBox = new System.Windows.Forms.CheckBox();
             this.keepAwakeCheckBox = new System.Windows.Forms.CheckBox();
             this.checkBoxEnergyStar = new System.Windows.Forms.CheckBox();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
@@ -182,6 +183,7 @@ namespace RyzenTuner.UI
 
             // 其他选项
             this.groupBox3.Controls.Add(this.launchAtLogonCheckBox);
+            this.groupBox3.Controls.Add(this.cpuBoostCheckBox);
             this.groupBox3.Controls.Add(this.keepAwakeCheckBox);
             this.groupBox3.Controls.Add(this.checkBoxEnergyStar);
             this.groupBox3.Location = new System.Drawing.Point(29, 180);
@@ -202,6 +204,18 @@ namespace RyzenTuner.UI
             this.launchAtLogonCheckBox.Text = Properties.Strings.TextLaunchAtLogon;
             this.launchAtLogonCheckBox.UseVisualStyleBackColor = true;
             this.launchAtLogonCheckBox.CheckedChanged += new System.EventHandler(this.launchAtLogonCheckBox_CheckedChanged);
+
+            // 
+            // cpuBoostCheckBox
+            // 
+            this.cpuBoostCheckBox.AutoSize = true;
+            this.cpuBoostCheckBox.Location = new System.Drawing.Point(261, 72);
+            this.cpuBoostCheckBox.Name = "cpuBoostCheckBox";
+            this.cpuBoostCheckBox.Size = new System.Drawing.Size(138, 28);
+            this.cpuBoostCheckBox.TabIndex = 3;
+            this.cpuBoostCheckBox.Text = Properties.Strings.TextEnableCpuBoost;
+            this.cpuBoostCheckBox.UseVisualStyleBackColor = true;
+            this.cpuBoostCheckBox.CheckedChanged += new System.EventHandler(this.cpuBoostCheckBox_CheckedChanged);
             
             // 
             // 保持唤醒选项框
@@ -362,6 +376,7 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.CheckBox checkBoxEnergyStar;
         private System.Windows.Forms.CheckBox launchAtLogonCheckBox;
+        private System.Windows.Forms.CheckBox cpuBoostCheckBox;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem AutoModeToolStripMenuItem;

@@ -60,6 +60,18 @@ namespace RyzenTuner.Properties {
 
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool CpuBoostEnabled {
+            get {
+                return ((bool)(this["CpuBoostEnabled"]));
+            }
+            set {
+                this["CpuBoostEnabled"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("16")]
         public string CustomMode {
             get {
