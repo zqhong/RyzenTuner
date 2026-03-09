@@ -14,7 +14,19 @@ namespace RyzenTuner.Utils
         public static bool IsSystemLocked()
         {
             // logonui，即 Windows Logon User Interface Host，翻译为【登录用户界面】
-            return Process.GetProcessesByName("logonui").Length > 0;
+            var processes = Process.GetProcessesByName("logonui");
+
+            try
+            {
+                return processes.Length > 0;
+            }
+            finally
+            {
+                foreach (var process in processes)
+                {
+                    process.Dispose();
+                }
+            }
         }
 
         /**

@@ -25,9 +25,20 @@ namespace RyzenTuner
 
                 AutoSelectLang();
 
-                if (Process.GetProcessesByName("RyzenTuner").Length > 1)
+                var runningProcesses = Process.GetProcessesByName("RyzenTuner");
+                try
                 {
-                    throw new Exception(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
+                    if (runningProcesses.Length > 1)
+                    {
+                        throw new Exception(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
+                    }
+                }
+                finally
+                {
+                    foreach (var process in runningProcesses)
+                    {
+                        process.Dispose();
+                    }
                 }
 
                 Application.EnableVisualStyles();
