@@ -259,6 +259,8 @@ namespace RyzenTuner.Common.EnergyStar
         /// </summary>
         public void HandleForeground()
         {
+            IntPtr processHandle = IntPtr.Zero;
+
             try
             {
                 var hwnd = Win32Api.GetForegroundWindow();
@@ -267,7 +269,7 @@ namespace RyzenTuner.Common.EnergyStar
                 var windowThreadId = Win32Api.GetWindowThreadProcessId(hwnd, out var processId);
                 if (windowThreadId == 0 || processId == 0) return;
 
-                var processHandle = NativeOpenProcess((int)processId);
+                processHandle = NativeOpenProcess((int)processId);
                 if (processHandle == IntPtr.Zero) return;
 
                 var appName = GetProcessNameFromHandle(processHandle);
@@ -283,12 +285,25 @@ namespace RyzenTuner.Common.EnergyStar
                         var innerProcHandle = NativeOpenProcess((int)innerProcId);
                         if (innerProcHandle == IntPtr.Zero) return true;
 
-                        // Found. Set flag, reinitialize handles and call it a day
-                        found = true;
-                        Win32Api.CloseHandle(processHandle);
-                        processHandle = innerProcHandle;
-                        processId = innerProcId;
-                        appName = GetProcessNameFromHandle(processHandle);
+                        try
+                        {
+                            var innerAppName = GetProcessNameFromHandle(innerProcHandle);
+
+                            // Found. Set flag, reinitialize handles and call it a day
+                            found = true;
+                            Win32Api.CloseHandle(processHandle);
+                            processHandle = innerProcHandle;
+                            processId = innerProcId;
+                            appName = innerAppName;
+                            innerProcHandle = IntPtr.Zero;
+                        }
+                        finally
+                        {
+                            if (innerProcHandle != IntPtr.Zero)
+                            {
+                                Win32Api.CloseHandle(innerProcHandle);
+                            }
+                        }
 
                         return true;
                     }, IntPtr.Zero);
@@ -296,12 +311,17 @@ namespace RyzenTuner.Common.EnergyStar
 
 
                 ToggleEfficiencyMode(processHandle, false);
-
-                Win32Api.CloseHandle(processHandle);
             }
             catch (Exception e)
             {
                 AppContainer.Logger().LogException(e);
+            }
+            finally
+            {
+                if (processHandle != IntPtr.Zero)
+                {
+                    Win32Api.CloseHandle(processHandle);
+                }
             }
         }
 
