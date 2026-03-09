@@ -46,9 +46,11 @@ namespace RyzenTuner.Common.Processor
                     case RyzenFamily.FamCezanne:
                     case RyzenFamily.FamVangogh:
                     case RyzenFamily.FamRembrandt:
+                    case RyzenFamily.FamMendocino:
                     case RyzenFamily.FamPhoenix:
                     case RyzenFamily.FamHawkPoint:
                     case RyzenFamily.FamDragonRange:
+                    case RyzenFamily.FamKrackanPoint:
                     case RyzenFamily.FamStrixPoint:
                     case RyzenFamily.FamStrixHalo:
                     case RyzenFamily.FamFireRange:
