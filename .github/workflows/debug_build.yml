@@ -44,19 +44,21 @@ jobs:
       - name: Build
         run: msbuild $env:Solution_Name
 
-      - name: Install packages
+      - name: Verify native dependencies
+        shell: pwsh
         run: |
-          choco install wget --no-progress
-          choco install unzip --no-progress
+          $requiredFiles = @(
+            "bin/Debug/libryzenadj.dll",
+            "bin/Debug/inpoutx64.dll",
+            "bin/Debug/WinRing0x64.dll",
+            "bin/Debug/WinRing0x64.sys"
+          )
 
-      - name: Add dependencies
-        run: |
-          wget -O libryzenadj-win64.zip https://github.com/FlyGoat/RyzenAdj/releases/download/v0.12.0/libryzenadj-win64.zip
-          unzip libryzenadj-win64.zip
-          cp build/libryzenadj.dll ./bin/Debug
-          cp win32/inpoutx64.dll ./bin/Debug
-          cp win32/WinRing0x64.dll ./bin/Debug
-          cp win32/WinRing0x64.sys ./bin/Debug
+          foreach ($file in $requiredFiles) {
+            if (-not (Test-Path $file)) {
+              throw "Missing required native dependency: $file"
+            }
+          }
 
       - name: Generate artifact name
         id: generate-name
