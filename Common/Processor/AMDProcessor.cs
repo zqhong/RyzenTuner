@@ -28,6 +28,8 @@ namespace RyzenTuner.Common.Processor
                     throw new Exception("init ryzenadj failed");
                 }
 
+                _ = RyzenAdj.get_table_ver(_ry);
+
                 var family = RyzenAdj.get_cpu_family(_ry);
 
                 switch (family)
@@ -66,6 +68,10 @@ namespace RyzenTuner.Common.Processor
             catch (BadImageFormatException ex)
             {
                 throw new Exception($"libryzenadj.dll architecture mismatch (32/64-bit?)", ex);
+            }
+            catch (EntryPointNotFoundException ex)
+            {
+                throw new Exception("libryzenadj.dll version is too old. Please update it to v0.18.0 or newer.", ex);
             }
             catch (Exception ex) 
             {
