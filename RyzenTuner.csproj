@@ -182,6 +182,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\phoenix-96.ico" />
+    <Content Include="native\**\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="native\**\*.sys">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
