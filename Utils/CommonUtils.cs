@@ -38,7 +38,7 @@ namespace RyzenTuner.Utils
          */
         public static bool IsNight(DateTime now)
         {
-            TimeSpan nightShiftStart = new TimeSpan(23, 59, 0); // 23:59pm 
+            TimeSpan nightShiftStart = new TimeSpan(23, 0, 0); // 23:00pm 
             TimeSpan nightShiftEnd = new TimeSpan(7, 0, 0); // 7:00am
 
             if (now.TimeOfDay > nightShiftStart || now.TimeOfDay < nightShiftEnd)
