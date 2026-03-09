@@ -1,4 +1,6 @@
-﻿using System;
+using System;
+using System.Drawing;
+using System.Globalization;
 using System.Windows.Forms;
 using RyzenTuner.Common;
 using RyzenTuner.Common.Container;
@@ -10,6 +12,8 @@ namespace RyzenTuner.UI
     public partial class MainForm : Form
     {
         private Int64 _tickCount;
+        private readonly Color _customModeInputDefaultBackColor = SystemColors.Window;
+        private readonly Color _customModeInputInvalidBackColor = Color.MistyRose;
 
         public MainForm()
         {
@@ -21,6 +25,7 @@ namespace RyzenTuner.UI
             checkBoxEnergyStar.Checked = Properties.Settings.Default.EnergyStar;
             keepAwakeCheckBox.Checked = Properties.Settings.Default.KeepAwake;
             textBox1.Text = Properties.Settings.Default.CustomMode;
+            UpdateCustomModeInputState(false);
             SyncEnergyModeSelection();
 
             // 设置系统唤醒状态
@@ -104,6 +109,13 @@ namespace RyzenTuner.UI
             if (((RadioButton)sender).Checked)
             {
                 var checkedMode = ((RadioButton)sender).Tag.ToString();
+
+                if (checkedMode == "CustomMode" && !UpdateCustomModeInputState(true))
+                {
+                    SyncEnergyModeSelection();
+                    return;
+                }
+
                 Settings.Default.CurrentMode = checkedMode;
                 Settings.Default.Save();
                 SyncEnergyModeSelection();
@@ -231,9 +243,49 @@ namespace RyzenTuner.UI
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            if (radioButton6.Checked) radioButton5.Checked = true;
-            Properties.Settings.Default.CustomMode = textBox1.Text;
-            Properties.Settings.Default.Save();
+            UpdateCustomModeInputState(false);
+        }
+
+        private bool UpdateCustomModeInputState(bool showError)
+        {
+            if (TryGetValidatedCustomMode(textBox1.Text, out var customMode))
+            {
+                textBox1.BackColor = _customModeInputDefaultBackColor;
+
+                var normalizedValue = customMode.ToString(CultureInfo.InvariantCulture);
+                if (Properties.Settings.Default.CustomMode != normalizedValue)
+                {
+                    Properties.Settings.Default.CustomMode = normalizedValue;
+                    Properties.Settings.Default.Save();
+                }
+
+                return true;
+            }
+
+            textBox1.BackColor = _customModeInputInvalidBackColor;
+
+            if (showError)
+            {
+                MessageBox.Show("Custom power limit must be a valid number greater than 0.");
+            }
+
+            return false;
+        }
+
+        private static bool TryGetValidatedCustomMode(string text, out float customMode)
+        {
+            customMode = 0;
+            var value = text.Trim();
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            var isValid = float.TryParse(value, NumberStyles.Float, CultureInfo.CurrentCulture, out customMode) ||
+                          float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out customMode);
+
+            return isValid && customMode > 0;
         }
 
         private void ToolStripMenuItems_Clicked(object sender, EventArgs e)
