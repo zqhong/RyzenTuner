@@ -157,7 +157,25 @@ namespace RyzenTuner.Properties {
                 return ResourceManager.GetString("TextExit", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to 更新开机自启动设置失败。.
+        /// </summary>
+        internal static string TextFailedToUpdateLaunchAtLogon {
+            get {
+                return ResourceManager.GetString("TextFailedToUpdateLaunchAtLogon", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 开机后自动启动.
+        /// </summary>
+        internal static string TextLaunchAtLogon {
+            get {
+                return ResourceManager.GetString("TextLaunchAtLogon", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to 功率：限制{power_limit}W、实际{actual_power_limit}W.
         /// </summary>

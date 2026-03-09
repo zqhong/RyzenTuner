@@ -63,4 +63,10 @@
     <data name="TextExit" xml:space="preserve">
         <value>退出</value>
     </data>
+    <data name="TextFailedToUpdateLaunchAtLogon" xml:space="preserve">
+        <value>更新开机自启动设置失败。</value>
+    </data>
+    <data name="TextLaunchAtLogon" xml:space="preserve">
+        <value>开机后自动启动</value>
+    </data>
 </root>

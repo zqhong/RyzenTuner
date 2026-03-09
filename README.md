@@ -25,6 +25,9 @@ Description of working mode:
 You can directly go to [Release](https://github.com/zqhong/RyzenTuner/releases) to download the compiled program and use
 it.
 
+If you want RyzenTuner to start automatically after you sign in to Windows, enable `Launch at logon` in the app.
+RyzenTuner will create a per-user scheduled task and start itself with elevated privileges in the background.
+
 ## FAQ
 
 ### How to modify the power of other modes such as standby mode

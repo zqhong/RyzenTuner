@@ -21,6 +21,7 @@ namespace RyzenTuner.UI
         private float? _lastAppliedStampLimit;
         private int? _lastAppliedTctlTemp;
         private bool? _lastCpuBoostEnabled;
+        private bool _isInitializingOptions;
 
         public MainForm()
         {
@@ -29,11 +30,14 @@ namespace RyzenTuner.UI
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            _isInitializingOptions = true;
             checkBoxEnergyStar.Checked = Properties.Settings.Default.EnergyStar;
             keepAwakeCheckBox.Checked = Properties.Settings.Default.KeepAwake;
+            SyncLaunchAtLogonSetting();
             textBox1.Text = Properties.Settings.Default.CustomMode;
             UpdateCustomModeInputState(false);
             SyncEnergyModeSelection();
+            _isInitializingOptions = false;
 
             // 设置系统唤醒状态
             keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
@@ -58,6 +62,11 @@ namespace RyzenTuner.UI
 
         private void keepAwakeCheckBox_CheckedChanged(object? sender, EventArgs e)
         {
+            if (_isInitializingOptions)
+            {
+                return;
+            }
+
             Properties.Settings.Default.KeepAwake = keepAwakeCheckBox.Checked;
             Properties.Settings.Default.Save();
 
@@ -68,6 +77,36 @@ namespace RyzenTuner.UI
             else
             {
                 Awake.AllowSysSleep();
+            }
+        }
+
+        private void launchAtLogonCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (_isInitializingOptions)
+            {
+                return;
+            }
+
+            var isEnabled = launchAtLogonCheckBox.Checked;
+
+            try
+            {
+                StartupTaskScheduler.SetEnabled(isEnabled);
+                Properties.Settings.Default.LaunchAtLogon = isEnabled;
+                Properties.Settings.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                _isInitializingOptions = true;
+                launchAtLogonCheckBox.Checked = !isEnabled;
+                _isInitializingOptions = false;
+
+                Properties.Settings.Default.LaunchAtLogon = !isEnabled;
+                Properties.Settings.Default.Save();
+                MessageBox.Show($"{Properties.Strings.TextFailedToUpdateLaunchAtLogon}\n\n{ex.Message}",
+                    Properties.Strings.TextExceptionTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -351,6 +390,26 @@ namespace RyzenTuner.UI
                     var tsmi2 = (ToolStripMenuItem)tsmi;
                     tsmi2.Checked = false;
                 }
+            }
+        }
+
+        private void SyncLaunchAtLogonSetting()
+        {
+            try
+            {
+                var isEnabled = StartupTaskScheduler.IsEnabled();
+                launchAtLogonCheckBox.Checked = isEnabled;
+
+                if (Properties.Settings.Default.LaunchAtLogon != isEnabled)
+                {
+                    Properties.Settings.Default.LaunchAtLogon = isEnabled;
+                    Properties.Settings.Default.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                launchAtLogonCheckBox.Checked = Properties.Settings.Default.LaunchAtLogon;
+                AppContainer.Logger().Warning($"Failed to query launch at logon status: {ex.Message}");
             }
         }
 

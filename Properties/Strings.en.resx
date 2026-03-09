@@ -56,4 +56,10 @@
     <data name="TextExit" xml:space="preserve">
         <value>Exit</value>
     </data>
+    <data name="TextFailedToUpdateLaunchAtLogon" xml:space="preserve">
+        <value>Failed to update the launch at logon setting.</value>
+    </data>
+    <data name="TextLaunchAtLogon" xml:space="preserve">
+        <value>Launch at logon</value>
+    </data>
 </root>

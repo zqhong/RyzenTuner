@@ -73,6 +73,7 @@ namespace RyzenTuner.UI
             this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.launchAtLogonCheckBox = new System.Windows.Forms.CheckBox();
             this.keepAwakeCheckBox = new System.Windows.Forms.CheckBox();
             this.checkBoxEnergyStar = new System.Windows.Forms.CheckBox();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
@@ -180,14 +181,27 @@ namespace RyzenTuner.UI
             this.radioButton1.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
             // 其他选项
+            this.groupBox3.Controls.Add(this.launchAtLogonCheckBox);
             this.groupBox3.Controls.Add(this.keepAwakeCheckBox);
             this.groupBox3.Controls.Add(this.checkBoxEnergyStar);
             this.groupBox3.Location = new System.Drawing.Point(29, 180);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(702, 85);
+            this.groupBox3.Size = new System.Drawing.Size(702, 124);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = Properties.Strings.TextOtherOptions;
+
+            // 
+            // launchAtLogonCheckBox
+            // 
+            this.launchAtLogonCheckBox.AutoSize = true;
+            this.launchAtLogonCheckBox.Location = new System.Drawing.Point(21, 72);
+            this.launchAtLogonCheckBox.Name = "launchAtLogonCheckBox";
+            this.launchAtLogonCheckBox.Size = new System.Drawing.Size(210, 28);
+            this.launchAtLogonCheckBox.TabIndex = 1;
+            this.launchAtLogonCheckBox.Text = Properties.Strings.TextLaunchAtLogon;
+            this.launchAtLogonCheckBox.UseVisualStyleBackColor = true;
+            this.launchAtLogonCheckBox.CheckedChanged += new System.EventHandler(this.launchAtLogonCheckBox_CheckedChanged);
             
             // 
             // 保持唤醒选项框
@@ -313,7 +327,7 @@ namespace RyzenTuner.UI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(757, 291);
+            this.ClientSize = new System.Drawing.Size(757, 325);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.powerLimitGroupBox);
             this.Icon = this.getIcon();
@@ -347,6 +361,7 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.RadioButton radioButton1;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.CheckBox checkBoxEnergyStar;
+        private System.Windows.Forms.CheckBox launchAtLogonCheckBox;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem AutoModeToolStripMenuItem;
@@ -365,4 +380,3 @@ namespace RyzenTuner.UI
         private bool _needRunBoostAllBgProcesses;
     }
 }
-

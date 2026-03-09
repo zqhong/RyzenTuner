@@ -8,6 +8,9 @@
     <Setting Name="KeepAwake" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="LaunchAtLogon" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
     <Setting Name="CustomMode" Type="System.String" Scope="User">
       <Value Profile="(Default)">16</Value>
     </Setting>
@@ -46,4 +49,3 @@
     </Setting>
   </Settings>
 </SettingsFile>
-
