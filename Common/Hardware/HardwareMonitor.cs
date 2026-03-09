@@ -6,7 +6,7 @@ using RyzenTuner.Common.Container;
 
 namespace RyzenTuner.Common.Hardware
 {
-    public class HardwareMonitor
+    public class HardwareMonitor : IDisposable
     {
         private float _cpuUsage;
         private float _cpuPackagePower;
@@ -16,6 +16,7 @@ namespace RyzenTuner.Common.Hardware
         private float _videoCard3DUsage;
 
         private readonly Computer _computer;
+        private bool _disposed;
 
         public HardwareMonitor()
         {
@@ -36,7 +37,24 @@ namespace RyzenTuner.Common.Hardware
         // Finalizers / destructor
         ~HardwareMonitor()
         {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
             _computer.Close();
+            _disposed = true;
         }
 
         public float CpuUsage => _cpuUsage;
