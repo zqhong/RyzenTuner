@@ -15,7 +15,7 @@
         <value>Automatic</value>
     </data>
     <data name="BalancedMode" xml:space="preserve">
-        <value>Balance</value>
+        <value>Balanced</value>
     </data>
     <data name="CustomMode" xml:space="preserve">
         <value>Manual</value>
@@ -24,10 +24,10 @@
         <value>Performance</value>
     </data>
     <data name="PowerSaveMode" xml:space="preserve">
-        <value>Power Saving</value>
+        <value>Power Saver</value>
     </data>
     <data name="SleepMode" xml:space="preserve">
-        <value>Standby</value>
+        <value>Sleep</value>
     </data>
     <data name="TextPowerLimit" xml:space="preserve">
         <value>Power Limit</value>
@@ -39,19 +39,19 @@
         <value>Stay Awake</value>
     </data>
     <data name="TextEnableEnergyStar" xml:space="preserve">
-        <value>Enable EnergyStar</value>
+        <value>Enable Energy Star</value>
     </data>
     <data name="TextAbout" xml:space="preserve">
         <value>About</value>
     </data>
     <data name="TextExceptionTitle" xml:space="preserve">
-        <value>RyzenTuner has an error</value>
+        <value>RyzenTuner encountered an error</value>
     </data>
     <data name="TextExceptionOnlyOneProgramIsAllowedToRun" xml:space="preserve">
-        <value>Only one RyzenTuner program is allowed to run at a time</value>
+        <value>Only one instance of RyzenTuner can run at a time</value>
     </data>
     <data name="TextNoticeText" xml:space="preserve">
-        <value>Power: limited {power_limit}W, actual {actual_power_limit}W</value>
+        <value>Power: Limit {power_limit} W, Actual {actual_power_limit} W</value>
     </data>
     <data name="TextExit" xml:space="preserve">
         <value>Exit</value>

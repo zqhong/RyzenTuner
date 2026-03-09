@@ -19,22 +19,22 @@
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
     <data name="AutoMode" xml:space="preserve">
-        <value>自动模式</value>
+        <value>自动</value>
     </data>
     <data name="BalancedMode" xml:space="preserve">
-        <value>平衡模式</value>
+        <value>平衡</value>
     </data>
     <data name="CustomMode" xml:space="preserve">
-        <value>手动模式</value>
+        <value>手动</value>
     </data>
     <data name="PerformanceMode" xml:space="preserve">
-        <value>性能模式</value>
+        <value>性能</value>
     </data>
     <data name="PowerSaveMode" xml:space="preserve">
-        <value>省电模式</value>
+        <value>省电</value>
     </data>
     <data name="SleepMode" xml:space="preserve">
-        <value>待机模式</value>
+        <value>睡眠</value>
     </data>
     <data name="TextPowerLimit" xml:space="preserve">
         <value>功率限制</value>
@@ -46,7 +46,7 @@
         <value>保持唤醒</value>
     </data>
     <data name="TextEnableEnergyStar" xml:space="preserve">
-        <value>开启 EnergyStar</value>
+        <value>启用 Energy Star</value>
     </data>
     <data name="TextAbout" xml:space="preserve">
         <value>关于</value>
@@ -55,10 +55,10 @@
         <value>RyzenTuner 出现错误</value>
     </data>
     <data name="TextExceptionOnlyOneProgramIsAllowedToRun" xml:space="preserve">
-        <value>同一时间内，只允许运行一个 RyzenTuner 程序</value>
+        <value>同一时间只允许运行一个 RyzenTuner 实例</value>
     </data>
     <data name="TextNoticeText" xml:space="preserve">
-        <value>功率：限制{power_limit}W、实际{actual_power_limit}W</value>
+        <value>功率：限制 {power_limit} W，实际 {actual_power_limit} W</value>
     </data>
     <data name="TextExit" xml:space="preserve">
         <value>退出</value>
@@ -67,6 +67,6 @@
         <value>更新开机自启动设置失败。</value>
     </data>
     <data name="TextLaunchAtLogon" xml:space="preserve">
-        <value>开机后自动启动</value>
+        <value>登录时启动</value>
     </data>
 </root>
