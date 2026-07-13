@@ -22,10 +22,25 @@ Mode descriptions:
 
 You can download the prebuilt application from [Releases](https://github.com/zqhong/RyzenTuner/releases).
 
+### Prerequisites
+
+- **Microsoft Visual C++ 2015-2022 Redistributable (x64)** — Required by `libryzenadj.dll`.
+  Download: https://aka.ms/vs/17/release/vc_redist.x64.exe
+
 If you want RyzenTuner to start automatically when you sign in to Windows, enable `Launch at logon` in the app.
 RyzenTuner will create a per-user scheduled task and start itself with elevated privileges in the background.
 
 ## FAQ
+
+### The app reports "Failed to load libryzenadj.dll" or "The specified module could not be found" (HRESULT: 0x8007007E)
+
+This is usually caused by one of the following:
+
+1. **Missing Visual C++ Redistributable** — `libryzenadj.dll` requires `VCRUNTIME140.dll`.
+   Install: https://aka.ms/vs/17/release/vc_redist.x64.exe
+
+2. **DLL not in the same directory as the executable** — Make sure `libryzenadj.dll`, `inpoutx64.dll`, `WinRing0x64.dll`,
+   and `WinRing0x64.sys` are all in the same folder as `RyzenTuner.exe`, not in a `native/` subdirectory.
 
 ### How do I change the power limit for other modes, such as Standby Mode?
 
