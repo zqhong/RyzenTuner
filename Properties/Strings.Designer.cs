@@ -205,8 +205,8 @@ namespace RyzenTuner.Properties {
 
         /// <summary>
         ///   Looks up a localized string similar to 未找到 libryzenadj.dll！此组件为必需项。
-
-请从官方仓库下载： https://github.com/FlyGoat/RyzenAdj.
+        ///
+        /// 请从官方仓库下载： https://github.com/FlyGoat/RyzenAdj.
         /// </summary>
         internal static string TextLibRyzenAdjMissing {
             get {
@@ -234,8 +234,8 @@ namespace RyzenTuner.Properties {
 
         /// <summary>
         ///   Looks up a localized string similar to libryzenadj.dll 版本过旧，不适用于当前版本的 RyzenTuner。
-
-请将 libryzenadj.dll 更新到 v0.18.0 或更高版本。.
+        ///
+        /// 请将 libryzenadj.dll 更新到 v0.18.0 或更高版本。.
         /// </summary>
         internal static string TextLibRyzenAdjTooOld {
             get {
