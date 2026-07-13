@@ -60,10 +60,12 @@ jobs:
           )
 
           foreach ($file in $requiredFiles) {
-            $matches = Get-ChildItem -Path $outputDir -Filter $file -Recurse -File
-            if ($matches.Count -eq 0) {
-              throw "Missing required native dependency: $outputDir/$file"
+            $targetPath = Join-Path $outputDir $file
+            if (-not (Test-Path $targetPath)) {
+              throw "Missing required native dependency at root of output: $targetPath"
             }
+            $actual = Get-ChildItem $targetPath
+            Write-Host "Found $($actual.FullName)"
           }
 
       - name: Generate artifact name
