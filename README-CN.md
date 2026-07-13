@@ -22,10 +22,25 @@ RyzenTuner 提供一个 GUI 界面，可以方便调节 Ryzen 移动处理器的
 
 你可以直接前往 [Releases](https://github.com/zqhong/RyzenTuner/releases) 下载预编译版本。
 
+### 系统依赖
+
+- **Microsoft Visual C++ 2015-2022 Redistributable (x64)** — `libryzenadj.dll` 运行需要此运行库。
+  下载地址：https://aka.ms/vs/17/release/vc_redist.x64.exe
+
 如果你希望 RyzenTuner 在登录 Windows 后自动启动，可在应用内勾选 `开机后自动启动`。
 程序会为当前用户创建一个计划任务，并以高权限在后台静默启动。
 
 ## FAQ
+
+### 应用启动提示「加载 libryzenadj.dll 失败」「找不到指定的模块」（HRESULT: 0x8007007E）
+
+通常由以下原因导致：
+
+1. **缺少 Visual C++ 运行库** — `libryzenadj.dll` 依赖 `VCRUNTIME140.dll`。
+   请安装：https://aka.ms/vs/17/release/vc_redist.x64.exe
+
+2. **DLL 未放在 exe 同级目录** — 确保 `libryzenadj.dll`、`inpoutx64.dll`、`WinRing0x64.dll`
+   和 `WinRing0x64.sys` 四个文件都和 `RyzenTuner.exe` 在同一目录下，而不是放在 `native/` 子目录中。
 
 ### 如何修改待机模式等其他模式的功率限制
 
