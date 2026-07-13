@@ -7,12 +7,8 @@
 - WinRing0x64.sys
 
 本仓库当前使用的来源：
-- https://github.com/FlyGoat/RyzenAdj/actions/runs/21075792534
-- 编译时间：2026/1/27
-
-使用这个构建产物的原因：
-- 官方 release 目前只有 v0.17.0。
-- 本项目需要比公开 release 更新的 libryzenadj，因此改用上述 GitHub Actions 产物。
+- https://github.com/FlyGoat/RyzenAdj/releases/tag/v0.19.0
+- 编译时间：2026/5/13
 
 MSBuild 会把 `native/` 目录下的 `.dll` 和 `.sys` 自动复制到编译输出目录。
 常见输出目录：
