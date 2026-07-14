@@ -332,5 +332,122 @@ namespace RyzenTuner.Properties {
                 return ResourceManager.GetString("TextUnhandledException", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 设置.
+        /// </summary>
+        internal static string TextSettings {
+            get {
+                return ResourceManager.GetString("TextSettings", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 设置.
+        /// </summary>
+        internal static string TextSettingsTitle {
+            get {
+                return ResourceManager.GetString("TextSettingsTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 各模式功率限制.
+        /// </summary>
+        internal static string TextPowerLimitSettings {
+            get {
+                return ResourceManager.GetString("TextPowerLimitSettings", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 高级设置.
+        /// </summary>
+        internal static string TextAdvancedSettings {
+            get {
+                return ResourceManager.GetString("TextAdvancedSettings", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 保存.
+        /// </summary>
+        internal static string TextSave {
+            get {
+                return ResourceManager.GetString("TextSave", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 取消.
+        /// </summary>
+        internal static string TextCancel {
+            get {
+                return ResourceManager.GetString("TextCancel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to W.
+        /// </summary>
+        internal static string TextWatts {
+            get {
+                return ResourceManager.GetString("TextWatts", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to °C.
+        /// </summary>
+        internal static string TextDegreeCelsius {
+            get {
+                return ResourceManager.GetString("TextDegreeCelsius", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to TctlTemp（温度限制）.
+        /// </summary>
+        internal static string TextTctlTemp {
+            get {
+                return ResourceManager.GetString("TextTctlTemp", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to FastPPT（快速功率限制）.
+        /// </summary>
+        internal static string TextFastPPT {
+            get {
+                return ResourceManager.GetString("TextFastPPT", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to SlowPPT（持续功率限制）.
+        /// </summary>
+        internal static string TextSlowPPT {
+            get {
+                return ResourceManager.GetString("TextSlowPPT", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 设置已保存.
+        /// </summary>
+        internal static string TextSettingsSaved {
+            get {
+                return ResourceManager.GetString("TextSettingsSaved", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 部分设置将在下次应用时生效。.
+        /// </summary>
+        internal static string TextSettingsSavedHint {
+            get {
+                return ResourceManager.GetString("TextSettingsSavedHint", resourceCulture);
+            }
+        }
     }
 }

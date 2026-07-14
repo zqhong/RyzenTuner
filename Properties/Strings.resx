@@ -112,4 +112,43 @@
     <data name="TextCustomPowerLimitInvalid" xml:space="preserve">
         <value>手动功率限制必须是大于 0 的有效数字。</value>
     </data>
+    <data name="TextSettings" xml:space="preserve">
+        <value>设置</value>
+    </data>
+    <data name="TextSettingsTitle" xml:space="preserve">
+        <value>设置</value>
+    </data>
+    <data name="TextPowerLimitSettings" xml:space="preserve">
+        <value>各模式功率限制</value>
+    </data>
+    <data name="TextAdvancedSettings" xml:space="preserve">
+        <value>高级设置</value>
+    </data>
+    <data name="TextSave" xml:space="preserve">
+        <value>保存</value>
+    </data>
+    <data name="TextCancel" xml:space="preserve">
+        <value>取消</value>
+    </data>
+    <data name="TextWatts" xml:space="preserve">
+        <value>W</value>
+    </data>
+    <data name="TextDegreeCelsius" xml:space="preserve">
+        <value>°C</value>
+    </data>
+    <data name="TextTctlTemp" xml:space="preserve">
+        <value>TctlTemp（温度限制）</value>
+    </data>
+    <data name="TextFastPPT" xml:space="preserve">
+        <value>FastPPT（快速功率限制）</value>
+    </data>
+    <data name="TextSlowPPT" xml:space="preserve">
+        <value>SlowPPT（持续功率限制）</value>
+    </data>
+    <data name="TextSettingsSaved" xml:space="preserve">
+        <value>设置已保存</value>
+    </data>
+    <data name="TextSettingsSavedHint" xml:space="preserve">
+        <value>部分设置将在下次应用时生效。</value>
+    </data>
 </root>

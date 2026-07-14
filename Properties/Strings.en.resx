@@ -105,4 +105,43 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextCustomPowerLimitInvalid" xml:space="preserve">
         <value>Custom power limit must be a valid number greater than 0.</value>
     </data>
+    <data name="TextSettings" xml:space="preserve">
+        <value>Settings</value>
+    </data>
+    <data name="TextSettingsTitle" xml:space="preserve">
+        <value>Settings</value>
+    </data>
+    <data name="TextPowerLimitSettings" xml:space="preserve">
+        <value>Mode Power Limits</value>
+    </data>
+    <data name="TextAdvancedSettings" xml:space="preserve">
+        <value>Advanced Settings</value>
+    </data>
+    <data name="TextSave" xml:space="preserve">
+        <value>Save</value>
+    </data>
+    <data name="TextCancel" xml:space="preserve">
+        <value>Cancel</value>
+    </data>
+    <data name="TextWatts" xml:space="preserve">
+        <value>W</value>
+    </data>
+    <data name="TextDegreeCelsius" xml:space="preserve">
+        <value>°C</value>
+    </data>
+    <data name="TextTctlTemp" xml:space="preserve">
+        <value>TctlTemp (Temperature Limit)</value>
+    </data>
+    <data name="TextFastPPT" xml:space="preserve">
+        <value>FastPPT (Fast Power Limit)</value>
+    </data>
+    <data name="TextSlowPPT" xml:space="preserve">
+        <value>SlowPPT (Sustained Power Limit)</value>
+    </data>
+    <data name="TextSettingsSaved" xml:space="preserve">
+        <value>Settings saved</value>
+    </data>
+    <data name="TextSettingsSavedHint" xml:space="preserve">
+        <value>Some settings will take effect on next application.</value>
+    </data>
 </root>

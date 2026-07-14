@@ -23,6 +23,10 @@ namespace RyzenTuner.UI
         private bool? _lastCpuBoostEnabled;
         private bool _isInitializingOptions;
         private DateTime _lastPowerLimitErrorShownAt = DateTime.MinValue;
+        private DateTime _lastPowerLimitErrorTime = DateTime.MinValue;
+        private DateTime _lastSuccessfulApplyTime = DateTime.MinValue;
+        private string _preErrorMode = "BalancedMode";
+        private bool _isErrorRecoveryPending;
         private bool _isApplyingPowerLimit;
 
         public MainForm()
@@ -194,7 +198,23 @@ namespace RyzenTuner.UI
                 return;
             }
 
+            // 错误冷却检查：上次错误后 15 秒内，跳过完整的 try-block，让定时器下次节拍再试
+            // 防止持久性错误时每 2 秒无意义地执行全部 I/O 操作
+            var now = DateTime.UtcNow;
+            if (_lastPowerLimitErrorTime > _lastSuccessfulApplyTime &&
+                now - _lastPowerLimitErrorTime < TimeSpan.FromSeconds(15))
+            {
+                return;
+            }
+
             _isApplyingPowerLimit = true;
+
+            // 仅首次进入（非恢复状态）时保存用户原始模式，防止冷却过期后被覆盖
+            if (!_isErrorRecoveryPending)
+            {
+                _preErrorMode = Settings.Default.CurrentMode;
+            }
+
             try
             {
                 var processor = AppContainer.AmdProcessor();
@@ -226,12 +246,13 @@ namespace RyzenTuner.UI
                 // 这样子的话，前期不会有性能爆发，在后面会有一段性能爆发
                 var applyErrors = new List<string>();
 
+                // 注意：仅在 applyAction 成功后更新 _lastApplied* 跟踪字段，
+                // 防止单次瞬态失败导致该设置永久被跳过（见 TryApply* 中的 changed=true 在 applyAction 前设置）
                 if (!TryApplyPowerLimit(_lastAppliedFastPpt, stampLimit, () => processor.SetFastPPT(stampLimit), out var fastPptChanged))
                 {
                     applyErrors.Add($"SetFastPPT({stampLimit:0.##}W)");
                 }
-
-                if (fastPptChanged)
+                else if (fastPptChanged)
                 {
                     _lastAppliedFastPpt = stampLimit;
                 }
@@ -240,8 +261,7 @@ namespace RyzenTuner.UI
                 {
                     applyErrors.Add($"SetSlowPPT({slowPpt:0.##}W)");
                 }
-
-                if (slowPptChanged)
+                else if (slowPptChanged)
                 {
                     _lastAppliedSlowPpt = slowPpt;
                 }
@@ -250,8 +270,7 @@ namespace RyzenTuner.UI
                 {
                     applyErrors.Add($"SetStampPPT({stampLimit:0.##}W)");
                 }
-
-                if (stampPptChanged)
+                else if (stampPptChanged)
                 {
                     _lastAppliedStampLimit = stampLimit;
                 }
@@ -260,8 +279,7 @@ namespace RyzenTuner.UI
                 {
                     applyErrors.Add($"SetTctlTemp({tctlTemp}C)");
                 }
-
-                if (tctlTempChanged)
+                else if (tctlTempChanged)
                 {
                     _lastAppliedTctlTemp = tctlTemp;
                 }
@@ -279,8 +297,7 @@ namespace RyzenTuner.UI
                     {
                         applyErrors.Add(shouldEnableCpuBoost ? "EnableCpuBoost()" : "DisableCpuBoost()");
                     }
-
-                    if (boostChanged)
+                    else if (boostChanged)
                     {
                         _lastCpuBoostEnabled = shouldEnableCpuBoost;
                     }
@@ -294,10 +311,23 @@ namespace RyzenTuner.UI
                 {
                     _lastPowerLimitApplyError = string.Empty;
                 }
+
+                if (applyErrors.Count == 0)
+                {
+                    _lastSuccessfulApplyTime = DateTime.UtcNow;
+
+                    // 错误恢复后自动还原用户的原始模式
+                    if (_isErrorRecoveryPending)
+                    {
+                        _isErrorRecoveryPending = false;
+                        SetCurrentMode(_preErrorMode);
+                    }
+                }
             }
             catch (Exception e)
             {
-                var now = DateTime.UtcNow;
+                _lastPowerLimitErrorTime = DateTime.UtcNow;
+
                 if (now - _lastPowerLimitErrorShownAt > TimeSpan.FromSeconds(30))
                 {
                     _lastPowerLimitErrorShownAt = now;
@@ -312,8 +342,14 @@ namespace RyzenTuner.UI
                     AppContainer.Logger().Warning(e.ToString());
                 }
 
+                // 切换到 PerformanceMode 作为安全回退
+                _isErrorRecoveryPending = true;
                 radioButton5.Checked = true;
-                ChangeEnergyMode(radioButton5, EventArgs.Empty);
+                // 注意：radioButton5.Checked = true 会通过 CheckedChanged 事件触发
+                // ChangeEnergyMode 保存 CurrentMode 并同步界面状态。
+                // 其中的 DoPowerLimit 调用被重入防护门（_isApplyingPowerLimit）拦截，
+                // 实际的硬件限制切换由下一次定时器节拍完成（最长 2048ms 后）。
+                // 不在此处显式调用 ChangeEnergyMode（旧有冗余代码已移除）。
             }
             finally
             {
@@ -552,6 +588,58 @@ namespace RyzenTuner.UI
             {
                 Hide();
             }
+        }
+
+        private void settingsButton_Click(object sender, EventArgs e)
+        {
+            using var settingsForm = new SettingsForm();
+            if (settingsForm.ShowDialog(this) == DialogResult.OK)
+            {
+                // 刷新自定义模式输入框（可能默认值已变化）
+                UpdateCustomModeInputState(false);
+                // 刷新各模式标签显示（模式名-XXW）
+                // 部分模式标签可能因设置值损坏而无法解析，单独捕获避免阻断后续操作
+                try
+                {
+                    RefreshModeLabels();
+                }
+                catch (Exception ex)
+                {
+                    AppContainer.Logger().Warning($"刷新模式标签失败: {ex.Message}");
+                }
+
+                // 立即重新应用功率限制
+                DoPowerLimit();
+                // 更新通知栏文本
+                notifyIcon1.Text = RyzenTunerUtils.GetNoticeText();
+            }
+        }
+
+        private void RefreshModeLabels()
+        {
+            radioButton2.Text = RyzenTunerUtils.GetModeDetailText("SleepMode");
+            radioButton3.Text = RyzenTunerUtils.GetModeDetailText("PowerSaveMode");
+            radioButton4.Text = RyzenTunerUtils.GetModeDetailText("BalancedMode");
+            radioButton5.Text = RyzenTunerUtils.GetModeDetailText("PerformanceMode");
+        }
+
+        /// <summary>
+        /// 将当前模式设置为指定模式（不触发 DoPowerLimit）。
+        /// 用于错误恢复时还原用户的原始选择。
+        /// </summary>
+        private void SetCurrentMode(string mode)
+        {
+            if (mode == Settings.Default.CurrentMode)
+            {
+                return;
+            }
+
+            // 直接保存模式并同步界面，避免通过 RadioButton.Checked 事件链
+            // （ChangeEnergyMode 中的 DoPowerLimit 会被重入防护门拦截而无效，
+            //  且直接赋值避免 CustomMode 输入验证干扰恢复流程）。
+            Settings.Default.CurrentMode = mode;
+            Settings.Default.Save();
+            SyncEnergyModeSelection();
         }
     }
 }

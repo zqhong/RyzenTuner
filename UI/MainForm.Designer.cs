@@ -185,6 +185,7 @@ namespace RyzenTuner.UI
             this.groupBox3.Controls.Add(this.launchAtLogonCheckBox);
             this.groupBox3.Controls.Add(this.cpuBoostCheckBox);
             this.groupBox3.Controls.Add(this.keepAwakeCheckBox);
+            this.groupBox3.Controls.Add(this.settingsButton);
             this.groupBox3.Controls.Add(this.checkBoxEnergyStar);
             this.groupBox3.Location = new System.Drawing.Point(29, 180);
             this.groupBox3.Name = "groupBox3";
@@ -229,9 +230,9 @@ namespace RyzenTuner.UI
             this.keepAwakeCheckBox.UseVisualStyleBackColor = true;
             this.keepAwakeCheckBox.CheckedChanged += new System.EventHandler(this.keepAwakeCheckBox_CheckedChanged);
             
-            // 
+            //
             // checkBox1
-            // 
+            //
             this.checkBoxEnergyStar.AutoSize = true;
             this.checkBoxEnergyStar.Location = new System.Drawing.Point(21, 34);
             this.checkBoxEnergyStar.Name = "checkBoxEnergyStar";
@@ -240,6 +241,18 @@ namespace RyzenTuner.UI
             this.checkBoxEnergyStar.Text = Properties.Strings.TextEnableEnergyStar;
             this.checkBoxEnergyStar.UseVisualStyleBackColor = true;
             this.checkBoxEnergyStar.CheckedChanged += new System.EventHandler(this.checkBoxEnergyStar_CheckedChanged);
+
+            //
+            // settingsButton
+            //
+            this.settingsButton.AutoSize = true;
+            this.settingsButton.Location = new System.Drawing.Point(490, 72);
+            this.settingsButton.Name = "settingsButton";
+            this.settingsButton.Size = new System.Drawing.Size(190, 28);
+            this.settingsButton.TabIndex = 4;
+            this.settingsButton.Text = Properties.Strings.TextSettings;
+            this.settingsButton.UseVisualStyleBackColor = true;
+            this.settingsButton.Click += new System.EventHandler(this.settingsButton_Click);
 
             // 托盘菜单 icon
             this.notifyIcon1.ContextMenuStrip = this.contextMenuStrip1;
@@ -386,6 +399,7 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.ToolStripMenuItem PerformanceModeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem CustomModeToolStripMenuItem;
         private System.Windows.Forms.CheckBox keepAwakeCheckBox;
+        private System.Windows.Forms.Button settingsButton;
         private System.Windows.Forms.Timer mainFormTimer;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem AboutToolStripMenuItem;
