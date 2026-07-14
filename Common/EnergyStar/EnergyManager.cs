@@ -209,18 +209,9 @@ namespace RyzenTuner.Common.EnergyStar
                         ? Win32Api.PriorityClass.BELOW_NORMAL_PRIORITY_CLASS
                         : Win32Api.PriorityClass.NORMAL_PRIORITY_CLASS);
 
-                using (null)
-                {
-                    var actionText = "Boost";
-                    if (enable)
-                    {
-                        actionText = "Throttle";
-                    }
-
-
-                    logger.Debug(
-                        $"{actionText} {appName}. pid: {processId}, set process information and priority result: {r1 && r2}");
-                }
+                var actionText = enable ? "Throttle" : "Boost";
+                logger.Debug(
+                    $"{actionText} {appName}. pid: {processId}, set process information and priority result: {r1 && r2}");
             }
             catch (Exception e)
             {

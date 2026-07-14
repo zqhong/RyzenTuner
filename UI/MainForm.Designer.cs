@@ -55,7 +55,7 @@ namespace RyzenTuner.UI
             {
                 if (CommonUtils.IsFontExists(loopFont))
                 {
-                    this.Font = new Font("微软雅黑", 10);
+                    this.Font = new Font(loopFont, 10);
                     break;
                 }
             }
@@ -76,6 +76,7 @@ namespace RyzenTuner.UI
             this.launchAtLogonCheckBox = new System.Windows.Forms.CheckBox();
             this.cpuBoostCheckBox = new System.Windows.Forms.CheckBox();
             this.keepAwakeCheckBox = new System.Windows.Forms.CheckBox();
+            this.settingsButton = new System.Windows.Forms.Button();
             this.checkBoxEnergyStar = new System.Windows.Forms.CheckBox();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);

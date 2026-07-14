@@ -3,7 +3,7 @@ using RyzenTuner.Common.Container;
 
 namespace RyzenTuner.Common.Processor
 {
-    public class AmdProcessor
+    public class AmdProcessor : IDisposable
     {
         public enum PowerType
         {
@@ -13,10 +13,15 @@ namespace RyzenTuner.Common.Processor
             Fast = 2,
         }
         
-        private readonly IntPtr _ry;
+        private IntPtr _ry;
         private readonly bool _canChangeTdp;
 
         public bool CanChangeTdp => _canChangeTdp;
+
+        public void Dispose()
+        {
+            CleanupRy();
+        }
 
         public AmdProcessor()
         {
@@ -63,19 +68,32 @@ namespace RyzenTuner.Common.Processor
             }
             catch (DllNotFoundException ex)
             {
+                CleanupRy();
                 throw new Exception(Properties.Strings.TextLibRyzenAdjLoadFailed.Replace("{message}", ex.Message), ex);
             }
             catch (BadImageFormatException ex)
             {
+                CleanupRy();
                 throw new Exception(Properties.Strings.TextLibRyzenAdjArchitectureMismatch, ex);
             }
             catch (EntryPointNotFoundException ex)
             {
+                CleanupRy();
                 throw new Exception(Properties.Strings.TextLibRyzenAdjTooOld, ex);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
+                CleanupRy();
                 throw new Exception(Properties.Strings.TextRyzenAdjInitFailedWithMessage.Replace("{message}", ex.Message), ex);
+            }
+        }
+
+        private void CleanupRy()
+        {
+            if (_ry != IntPtr.Zero)
+            {
+                RyzenAdj.cleanup_ryzenadj(_ry);
+                _ry = IntPtr.Zero;
             }
         }
         

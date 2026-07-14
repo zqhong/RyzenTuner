@@ -34,15 +34,22 @@ namespace RyzenTuner.Utils
          */
         public static bool IsFontExists(string fontName)
         {
-            const float fontSize = 12;
+            try
+            {
+                const float fontSize = 12;
 
-            using var fontTester = new Font(
-                fontName,
-                fontSize,
-                FontStyle.Regular,
-                GraphicsUnit.Pixel);
+                using var fontTester = new Font(
+                    fontName,
+                    fontSize,
+                    FontStyle.Regular,
+                    GraphicsUnit.Pixel);
 
-            return fontTester.Name == fontName;
+                return fontTester.Name == fontName;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /**

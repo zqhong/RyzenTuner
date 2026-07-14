@@ -71,7 +71,7 @@ namespace RyzenTuner.Common
             throw new InvalidOperationException(result.ErrorMessage);
         }
 
-        private static string QueryTaskXml()
+        private static string? QueryTaskXml()
         {
             var result = RunSchtasks($"/Query /TN {Quote(TaskName)} /XML", false);
             if (result.ExitCode != 0)
@@ -195,7 +195,7 @@ namespace RyzenTuner.Common
                    output.Contains("无法找到");
         }
 
-        private static string NormalizePath(string path)
+        private static string NormalizePath(string? path)
         {
             return string.IsNullOrWhiteSpace(path) ? string.Empty : path.Trim().Trim('"');
         }
