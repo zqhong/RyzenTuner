@@ -22,6 +22,8 @@ namespace RyzenTuner.UI
         private int? _lastAppliedTctlTemp;
         private bool? _lastCpuBoostEnabled;
         private bool _isInitializingOptions;
+        private DateTime _lastPowerLimitErrorShownAt = DateTime.MinValue;
+        private bool _isApplyingPowerLimit;
 
         public MainForm()
         {
@@ -187,6 +189,12 @@ namespace RyzenTuner.UI
 
         private void DoPowerLimit()
         {
+            if (_isApplyingPowerLimit)
+            {
+                return;
+            }
+
+            _isApplyingPowerLimit = true;
             try
             {
                 var processor = AppContainer.AmdProcessor();
@@ -198,9 +206,9 @@ namespace RyzenTuner.UI
                 var shouldEnableCpuBoost = Settings.Default.CpuBoostEnabled;
 
                 notifyIcon1.Text = RyzenTunerUtils.GetNoticeText(stampLimit);
-                
+
                 AppContainer.Logger().Debug($"fastPPT: {fastPpt}, slowPPT: {slowPpt}, stampPPT: {stampLimit}, tctlTemp: {tctlTemp}");
-                
+
                 // 调用 ryzenadj 调整 Cpu 设置
                 // 说明：
                 // 假设 fastPPT 为 51 瓦，slowPPT 为 45 瓦，stampPPT 为 30 瓦。
@@ -209,7 +217,7 @@ namespace RyzenTuner.UI
                 // 过了 x 秒后（由 SLOW PPT TIME CONSTANT定义） ，处理器功耗变为 45 瓦（slowPPT 定义）
                 // 再过了 x 后秒（由 STAPM TIME CONSTANT 定义），处理器功耗变为 30 瓦（stampPPT 定义）
                 // 之后，一直维持在 30 瓦
-                
+
                 // 备注：
                 // ryzenadj 0.17.0 以及部分旧版本测试在当前环境存在问题：
                 // 1、stamp limit 设置不生效
@@ -289,12 +297,27 @@ namespace RyzenTuner.UI
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message,
-                    Properties.Strings.TextExceptionTitle,
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                var now = DateTime.UtcNow;
+                if (now - _lastPowerLimitErrorShownAt > TimeSpan.FromSeconds(30))
+                {
+                    _lastPowerLimitErrorShownAt = now;
+                    AppContainer.Logger().Error(e.ToString());
+                    MessageBox.Show(e.Message,
+                        Properties.Strings.TextExceptionTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+                else
+                {
+                    AppContainer.Logger().Warning(e.ToString());
+                }
+
                 radioButton5.Checked = true;
                 ChangeEnergyMode(radioButton5, EventArgs.Empty);
+            }
+            finally
+            {
+                _isApplyingPowerLimit = false;
             }
         }
 
