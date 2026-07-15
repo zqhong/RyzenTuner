@@ -77,6 +77,12 @@ namespace RyzenTuner.UI
             aboutForm.ShowDialog();
         }
 
+        private void BenchmarkToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using var benchmarkForm = new BenchmarkForm();
+            benchmarkForm.ShowDialog(this);
+        }
+
         private void ExitAppToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();

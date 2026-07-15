@@ -88,6 +88,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Awake.cs" />
+    <Compile Include="Common\Benchmark\BenchmarkModels.cs" />
+    <Compile Include="Common\Benchmark\BenchmarkWorkload.cs" />
+    <Compile Include="Common\Benchmark\BenchmarkEngine.cs" />
     <Compile Include="Common\Container\AppContainer.cs" />
     <Compile Include="Common\Container\Container.cs" />
     <Compile Include="Common\EnergyStar\EnergyManager.cs" />
@@ -123,6 +126,12 @@
     </Compile>
     <Compile Include="UI\SettingsForm.Designer.cs">
       <DependentUpon>SettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\BenchmarkForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\BenchmarkForm.Designer.cs">
+      <DependentUpon>BenchmarkForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\ToolStripRenderer.cs" />
     <Compile Include="Utils\CommonUtils.cs" />

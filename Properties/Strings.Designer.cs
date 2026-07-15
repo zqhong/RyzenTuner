@@ -449,5 +449,145 @@ namespace RyzenTuner.Properties {
                 return ResourceManager.GetString("TextMonitorInfo", resourceCulture);
             }
         }
+
+        internal static string TextBenchmark {
+            get { return ResourceManager.GetString("TextBenchmark", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkTitle {
+            get { return ResourceManager.GetString("TextBenchmarkTitle", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkStart {
+            get { return ResourceManager.GetString("TextBenchmarkStart", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkStop {
+            get { return ResourceManager.GetString("TextBenchmarkStop", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkTestType {
+            get { return ResourceManager.GetString("TextBenchmarkTestType", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkSingleCore {
+            get { return ResourceManager.GetString("TextBenchmarkSingleCore", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkDualCore {
+            get { return ResourceManager.GetString("TextBenchmarkDualCore", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkStartPower {
+            get { return ResourceManager.GetString("TextBenchmarkStartPower", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkStep {
+            get { return ResourceManager.GetString("TextBenchmarkStep", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkEndPower {
+            get { return ResourceManager.GetString("TextBenchmarkEndPower", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkDuration {
+            get { return ResourceManager.GetString("TextBenchmarkDuration", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkWatts {
+            get { return ResourceManager.GetString("TextBenchmarkWatts", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkMinutes {
+            get { return ResourceManager.GetString("TextBenchmarkMinutes", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkProgress {
+            get { return ResourceManager.GetString("TextBenchmarkProgress", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkSetPower {
+            get { return ResourceManager.GetString("TextBenchmarkSetPower", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkScore {
+            get { return ResourceManager.GetString("TextBenchmarkScore", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkPowerMin {
+            get { return ResourceManager.GetString("TextBenchmarkPowerMin", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkPowerMax {
+            get { return ResourceManager.GetString("TextBenchmarkPowerMax", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkPowerAvg {
+            get { return ResourceManager.GetString("TextBenchmarkPowerAvg", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkPowerMid {
+            get { return ResourceManager.GetString("TextBenchmarkPowerMid", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkTempMin {
+            get { return ResourceManager.GetString("TextBenchmarkTempMin", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkTempMax {
+            get { return ResourceManager.GetString("TextBenchmarkTempMax", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkTempAvg {
+            get { return ResourceManager.GetString("TextBenchmarkTempAvg", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkTempMid {
+            get { return ResourceManager.GetString("TextBenchmarkTempMid", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkFreq {
+            get { return ResourceManager.GetString("TextBenchmarkFreq", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkEfficiency {
+            get { return ResourceManager.GetString("TextBenchmarkEfficiency", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkCapability {
+            get { return ResourceManager.GetString("TextBenchmarkCapability", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkRunning {
+            get { return ResourceManager.GetString("TextBenchmarkRunning", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkStopped {
+            get { return ResourceManager.GetString("TextBenchmarkStopped", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkDone {
+            get { return ResourceManager.GetString("TextBenchmarkDone", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkConfirmStart {
+            get { return ResourceManager.GetString("TextBenchmarkConfirmStart", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkCancel {
+            get { return ResourceManager.GetString("TextBenchmarkCancel", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkErrorNoData {
+            get { return ResourceManager.GetString("TextBenchmarkErrorNoData", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkRestTime {
+            get { return ResourceManager.GetString("TextBenchmarkRestTime", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkSeconds {
+            get { return ResourceManager.GetString("TextBenchmarkSeconds", resourceCulture); }
+        }
     }
 }

@@ -144,4 +144,109 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextMonitorInfo" xml:space="preserve">
         <value>Monitor Info</value>
     </data>
+    <data name="TextBenchmark" xml:space="preserve">
+        <value>Efficiency Analysis</value>
+    </data>
+    <data name="TextBenchmarkTitle" xml:space="preserve">
+        <value>Efficiency Analysis</value>
+    </data>
+    <data name="TextBenchmarkStart" xml:space="preserve">
+        <value>Start Test</value>
+    </data>
+    <data name="TextBenchmarkStop" xml:space="preserve">
+        <value>Stop</value>
+    </data>
+    <data name="TextBenchmarkTestType" xml:space="preserve">
+        <value>Test Type</value>
+    </data>
+    <data name="TextBenchmarkSingleCore" xml:space="preserve">
+        <value>CPU Single Core</value>
+    </data>
+    <data name="TextBenchmarkDualCore" xml:space="preserve">
+        <value>CPU Dual Core</value>
+    </data>
+    <data name="TextBenchmarkStartPower" xml:space="preserve">
+        <value>Starting TDP</value>
+    </data>
+    <data name="TextBenchmarkStep" xml:space="preserve">
+        <value>Step</value>
+    </data>
+    <data name="TextBenchmarkEndPower" xml:space="preserve">
+        <value>Ending TDP</value>
+    </data>
+    <data name="TextBenchmarkDuration" xml:space="preserve">
+        <value>Duration</value>
+    </data>
+    <data name="TextBenchmarkMinutes" xml:space="preserve">
+        <value>min</value>
+    </data>
+    <data name="TextBenchmarkWatts" xml:space="preserve">
+        <value>W</value>
+    </data>
+    <data name="TextBenchmarkProgress" xml:space="preserve">
+        <value>Testing {tdp}W... ({current}/{total})</value>
+    </data>
+    <data name="TextBenchmarkSetPower" xml:space="preserve">
+        <value>Set TDP</value>
+    </data>
+    <data name="TextBenchmarkScore" xml:space="preserve">
+        <value>Score</value>
+    </data>
+    <data name="TextBenchmarkPowerMin" xml:space="preserve">
+        <value>Power (Min)</value>
+    </data>
+    <data name="TextBenchmarkPowerMax" xml:space="preserve">
+        <value>Power (Max)</value>
+    </data>
+    <data name="TextBenchmarkPowerAvg" xml:space="preserve">
+        <value>Power (Avg)</value>
+    </data>
+    <data name="TextBenchmarkPowerMid" xml:space="preserve">
+        <value>Power (Median)</value>
+    </data>
+    <data name="TextBenchmarkTempMin" xml:space="preserve">
+        <value>Temp (Min)</value>
+    </data>
+    <data name="TextBenchmarkTempMax" xml:space="preserve">
+        <value>Temp (Max)</value>
+    </data>
+    <data name="TextBenchmarkTempAvg" xml:space="preserve">
+        <value>Temp (Avg)</value>
+    </data>
+    <data name="TextBenchmarkTempMid" xml:space="preserve">
+        <value>Temp (Median)</value>
+    </data>
+    <data name="TextBenchmarkFreq" xml:space="preserve">
+        <value>CPU Freq</value>
+    </data>
+    <data name="TextBenchmarkEfficiency" xml:space="preserve">
+        <value>Efficiency</value>
+    </data>
+    <data name="TextBenchmarkCapability" xml:space="preserve">
+        <value>Capability</value>
+    </data>
+    <data name="TextBenchmarkRunning" xml:space="preserve">
+        <value>Benchmark in progress...</value>
+    </data>
+    <data name="TextBenchmarkStopped" xml:space="preserve">
+        <value>Benchmark stopped</value>
+    </data>
+    <data name="TextBenchmarkDone" xml:space="preserve">
+        <value>Benchmark complete!</value>
+    </data>
+    <data name="TextBenchmarkConfirmStart" xml:space="preserve">
+        <value>The test will run {count} power levels, estimated {time} minutes. CPU will be under high load.\n\nContinue?</value>
+    </data>
+    <data name="TextBenchmarkCancel" xml:space="preserve">
+        <value>Stop current benchmark?</value>
+    </data>
+    <data name="TextBenchmarkErrorNoData" xml:space="preserve">
+        <value>No valid data collected</value>
+    </data>
+    <data name="TextBenchmarkRestTime" xml:space="preserve">
+        <value>Rest Time</value>
+    </data>
+    <data name="TextBenchmarkSeconds" xml:space="preserve">
+        <value>s</value>
+    </data>
 </root>

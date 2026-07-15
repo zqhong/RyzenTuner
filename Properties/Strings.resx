@@ -151,4 +151,109 @@
     <data name="TextMonitorInfo" xml:space="preserve">
         <value>监控信息</value>
     </data>
+    <data name="TextBenchmark" xml:space="preserve">
+        <value>能效分析</value>
+    </data>
+    <data name="TextBenchmarkTitle" xml:space="preserve">
+        <value>能效分析</value>
+    </data>
+    <data name="TextBenchmarkStart" xml:space="preserve">
+        <value>开始测试</value>
+    </data>
+    <data name="TextBenchmarkStop" xml:space="preserve">
+        <value>停止</value>
+    </data>
+    <data name="TextBenchmarkTestType" xml:space="preserve">
+        <value>测试内容</value>
+    </data>
+    <data name="TextBenchmarkSingleCore" xml:space="preserve">
+        <value>CPU 单核</value>
+    </data>
+    <data name="TextBenchmarkDualCore" xml:space="preserve">
+        <value>CPU 双核</value>
+    </data>
+    <data name="TextBenchmarkStartPower" xml:space="preserve">
+        <value>起始功耗</value>
+    </data>
+    <data name="TextBenchmarkStep" xml:space="preserve">
+        <value>步进</value>
+    </data>
+    <data name="TextBenchmarkEndPower" xml:space="preserve">
+        <value>结束功耗</value>
+    </data>
+    <data name="TextBenchmarkDuration" xml:space="preserve">
+        <value>测试时间</value>
+    </data>
+    <data name="TextBenchmarkMinutes" xml:space="preserve">
+        <value>分钟</value>
+    </data>
+    <data name="TextBenchmarkWatts" xml:space="preserve">
+        <value>W</value>
+    </data>
+    <data name="TextBenchmarkProgress" xml:space="preserve">
+        <value>正在测试 {tdp}W...（{current}/{total}）</value>
+    </data>
+    <data name="TextBenchmarkSetPower" xml:space="preserve">
+        <value>设定功耗</value>
+    </data>
+    <data name="TextBenchmarkScore" xml:space="preserve">
+        <value>跑分成绩</value>
+    </data>
+    <data name="TextBenchmarkPowerMin" xml:space="preserve">
+        <value>实际功耗（最小）</value>
+    </data>
+    <data name="TextBenchmarkPowerMax" xml:space="preserve">
+        <value>实际功耗（最大）</value>
+    </data>
+    <data name="TextBenchmarkPowerAvg" xml:space="preserve">
+        <value>实际功耗（平均）</value>
+    </data>
+    <data name="TextBenchmarkPowerMid" xml:space="preserve">
+        <value>实际功耗（中位数）</value>
+    </data>
+    <data name="TextBenchmarkTempMin" xml:space="preserve">
+        <value>CPU温度（最小）</value>
+    </data>
+    <data name="TextBenchmarkTempMax" xml:space="preserve">
+        <value>CPU温度（最大）</value>
+    </data>
+    <data name="TextBenchmarkTempAvg" xml:space="preserve">
+        <value>CPU温度（平均）</value>
+    </data>
+    <data name="TextBenchmarkTempMid" xml:space="preserve">
+        <value>CPU温度（中位数）</value>
+    </data>
+    <data name="TextBenchmarkFreq" xml:space="preserve">
+        <value>CPU频率</value>
+    </data>
+    <data name="TextBenchmarkEfficiency" xml:space="preserve">
+        <value>能效比</value>
+    </data>
+    <data name="TextBenchmarkCapability" xml:space="preserve">
+        <value>能力发挥</value>
+    </data>
+    <data name="TextBenchmarkRunning" xml:space="preserve">
+        <value>测试进行中...</value>
+    </data>
+    <data name="TextBenchmarkStopped" xml:space="preserve">
+        <value>测试已停止</value>
+    </data>
+    <data name="TextBenchmarkDone" xml:space="preserve">
+        <value>测试完成！</value>
+    </data>
+    <data name="TextBenchmarkConfirmStart" xml:space="preserve">
+        <value>测试将运行 {count} 个功率点，预计耗时 {time} 分钟。期间 CPU 会处于高负载状态。\n\n是否开始？</value>
+    </data>
+    <data name="TextBenchmarkCancel" xml:space="preserve">
+        <value>确认停止当前测试？</value>
+    </data>
+    <data name="TextBenchmarkErrorNoData" xml:space="preserve">
+        <value>测试未产生有效数据</value>
+    </data>
+    <data name="TextBenchmarkRestTime" xml:space="preserve">
+        <value>休息时间</value>
+    </data>
+    <data name="TextBenchmarkSeconds" xml:space="preserve">
+        <value>秒</value>
+    </data>
 </root>
