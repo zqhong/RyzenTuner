@@ -41,8 +41,7 @@ namespace RyzenTuner.UI
 
             // 高级设置
             numericUpDownTctlTemp.Value = ClampNumeric(Settings.Default.TctlTemp, numericUpDownTctlTemp);
-            numericUpDownFastPPT.Value = ClampNumeric(Settings.Default.FastPPT, numericUpDownFastPPT);
-            numericUpDownSlowPPT.Value = ClampNumeric(Settings.Default.SlowPPT, numericUpDownSlowPPT);
+            numericUpDownApuSkinTemp.Value = ClampNumeric(Settings.Default.ApuSkinTemp, numericUpDownApuSkinTemp);
         }
 
         private static void TrySetNumericValue(NumericUpDown control, string value)
@@ -83,8 +82,7 @@ namespace RyzenTuner.UI
 
             // 保存高级设置
             Settings.Default.TctlTemp = (int)numericUpDownTctlTemp.Value;
-            Settings.Default.FastPPT = (int)numericUpDownFastPPT.Value;
-            Settings.Default.SlowPPT = (int)numericUpDownSlowPPT.Value;
+            Settings.Default.ApuSkinTemp = (int)numericUpDownApuSkinTemp.Value;
 
             Settings.Default.Save();
 

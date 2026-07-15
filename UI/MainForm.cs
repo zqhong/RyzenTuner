@@ -20,6 +20,7 @@ namespace RyzenTuner.UI
         private float? _lastAppliedSlowPpt;
         private float? _lastAppliedStampLimit;
         private int? _lastAppliedTctlTemp;
+        private int? _lastAppliedApuSkinTemp;
         private bool? _lastCpuBoostEnabled;
         private DateTime _lastPowerLimitErrorShownAt = DateTime.MinValue;
         private DateTime _lastPowerLimitErrorTime = DateTime.MinValue;
@@ -68,8 +69,6 @@ namespace RyzenTuner.UI
 
             // 设置系统唤醒状态
             keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
-
-            WindowState = FormWindowState.Minimized;
         }
 
         private void AboutAppToolStripMenuItem_Click(object sender, EventArgs e)
@@ -229,25 +228,52 @@ namespace RyzenTuner.UI
                 // 刷新 SMU 表后再读取，等效 ryzenadj --info 的行为
                 proc.RefreshTable();
 
+                // ===== RyzenAdj 功率限制（左列） =====
+
                 var fastLimit = proc.GetFastLimit();
                 fastLimitLabel.Text = float.IsNaN(fastLimit)
-                    ? "Fast 上限: N/A"
-                    : $"Fast 上限: {fastLimit:F1} W";
+                    ? "FastPPT: N/A"
+                    : $"FastPPT: {fastLimit:F1} W";
 
                 var slowLimit = proc.GetSlowLimit();
                 slowLimitLabel.Text = float.IsNaN(slowLimit)
-                    ? "Slow 上限: N/A"
-                    : $"Slow 上限: {slowLimit:F1} W";
+                    ? "SlowPPT: N/A"
+                    : $"SlowPPT: {slowLimit:F1} W";
 
                 var stampLimit = proc.GetStampLimit();
                 stampLimitLabel.Text = float.IsNaN(stampLimit)
-                    ? "Stapm 上限: N/A"
-                    : $"Stapm 上限: {stampLimit:F1} W";
+                    ? "StapmPPT: N/A"
+                    : $"StapmPPT: {stampLimit:F1} W";
 
                 var tctlTemp = proc.GetTctlTempLimit();
                 tctlTempLabel.Text = float.IsNaN(tctlTemp)
-                    ? "温度上限: N/A"
-                    : $"温度上限: {tctlTemp:F0} °C";
+                    ? "TctlTemp: N/A"
+                    : $"TctlTemp: {tctlTemp:F0} °C";
+
+                try
+                {
+                    var apuSkinLimit = proc.GetApuSkinTempLimit();
+                    var apuSkinValue = proc.GetApuSkinTempValue();
+                    if (float.IsNaN(apuSkinLimit) && float.IsNaN(apuSkinValue))
+                    {
+                        apuSkinTempLabel.Text = "ApuSkinTemp: N/A";
+                    }
+                    else if (float.IsNaN(apuSkinValue))
+                    {
+                        apuSkinTempLabel.Text = $"ApuSkinTemp: {apuSkinLimit:F0} °C";
+                    }
+                    else
+                    {
+                        apuSkinTempLabel.Text = $"ApuSkinTemp: {apuSkinLimit:F0} °C ({apuSkinValue:F0} °C)";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    apuSkinTempLabel.Text = "ApuSkinTemp: N/A";
+                    AppContainer.Logger().Warning($"读取 ApuSkinTemp 失败: {ex.Message}");
+                }
+
+                // ===== 系统状态（右列） =====
 
                 currentPowerLabel.Text = $"封装功耗: {hw.CpuPackagePower:F1} W";
                 currentFreqLabel.Text = $"当前频率: {hw.CpuFreq:F0} MHz";
@@ -310,29 +336,14 @@ namespace RyzenTuner.UI
 
                 var stampLimit = RyzenAdjUtils.GetPowerLimit();
                 var tctlTemp = RyzenAdjUtils.GetTctlTemp();
-                var fastPpt = Settings.Default.FastPPT;
-                var slowPpt = Settings.Default.SlowPPT;
+                var apuSkinTemp = RyzenAdjUtils.GetApuSkinTemp();
                 var shouldEnableCpuBoost = Settings.Default.CpuBoostEnabled;
 
                 notifyIcon1.Text = RyzenTunerUtils.GetNoticeText(stampLimit);
 
-                AppContainer.Logger().Debug($"fastPPT: {fastPpt}, slowPPT: {slowPpt}, stampPPT: {stampLimit}, tctlTemp: {tctlTemp}");
+                AppContainer.Logger().Debug($"powerLimit: {stampLimit}W, tctlTemp: {tctlTemp}°C, apuSkinTemp: {apuSkinTemp}°C");
 
-                // 调用 ryzenadj 调整 Cpu 设置
-                // 说明：
-                // 假设 fastPPT 为 51 瓦，slowPPT 为 45 瓦，stampPPT 为 30 瓦。
-                // 假设没有撞到功耗墙
-                // 当打开网页的时候，处理器功耗会升到 51 瓦（fastPPT 定义）
-                // 过了 x 秒后（由 SLOW PPT TIME CONSTANT定义） ，处理器功耗变为 45 瓦（slowPPT 定义）
-                // 再过了 x 后秒（由 STAPM TIME CONSTANT 定义），处理器功耗变为 30 瓦（stampPPT 定义）
-                // 之后，一直维持在 30 瓦
-
-                // 备注：
-                // ryzenadj 0.17.0 以及部分旧版本测试在当前环境存在问题：
-                // 1、stamp limit 设置不生效
-                // 2、调整 fast limit，会同时修改 fast limit 和 stamp limit
-                // 因此，设置 fastPPT 的值跟 stamp 一样
-                // 这样子的话，前期不会有性能爆发，在后面会有一段性能爆发
+                // 所有 PPT 限制均设为相同值（stampLimit），使 CPU 在所有时间窗口内维持一致功率
                 var applyErrors = new List<string>();
 
                 // 注意：仅在 applyAction 成功后更新 _lastApplied* 跟踪字段，
@@ -346,13 +357,13 @@ namespace RyzenTuner.UI
                     _lastAppliedFastPpt = stampLimit;
                 }
 
-                if (!TryApplyPowerLimit(_lastAppliedSlowPpt, slowPpt, () => processor.SetSlowPPT(slowPpt), out var slowPptChanged))
+                if (!TryApplyPowerLimit(_lastAppliedSlowPpt, stampLimit, () => processor.SetSlowPPT(stampLimit), out var slowPptChanged))
                 {
-                    applyErrors.Add($"SetSlowPPT({slowPpt:0.##}W)");
+                    applyErrors.Add($"SetSlowPPT({stampLimit:0.##}W)");
                 }
                 else if (slowPptChanged)
                 {
-                    _lastAppliedSlowPpt = slowPpt;
+                    _lastAppliedSlowPpt = stampLimit;
                 }
 
                 if (!TryApplyPowerLimit(_lastAppliedStampLimit, stampLimit, () => processor.SetStampPPT(stampLimit), out var stampPptChanged))
@@ -371,6 +382,15 @@ namespace RyzenTuner.UI
                 else if (tctlTempChanged)
                 {
                     _lastAppliedTctlTemp = tctlTemp;
+                }
+
+                if (!TryApplyIntSetting(_lastAppliedApuSkinTemp, apuSkinTemp, () => processor.SetApuSkinTemp((uint)apuSkinTemp), out var apuSkinTempChanged))
+                {
+                    applyErrors.Add($"SetApuSkinTemp({apuSkinTemp}C)");
+                }
+                else if (apuSkinTempChanged)
+                {
+                    _lastAppliedApuSkinTemp = apuSkinTemp;
                 }
 
                 // 配置系统电源计划
@@ -460,6 +480,17 @@ namespace RyzenTuner.UI
         private bool TryApplyTctlTemp(int targetValue, Func<bool> applyAction, out bool changed)
         {
             changed = !_lastAppliedTctlTemp.HasValue || _lastAppliedTctlTemp.Value != targetValue;
+            if (!changed)
+            {
+                return true;
+            }
+
+            return applyAction();
+        }
+
+        private static bool TryApplyIntSetting(int? lastAppliedValue, int targetValue, Func<bool> applyAction, out bool changed)
+        {
+            changed = !lastAppliedValue.HasValue || lastAppliedValue.Value != targetValue;
             if (!changed)
             {
                 return true;

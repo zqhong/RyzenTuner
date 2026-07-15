@@ -139,11 +139,8 @@
     <data name="TextTctlTemp" xml:space="preserve">
         <value>TctlTemp（温度限制）</value>
     </data>
-    <data name="TextFastPPT" xml:space="preserve">
-        <value>FastPPT（快速功率限制）</value>
-    </data>
-    <data name="TextSlowPPT" xml:space="preserve">
-        <value>SlowPPT（持续功率限制）</value>
+    <data name="TextApuSkinTemp" xml:space="preserve">
+        <value>ApuSkinTemp（APU 表面温度限制）</value>
     </data>
     <data name="TextSettingsSaved" xml:space="preserve">
         <value>设置已保存</value>

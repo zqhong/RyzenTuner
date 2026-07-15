@@ -253,6 +253,7 @@ namespace RyzenTuner.UI
             this.currentPowerLabel = new System.Windows.Forms.Label();
             this.currentFreqLabel = new System.Windows.Forms.Label();
             this.currentTempLabel = new System.Windows.Forms.Label();
+            this.apuSkinTempLabel = new System.Windows.Forms.Label();
 
             // 监控展开/收起按钮
             this.monitoringToggleBtn = new System.Windows.Forms.Button();
@@ -296,9 +297,10 @@ namespace RyzenTuner.UI
             this.monitoringGroupBox.Controls.Add(this.currentPowerLabel);
             this.monitoringGroupBox.Controls.Add(this.currentFreqLabel);
             this.monitoringGroupBox.Controls.Add(this.currentTempLabel);
+            this.monitoringGroupBox.Controls.Add(this.apuSkinTempLabel);
             this.monitoringGroupBox.Location = new System.Drawing.Point(29, 314);
             this.monitoringGroupBox.Name = "monitoringGroupBox";
-            this.monitoringGroupBox.Size = new System.Drawing.Size(702, 160);
+            this.monitoringGroupBox.Size = new System.Drawing.Size(702, 200);
             this.monitoringGroupBox.TabIndex = 3;
             this.monitoringGroupBox.TabStop = false;
             this.monitoringGroupBox.Text = Properties.Strings.TextMonitorInfo;
@@ -334,18 +336,18 @@ namespace RyzenTuner.UI
             // currentTempLabel
             //
             this.currentTempLabel.AutoSize = true;
-            this.currentTempLabel.Location = new System.Drawing.Point(15, 134);
+            this.currentTempLabel.Location = new System.Drawing.Point(360, 134);
             this.currentTempLabel.Name = "currentTempLabel";
-            this.currentTempLabel.Size = new System.Drawing.Size(380, 24);
+            this.currentTempLabel.Size = new System.Drawing.Size(320, 24);
             this.currentTempLabel.TabIndex = 3;
 
             //
             // tctlTempLabel
             //
             this.tctlTempLabel.AutoSize = true;
-            this.tctlTempLabel.Location = new System.Drawing.Point(360, 32);
+            this.tctlTempLabel.Location = new System.Drawing.Point(15, 134);
             this.tctlTempLabel.Name = "tctlTempLabel";
-            this.tctlTempLabel.Size = new System.Drawing.Size(320, 24);
+            this.tctlTempLabel.Size = new System.Drawing.Size(380, 24);
             this.tctlTempLabel.TabIndex = 4;
 
             //
@@ -365,6 +367,15 @@ namespace RyzenTuner.UI
             this.currentFreqLabel.Name = "currentFreqLabel";
             this.currentFreqLabel.Size = new System.Drawing.Size(320, 24);
             this.currentFreqLabel.TabIndex = 6;
+
+            //
+            // apuSkinTempLabel
+            //
+            this.apuSkinTempLabel.AutoSize = true;
+            this.apuSkinTempLabel.Location = new System.Drawing.Point(15, 168);
+            this.apuSkinTempLabel.Name = "apuSkinTempLabel";
+            this.apuSkinTempLabel.Size = new System.Drawing.Size(380, 24);
+            this.apuSkinTempLabel.TabIndex = 7;
 
             //
             // monitoringToggleBtn: 展开/收起监控信息
@@ -453,5 +464,6 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.Label currentPowerLabel;
         private System.Windows.Forms.Label currentFreqLabel;
         private System.Windows.Forms.Label currentTempLabel;
+        private System.Windows.Forms.Label apuSkinTempLabel;
     }
 }

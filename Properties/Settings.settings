@@ -44,11 +44,8 @@
     <Setting Name="TctlTemp" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">100</Value>
     </Setting>
-    <Setting Name="FastPPT" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">51</Value>
-    </Setting>
-    <Setting Name="SlowPPT" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">45</Value>
+    <Setting Name="ApuSkinTemp" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">43</Value>
     </Setting>
   </Settings>
 </SettingsFile>

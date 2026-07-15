@@ -189,28 +189,16 @@ namespace RyzenTuner.Properties {
                 this["TctlTemp"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("51")]
-        public int FastPPT {
+        [global::System.Configuration.DefaultSettingValueAttribute("43")]
+        public int ApuSkinTemp {
             get {
-                return ((int)(this["FastPPT"]));
+                return ((int)(this["ApuSkinTemp"]));
             }
             set {
-                this["FastPPT"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("45")]
-        public int SlowPPT {
-            get {
-                return ((int)(this["SlowPPT"]));
-            }
-            set {
-                this["SlowPPT"] = value;
+                this["ApuSkinTemp"] = value;
             }
         }
     }

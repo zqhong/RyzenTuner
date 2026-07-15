@@ -132,11 +132,8 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextTctlTemp" xml:space="preserve">
         <value>TctlTemp (Temperature Limit)</value>
     </data>
-    <data name="TextFastPPT" xml:space="preserve">
-        <value>FastPPT (Fast Power Limit)</value>
-    </data>
-    <data name="TextSlowPPT" xml:space="preserve">
-        <value>SlowPPT (Sustained Power Limit)</value>
+    <data name="TextApuSkinTemp" xml:space="preserve">
+        <value>ApuSkinTemp (APU Surface Temperature Limit)</value>
     </data>
     <data name="TextSettingsSaved" xml:space="preserve">
         <value>Settings saved</value>

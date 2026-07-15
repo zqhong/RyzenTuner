@@ -19,6 +19,7 @@
 - slow-limit: 41
 - stamp-limit: 51
 - tctl-temp: 100
+- apu-skin-temp: 43
 
 ## 待机
 

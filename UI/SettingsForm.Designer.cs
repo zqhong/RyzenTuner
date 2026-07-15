@@ -49,12 +49,9 @@ namespace RyzenTuner.UI
             this.labelTctlTemp = new System.Windows.Forms.Label();
             this.numericUpDownTctlTemp = new System.Windows.Forms.NumericUpDown();
             this.labelTctlTempUnit = new System.Windows.Forms.Label();
-            this.labelFastPPT = new System.Windows.Forms.Label();
-            this.numericUpDownFastPPT = new System.Windows.Forms.NumericUpDown();
-            this.labelFastPPTWatt = new System.Windows.Forms.Label();
-            this.labelSlowPPT = new System.Windows.Forms.Label();
-            this.numericUpDownSlowPPT = new System.Windows.Forms.NumericUpDown();
-            this.labelSlowPPTWatt = new System.Windows.Forms.Label();
+            this.labelApuSkinTemp = new System.Windows.Forms.Label();
+            this.numericUpDownApuSkinTemp = new System.Windows.Forms.NumericUpDown();
+            this.labelApuSkinTempUnit = new System.Windows.Forms.Label();
 
             this.buttonSave = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
@@ -66,8 +63,7 @@ namespace RyzenTuner.UI
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSleepMode)).BeginInit();
             this.groupBoxAdvanced.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTctlTemp)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownFastPPT)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSlowPPT)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownApuSkinTemp)).BeginInit();
             this.SuspendLayout();
 
             //
@@ -87,7 +83,7 @@ namespace RyzenTuner.UI
             this.groupBoxModeLimits.Controls.Add(this.labelSleepWatt);
             this.groupBoxModeLimits.Location = new System.Drawing.Point(12, 12);
             this.groupBoxModeLimits.Name = "groupBoxModeLimits";
-            this.groupBoxModeLimits.Size = new System.Drawing.Size(826, 160);
+            this.groupBoxModeLimits.Size = new System.Drawing.Size(880, 160);
             this.groupBoxModeLimits.TabIndex = 0;
             this.groupBoxModeLimits.TabStop = false;
             this.groupBoxModeLimits.Text = Properties.Strings.TextPowerLimitSettings;
@@ -194,15 +190,12 @@ namespace RyzenTuner.UI
             this.groupBoxAdvanced.Controls.Add(this.labelTctlTemp);
             this.groupBoxAdvanced.Controls.Add(this.numericUpDownTctlTemp);
             this.groupBoxAdvanced.Controls.Add(this.labelTctlTempUnit);
-            this.groupBoxAdvanced.Controls.Add(this.labelFastPPT);
-            this.groupBoxAdvanced.Controls.Add(this.numericUpDownFastPPT);
-            this.groupBoxAdvanced.Controls.Add(this.labelFastPPTWatt);
-            this.groupBoxAdvanced.Controls.Add(this.labelSlowPPT);
-            this.groupBoxAdvanced.Controls.Add(this.numericUpDownSlowPPT);
-            this.groupBoxAdvanced.Controls.Add(this.labelSlowPPTWatt);
+            this.groupBoxAdvanced.Controls.Add(this.labelApuSkinTemp);
+            this.groupBoxAdvanced.Controls.Add(this.numericUpDownApuSkinTemp);
+            this.groupBoxAdvanced.Controls.Add(this.labelApuSkinTempUnit);
             this.groupBoxAdvanced.Location = new System.Drawing.Point(12, 180);
             this.groupBoxAdvanced.Name = "groupBoxAdvanced";
-            this.groupBoxAdvanced.Size = new System.Drawing.Size(826, 150);
+            this.groupBoxAdvanced.Size = new System.Drawing.Size(880, 120);
             this.groupBoxAdvanced.TabIndex = 1;
             this.groupBoxAdvanced.TabStop = false;
             this.groupBoxAdvanced.Text = Properties.Strings.TextAdvancedSettings;
@@ -215,7 +208,7 @@ namespace RyzenTuner.UI
             this.labelTctlTemp.TabIndex = 0;
             this.labelTctlTemp.Text = Properties.Strings.TextTctlTemp;
 
-            this.numericUpDownTctlTemp.Location = new System.Drawing.Point(280, 31);
+            this.numericUpDownTctlTemp.Location = new System.Drawing.Point(380, 31);
             this.numericUpDownTctlTemp.Maximum = new decimal(new int[] { 120, 0, 0, 0 });
             this.numericUpDownTctlTemp.Minimum = new decimal(new int[] { 30, 0, 0, 0 });
             this.numericUpDownTctlTemp.Name = "numericUpDownTctlTemp";
@@ -224,62 +217,39 @@ namespace RyzenTuner.UI
             this.numericUpDownTctlTemp.Value = new decimal(new int[] { 100, 0, 0, 0 });
 
             this.labelTctlTempUnit.AutoSize = true;
-            this.labelTctlTempUnit.Location = new System.Drawing.Point(366, 33);
+            this.labelTctlTempUnit.Location = new System.Drawing.Point(470, 33);
             this.labelTctlTempUnit.Name = "labelTctlTempUnit";
             this.labelTctlTempUnit.Size = new System.Drawing.Size(24, 24);
             this.labelTctlTempUnit.TabIndex = 2;
             this.labelTctlTempUnit.Text = Properties.Strings.TextDegreeCelsius;
 
-            // FastPPT
-            this.labelFastPPT.AutoSize = true;
-            this.labelFastPPT.Location = new System.Drawing.Point(14, 73);
-            this.labelFastPPT.Name = "labelFastPPT";
-            this.labelFastPPT.Size = new System.Drawing.Size(150, 24);
-            this.labelFastPPT.TabIndex = 3;
-            this.labelFastPPT.Text = Properties.Strings.TextFastPPT;
+            // ApuSkinTemp
+            this.labelApuSkinTemp.AutoSize = true;
+            this.labelApuSkinTemp.Location = new System.Drawing.Point(14, 73);
+            this.labelApuSkinTemp.Name = "labelApuSkinTemp";
+            this.labelApuSkinTemp.Size = new System.Drawing.Size(320, 24);
+            this.labelApuSkinTemp.TabIndex = 3;
+            this.labelApuSkinTemp.Text = Properties.Strings.TextApuSkinTemp;
 
-            this.numericUpDownFastPPT.Location = new System.Drawing.Point(280, 71);
-            this.numericUpDownFastPPT.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
-            this.numericUpDownFastPPT.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            this.numericUpDownFastPPT.Name = "numericUpDownFastPPT";
-            this.numericUpDownFastPPT.Size = new System.Drawing.Size(80, 30);
-            this.numericUpDownFastPPT.TabIndex = 4;
-            this.numericUpDownFastPPT.Value = new decimal(new int[] { 51, 0, 0, 0 });
+            this.numericUpDownApuSkinTemp.Location = new System.Drawing.Point(380, 71);
+            this.numericUpDownApuSkinTemp.Maximum = new decimal(new int[] { 120, 0, 0, 0 });
+            this.numericUpDownApuSkinTemp.Minimum = new decimal(new int[] { 30, 0, 0, 0 });
+            this.numericUpDownApuSkinTemp.Name = "numericUpDownApuSkinTemp";
+            this.numericUpDownApuSkinTemp.Size = new System.Drawing.Size(80, 30);
+            this.numericUpDownApuSkinTemp.TabIndex = 4;
+            this.numericUpDownApuSkinTemp.Value = new decimal(new int[] { 43, 0, 0, 0 });
 
-            this.labelFastPPTWatt.AutoSize = true;
-            this.labelFastPPTWatt.Location = new System.Drawing.Point(366, 73);
-            this.labelFastPPTWatt.Name = "labelFastPPTWatt";
-            this.labelFastPPTWatt.Size = new System.Drawing.Size(24, 24);
-            this.labelFastPPTWatt.TabIndex = 5;
-            this.labelFastPPTWatt.Text = Properties.Strings.TextWatts;
-
-            // SlowPPT
-            this.labelSlowPPT.AutoSize = true;
-            this.labelSlowPPT.Location = new System.Drawing.Point(14, 113);
-            this.labelSlowPPT.Name = "labelSlowPPT";
-            this.labelSlowPPT.Size = new System.Drawing.Size(150, 24);
-            this.labelSlowPPT.TabIndex = 6;
-            this.labelSlowPPT.Text = Properties.Strings.TextSlowPPT;
-
-            this.numericUpDownSlowPPT.Location = new System.Drawing.Point(280, 111);
-            this.numericUpDownSlowPPT.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
-            this.numericUpDownSlowPPT.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            this.numericUpDownSlowPPT.Name = "numericUpDownSlowPPT";
-            this.numericUpDownSlowPPT.Size = new System.Drawing.Size(80, 30);
-            this.numericUpDownSlowPPT.TabIndex = 7;
-            this.numericUpDownSlowPPT.Value = new decimal(new int[] { 45, 0, 0, 0 });
-
-            this.labelSlowPPTWatt.AutoSize = true;
-            this.labelSlowPPTWatt.Location = new System.Drawing.Point(366, 113);
-            this.labelSlowPPTWatt.Name = "labelSlowPPTWatt";
-            this.labelSlowPPTWatt.Size = new System.Drawing.Size(24, 24);
-            this.labelSlowPPTWatt.TabIndex = 8;
-            this.labelSlowPPTWatt.Text = Properties.Strings.TextWatts;
+            this.labelApuSkinTempUnit.AutoSize = true;
+            this.labelApuSkinTempUnit.Location = new System.Drawing.Point(470, 73);
+            this.labelApuSkinTempUnit.Name = "labelApuSkinTempUnit";
+            this.labelApuSkinTempUnit.Size = new System.Drawing.Size(24, 24);
+            this.labelApuSkinTempUnit.TabIndex = 5;
+            this.labelApuSkinTempUnit.Text = Properties.Strings.TextDegreeCelsius;
 
             //
             // buttonSave
             //
-            this.buttonSave.Location = new System.Drawing.Point(320, 355);
+            this.buttonSave.Location = new System.Drawing.Point(350, 325);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(100, 35);
             this.buttonSave.TabIndex = 6;
@@ -290,7 +260,7 @@ namespace RyzenTuner.UI
             //
             // buttonCancel
             //
-            this.buttonCancel.Location = new System.Drawing.Point(430, 355);
+            this.buttonCancel.Location = new System.Drawing.Point(460, 325);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(100, 35);
             this.buttonCancel.TabIndex = 3;
@@ -303,7 +273,7 @@ namespace RyzenTuner.UI
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(850, 400);
+            this.ClientSize = new System.Drawing.Size(920, 370);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonSave);
             this.Controls.Add(this.groupBoxAdvanced);
@@ -325,8 +295,7 @@ namespace RyzenTuner.UI
             this.groupBoxAdvanced.ResumeLayout(false);
             this.groupBoxAdvanced.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTctlTemp)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownFastPPT)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSlowPPT)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownApuSkinTemp)).EndInit();
             this.ResumeLayout(false);
         }
 
@@ -357,13 +326,9 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.NumericUpDown numericUpDownTctlTemp;
         private System.Windows.Forms.Label labelTctlTempUnit;
 
-        private System.Windows.Forms.Label labelFastPPT;
-        private System.Windows.Forms.NumericUpDown numericUpDownFastPPT;
-        private System.Windows.Forms.Label labelFastPPTWatt;
-
-        private System.Windows.Forms.Label labelSlowPPT;
-        private System.Windows.Forms.NumericUpDown numericUpDownSlowPPT;
-        private System.Windows.Forms.Label labelSlowPPTWatt;
+        private System.Windows.Forms.Label labelApuSkinTemp;
+        private System.Windows.Forms.NumericUpDown numericUpDownApuSkinTemp;
+        private System.Windows.Forms.Label labelApuSkinTempUnit;
 
         // 按钮
         private System.Windows.Forms.Button buttonSave;

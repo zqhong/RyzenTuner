@@ -415,20 +415,11 @@ namespace RyzenTuner.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to FastPPT（快速功率限制）.
+        ///   Looks up a localized string similar to ApuSkinTemp（皮肤温度限制）.
         /// </summary>
-        internal static string TextFastPPT {
+        internal static string TextApuSkinTemp {
             get {
-                return ResourceManager.GetString("TextFastPPT", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to SlowPPT（持续功率限制）.
-        /// </summary>
-        internal static string TextSlowPPT {
-            get {
-                return ResourceManager.GetString("TextSlowPPT", resourceCulture);
+                return ResourceManager.GetString("TextApuSkinTemp", resourceCulture);
             }
         }
 

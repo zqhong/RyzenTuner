@@ -169,6 +169,24 @@ namespace RyzenTuner.Common.Processor
         }
 
         /// <summary>
+        /// 返回 APU 皮肤温度限制值（SMU 寄存器设定值）
+        /// 部分 CPU 下会返回 NaN
+        /// </summary>
+        public float GetApuSkinTempLimit()
+        {
+            return RyzenAdj.get_apu_skin_temp_limit(_ry);
+        }
+
+        /// <summary>
+        /// 返回 APU 皮肤温度当前值（SMU 测量值）
+        /// 部分 CPU 下会返回 NaN
+        /// </summary>
+        public float GetApuSkinTempValue()
+        {
+            return RyzenAdj.get_apu_skin_temp_value(_ry);
+        }
+
+        /// <summary>
         /// 返回 Fast PPT 当前实时值（SMU 测量的动态功耗）
         /// 部分 CPU 下会返回 NaN
         /// </summary>
@@ -238,6 +256,16 @@ namespace RyzenTuner.Common.Processor
         public bool SetStampPPT(double limit)
         {
             return SetTdpLimit(PowerType.Stapm, limit);
+        }
+
+        public bool SetApuSkinTemp(uint temp)
+        {
+            if (!_canChangeTdp)
+                return false;
+
+            var result = RyzenAdj.set_apu_skin_temp_limit(_ry, temp);
+            AppContainer.Logger().Debug($"AMDProcessor.SetApuSkinTemp: {temp}, result: {result}");
+            return result == (int)ErrCode.AdjErrNone;
         }
     }
 }

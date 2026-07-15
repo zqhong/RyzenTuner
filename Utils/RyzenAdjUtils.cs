@@ -99,5 +99,10 @@ namespace RyzenTuner.Utils
         {
             return Settings.Default.TctlTemp;
         }
+
+        public static int GetApuSkinTemp()
+        {
+            return Settings.Default.ApuSkinTemp;
+        }
     }
 }
