@@ -13,6 +13,13 @@
 测试代码：[DebugUtils.cs#L12-L23](https://github.com/zqhong/RyzenTuner/blob/1af00263b1222fdaa9e6a2e1016c2954d65e0d5a/Utils/DebugUtils.cs#L12-L23)
 3. 室温 26 ℃
 
+## 官方配置
+
+- fast-limit：51
+- slow-limit: 41
+- stamp-limit: 51
+- tctl-temp: 100
+
 ## 待机
 
 ### 测试内容
