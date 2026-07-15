@@ -348,7 +348,7 @@ namespace RyzenTuner.UI
                 var apuSkinTemp = RyzenAdjUtils.GetApuSkinTemp();
                 var shouldEnableCpuBoost = Settings.Default.CpuBoostEnabled;
 
-                notifyIcon1.Text = RyzenTunerUtils.GetNoticeText(stampLimit);
+                notifyIcon1.Text = "";
                 
                 // 所有 PPT 限制均设为相同值（stampLimit），使 CPU 在所有时间窗口内维持一致功率
                 var applyErrors = new List<string>();
@@ -698,7 +698,7 @@ namespace RyzenTuner.UI
                 // 立即重新应用功率限制
                 DoPowerLimit();
                 // 更新通知栏文本
-                notifyIcon1.Text = RyzenTunerUtils.GetNoticeText();
+                notifyIcon1.Text = "";
             }
         }
 
