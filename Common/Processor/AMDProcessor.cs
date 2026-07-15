@@ -238,8 +238,6 @@ namespace RyzenTuner.Common.Processor
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
             
-            AppContainer.Logger().Debug($"AMDProcessor.SetTdpLimit: type {type}, limit: {(uint)limit}, result: {result}");
-
             return result == (int)ErrCode.AdjErrNone;
         }
 
