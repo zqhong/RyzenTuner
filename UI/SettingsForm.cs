@@ -1,7 +1,9 @@
 using System;
+using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
 using RyzenTuner.Properties;
+using RyzenTuner.Utils;
 
 namespace RyzenTuner.UI
 {
@@ -9,6 +11,22 @@ namespace RyzenTuner.UI
     {
         public SettingsForm()
         {
+            // 与 MainForm 保持一致的字体，避免标签宽度不一致导致布局错位
+            string[] tryFontArr =
+            {
+                "微软雅黑",
+                "思源黑体",
+                "Arial",
+            };
+            foreach (var loopFont in tryFontArr)
+            {
+                if (CommonUtils.IsFontExists(loopFont))
+                {
+                    Font = new Font(loopFont, 10);
+                    break;
+                }
+            }
+
             InitializeComponent();
             LoadSettings();
         }
