@@ -112,7 +112,7 @@ namespace RyzenTuner.UI
             {
                 TestType = comboBoxTestType.SelectedIndex == 0
                     ? BenchmarkTestType.SingleCore
-                    : BenchmarkTestType.DualCore,
+                    : BenchmarkTestType.MultiCore,
                 StartTdp = (float)numericUpDownStartPower.Value,
                 StepTdp = (float)numericUpDownStep.Value,
                 EndTdp = (float)numericUpDownEndPower.Value,

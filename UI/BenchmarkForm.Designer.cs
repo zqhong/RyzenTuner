@@ -113,7 +113,7 @@ namespace RyzenTuner.UI
             this.comboBoxTestType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxTestType.Items.AddRange(new object[] {
                 Properties.Strings.TextBenchmarkSingleCore,
-                Properties.Strings.TextBenchmarkDualCore
+                Properties.Strings.TextBenchmarkMultiCore
             });
             this.comboBoxTestType.Location = new System.Drawing.Point(100, 29);
             this.comboBoxTestType.Name = "comboBoxTestType";

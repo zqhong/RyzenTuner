@@ -474,8 +474,8 @@ namespace RyzenTuner.Properties {
             get { return ResourceManager.GetString("TextBenchmarkSingleCore", resourceCulture); }
         }
 
-        internal static string TextBenchmarkDualCore {
-            get { return ResourceManager.GetString("TextBenchmarkDualCore", resourceCulture); }
+        internal static string TextBenchmarkMultiCore {
+            get { return ResourceManager.GetString("TextBenchmarkMultiCore", resourceCulture); }
         }
 
         internal static string TextBenchmarkStartPower {

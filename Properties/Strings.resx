@@ -169,8 +169,8 @@
     <data name="TextBenchmarkSingleCore" xml:space="preserve">
         <value>CPU 单核</value>
     </data>
-    <data name="TextBenchmarkDualCore" xml:space="preserve">
-        <value>CPU 双核</value>
+    <data name="TextBenchmarkMultiCore" xml:space="preserve">
+        <value>CPU 多核</value>
     </data>
     <data name="TextBenchmarkStartPower" xml:space="preserve">
         <value>起始功耗</value>

@@ -162,8 +162,8 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextBenchmarkSingleCore" xml:space="preserve">
         <value>CPU Single Core</value>
     </data>
-    <data name="TextBenchmarkDualCore" xml:space="preserve">
-        <value>CPU Dual Core</value>
+    <data name="TextBenchmarkMultiCore" xml:space="preserve">
+        <value>CPU Multi Core</value>
     </data>
     <data name="TextBenchmarkStartPower" xml:space="preserve">
         <value>Starting TDP</value>

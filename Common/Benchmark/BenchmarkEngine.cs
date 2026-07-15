@@ -162,7 +162,9 @@ namespace RyzenTuner.Common.Benchmark
             Processor.AmdProcessor processor,
             Hardware.HardwareMonitor hwMonitor)
         {
-            var threadCount = config.TestType == BenchmarkTestType.DualCore ? 2 : 1;
+            var threadCount = config.TestType == BenchmarkTestType.MultiCore
+                ? Math.Max(1, Environment.ProcessorCount - 1)
+                : 1;
             var sampleIntervalMs = 500;
             var totalSamples = config.DurationSeconds * 1000 / sampleIntervalMs;
 

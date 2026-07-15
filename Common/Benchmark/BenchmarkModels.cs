@@ -9,7 +9,7 @@ namespace RyzenTuner.Common.Benchmark
     public enum BenchmarkTestType
     {
         SingleCore,
-        DualCore,
+        MultiCore,
     }
 
     /// <summary>
@@ -18,7 +18,7 @@ namespace RyzenTuner.Common.Benchmark
     public class BenchmarkConfig
     {
         /// <summary>
-        /// 测试类型（单核 / 双核）
+        /// 测试类型（单核 / 多核）
         /// </summary>
         public BenchmarkTestType TestType { get; set; }
 
