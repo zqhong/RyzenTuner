@@ -11,4 +11,4 @@ MSBUILD_EXE="/c/Program Files/JetBrains/JetBrains Rider 2025.2.6/tools/MSBuild/C
 
 ## 可用 Skill
 
-- `/goal` — 持续 code-review + 编译修复，直到零错误
+- `/check-fix` — 开发/修复 bug 后，持续 code-review + 编译修复，直到零错误
