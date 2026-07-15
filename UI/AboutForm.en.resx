@@ -15,11 +15,7 @@
         <value>RyzenTuner {version}
 © 2022-{copyright_year} By zqhong
 
-This project uses the following third-party libraries:
-FlyGoat/RyzenAdj
-EnergyStar
-LibreHardwareMonitor
-dahall/Vanara
+ryzenadj build date: {ryzenadj_date}
 
 Project URL:
 https://github.com/zqhong/RyzenTuner</value>
