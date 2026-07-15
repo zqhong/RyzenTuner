@@ -43,7 +43,7 @@ namespace RyzenTuner.Common
                 throw new InvalidOperationException("Unable to resolve the current Windows user SID.");
             }
 
-            var taskXml = BuildTaskXml(executablePath, workingDirectory, currentUserSid);
+            var taskXml = BuildTaskXml(executablePath, workingDirectory, currentUserSid!);
             var tempFilePath = Path.Combine(Path.GetTempPath(), $"RyzenTuner.Startup.{Guid.NewGuid():N}.xml");
 
             try
@@ -197,7 +197,7 @@ namespace RyzenTuner.Common
 
         private static string NormalizePath(string? path)
         {
-            return string.IsNullOrWhiteSpace(path) ? string.Empty : path.Trim().Trim('"');
+            return string.IsNullOrWhiteSpace(path) ? string.Empty : path!.Trim().Trim('"');
         }
 
         private static string Quote(string value)

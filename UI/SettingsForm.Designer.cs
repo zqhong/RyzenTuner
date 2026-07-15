@@ -87,7 +87,7 @@ namespace RyzenTuner.UI
             this.groupBoxModeLimits.Controls.Add(this.labelSleepWatt);
             this.groupBoxModeLimits.Location = new System.Drawing.Point(12, 12);
             this.groupBoxModeLimits.Name = "groupBoxModeLimits";
-            this.groupBoxModeLimits.Size = new System.Drawing.Size(476, 160);
+            this.groupBoxModeLimits.Size = new System.Drawing.Size(636, 160);
             this.groupBoxModeLimits.TabIndex = 0;
             this.groupBoxModeLimits.TabStop = false;
             this.groupBoxModeLimits.Text = Properties.Strings.TextPowerLimitSettings;
@@ -100,7 +100,6 @@ namespace RyzenTuner.UI
             this.labelSleepMode.TabIndex = 0;
             this.labelSleepMode.Text = Properties.Strings.SleepMode;
 
-            this.numericUpDownSleepMode.DecimalPlaces = 1;
             this.numericUpDownSleepMode.Increment = new decimal(new int[] { 1, 0, 0, 0 });
             this.numericUpDownSleepMode.Location = new System.Drawing.Point(170, 33);
             this.numericUpDownSleepMode.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
@@ -125,7 +124,6 @@ namespace RyzenTuner.UI
             this.labelPowerSaveMode.TabIndex = 3;
             this.labelPowerSaveMode.Text = Properties.Strings.PowerSaveMode;
 
-            this.numericUpDownPowerSaveMode.DecimalPlaces = 1;
             this.numericUpDownPowerSaveMode.Increment = new decimal(new int[] { 1, 0, 0, 0 });
             this.numericUpDownPowerSaveMode.Location = new System.Drawing.Point(170, 71);
             this.numericUpDownPowerSaveMode.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
@@ -144,15 +142,14 @@ namespace RyzenTuner.UI
 
             // 第三行左（实际上是在右列）：平衡模式
             this.labelBalancedMode.AutoSize = true;
-            this.labelBalancedMode.Location = new System.Drawing.Point(290, 35);
+            this.labelBalancedMode.Location = new System.Drawing.Point(370, 35);
             this.labelBalancedMode.Name = "labelBalancedMode";
             this.labelBalancedMode.Size = new System.Drawing.Size(120, 24);
             this.labelBalancedMode.TabIndex = 6;
             this.labelBalancedMode.Text = Properties.Strings.BalancedMode;
 
-            this.numericUpDownBalancedMode.DecimalPlaces = 1;
             this.numericUpDownBalancedMode.Increment = new decimal(new int[] { 1, 0, 0, 0 });
-            this.numericUpDownBalancedMode.Location = new System.Drawing.Point(390, 33);
+            this.numericUpDownBalancedMode.Location = new System.Drawing.Point(470, 33);
             this.numericUpDownBalancedMode.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
             this.numericUpDownBalancedMode.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             this.numericUpDownBalancedMode.Name = "numericUpDownBalancedMode";
@@ -161,7 +158,7 @@ namespace RyzenTuner.UI
             this.numericUpDownBalancedMode.Value = new decimal(new int[] { 26, 0, 0, 0 });
 
             this.labelBalancedWatt.AutoSize = true;
-            this.labelBalancedWatt.Location = new System.Drawing.Point(476, 35);
+            this.labelBalancedWatt.Location = new System.Drawing.Point(556, 35);
             this.labelBalancedWatt.Name = "labelBalancedWatt";
             this.labelBalancedWatt.Size = new System.Drawing.Size(24, 24);
             this.labelBalancedWatt.TabIndex = 8;
@@ -169,15 +166,14 @@ namespace RyzenTuner.UI
 
             // 第四行（右列）：性能模式
             this.labelPerformanceMode.AutoSize = true;
-            this.labelPerformanceMode.Location = new System.Drawing.Point(290, 73);
+            this.labelPerformanceMode.Location = new System.Drawing.Point(370, 73);
             this.labelPerformanceMode.Name = "labelPerformanceMode";
             this.labelPerformanceMode.Size = new System.Drawing.Size(120, 24);
             this.labelPerformanceMode.TabIndex = 9;
             this.labelPerformanceMode.Text = Properties.Strings.PerformanceMode;
 
-            this.numericUpDownPerformanceMode.DecimalPlaces = 1;
             this.numericUpDownPerformanceMode.Increment = new decimal(new int[] { 1, 0, 0, 0 });
-            this.numericUpDownPerformanceMode.Location = new System.Drawing.Point(390, 71);
+            this.numericUpDownPerformanceMode.Location = new System.Drawing.Point(470, 71);
             this.numericUpDownPerformanceMode.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
             this.numericUpDownPerformanceMode.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             this.numericUpDownPerformanceMode.Name = "numericUpDownPerformanceMode";
@@ -186,7 +182,7 @@ namespace RyzenTuner.UI
             this.numericUpDownPerformanceMode.Value = new decimal(new int[] { 45, 0, 0, 0 });
 
             this.labelPerformanceWatt.AutoSize = true;
-            this.labelPerformanceWatt.Location = new System.Drawing.Point(476, 73);
+            this.labelPerformanceWatt.Location = new System.Drawing.Point(556, 73);
             this.labelPerformanceWatt.Name = "labelPerformanceWatt";
             this.labelPerformanceWatt.Size = new System.Drawing.Size(24, 24);
             this.labelPerformanceWatt.TabIndex = 11;
@@ -206,7 +202,7 @@ namespace RyzenTuner.UI
             this.groupBoxAdvanced.Controls.Add(this.labelSlowPPTWatt);
             this.groupBoxAdvanced.Location = new System.Drawing.Point(12, 180);
             this.groupBoxAdvanced.Name = "groupBoxAdvanced";
-            this.groupBoxAdvanced.Size = new System.Drawing.Size(476, 120);
+            this.groupBoxAdvanced.Size = new System.Drawing.Size(636, 120);
             this.groupBoxAdvanced.TabIndex = 1;
             this.groupBoxAdvanced.TabStop = false;
             this.groupBoxAdvanced.Text = Properties.Strings.TextAdvancedSettings;
@@ -236,13 +232,13 @@ namespace RyzenTuner.UI
 
             // FastPPT
             this.labelFastPPT.AutoSize = true;
-            this.labelFastPPT.Location = new System.Drawing.Point(290, 33);
+            this.labelFastPPT.Location = new System.Drawing.Point(370, 33);
             this.labelFastPPT.Name = "labelFastPPT";
             this.labelFastPPT.Size = new System.Drawing.Size(150, 24);
             this.labelFastPPT.TabIndex = 3;
             this.labelFastPPT.Text = Properties.Strings.TextFastPPT;
 
-            this.numericUpDownFastPPT.Location = new System.Drawing.Point(390, 31);
+            this.numericUpDownFastPPT.Location = new System.Drawing.Point(470, 31);
             this.numericUpDownFastPPT.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
             this.numericUpDownFastPPT.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             this.numericUpDownFastPPT.Name = "numericUpDownFastPPT";
@@ -251,7 +247,7 @@ namespace RyzenTuner.UI
             this.numericUpDownFastPPT.Value = new decimal(new int[] { 51, 0, 0, 0 });
 
             this.labelFastPPTWatt.AutoSize = true;
-            this.labelFastPPTWatt.Location = new System.Drawing.Point(476, 33);
+            this.labelFastPPTWatt.Location = new System.Drawing.Point(556, 33);
             this.labelFastPPTWatt.Name = "labelFastPPTWatt";
             this.labelFastPPTWatt.Size = new System.Drawing.Size(24, 24);
             this.labelFastPPTWatt.TabIndex = 5;
@@ -283,7 +279,7 @@ namespace RyzenTuner.UI
             //
             // buttonSave
             //
-            this.buttonSave.Location = new System.Drawing.Point(145, 315);
+            this.buttonSave.Location = new System.Drawing.Point(225, 315);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(100, 35);
             this.buttonSave.TabIndex = 2;
@@ -294,7 +290,7 @@ namespace RyzenTuner.UI
             //
             // buttonCancel
             //
-            this.buttonCancel.Location = new System.Drawing.Point(255, 315);
+            this.buttonCancel.Location = new System.Drawing.Point(335, 315);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(100, 35);
             this.buttonCancel.TabIndex = 3;
@@ -307,7 +303,7 @@ namespace RyzenTuner.UI
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(500, 365);
+            this.ClientSize = new System.Drawing.Size(660, 365);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonSave);
             this.Controls.Add(this.groupBoxAdvanced);
