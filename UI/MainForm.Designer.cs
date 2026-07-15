@@ -73,17 +73,16 @@ namespace RyzenTuner.UI
             this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.checkBoxEnergyStar = new System.Windows.Forms.CheckBox();
+            this.keepAwakeCheckBox = new System.Windows.Forms.CheckBox();
             this.launchAtLogonCheckBox = new System.Windows.Forms.CheckBox();
             this.cpuBoostCheckBox = new System.Windows.Forms.CheckBox();
-            this.keepAwakeCheckBox = new System.Windows.Forms.CheckBox();
-            this.settingsButton = new System.Windows.Forms.Button();
-            this.checkBoxEnergyStar = new System.Windows.Forms.CheckBox();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            
-            
+
+
             this.mainFormTimer = new System.Windows.Forms.Timer(this.components);
-            
+
             this.powerLimitGroupBox.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -186,7 +185,6 @@ namespace RyzenTuner.UI
             this.groupBox3.Controls.Add(this.launchAtLogonCheckBox);
             this.groupBox3.Controls.Add(this.cpuBoostCheckBox);
             this.groupBox3.Controls.Add(this.keepAwakeCheckBox);
-            this.groupBox3.Controls.Add(this.settingsButton);
             this.groupBox3.Controls.Add(this.checkBoxEnergyStar);
             this.groupBox3.Location = new System.Drawing.Point(29, 180);
             this.groupBox3.Name = "groupBox3";
@@ -195,9 +193,7 @@ namespace RyzenTuner.UI
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = Properties.Strings.TextOtherOptions;
 
-            // 
             // launchAtLogonCheckBox
-            // 
             this.launchAtLogonCheckBox.AutoSize = true;
             this.launchAtLogonCheckBox.Location = new System.Drawing.Point(21, 72);
             this.launchAtLogonCheckBox.Name = "launchAtLogonCheckBox";
@@ -207,9 +203,7 @@ namespace RyzenTuner.UI
             this.launchAtLogonCheckBox.UseVisualStyleBackColor = true;
             this.launchAtLogonCheckBox.CheckedChanged += new System.EventHandler(this.launchAtLogonCheckBox_CheckedChanged);
 
-            // 
             // cpuBoostCheckBox
-            // 
             this.cpuBoostCheckBox.AutoSize = true;
             this.cpuBoostCheckBox.Location = new System.Drawing.Point(261, 72);
             this.cpuBoostCheckBox.Name = "cpuBoostCheckBox";
@@ -218,10 +212,8 @@ namespace RyzenTuner.UI
             this.cpuBoostCheckBox.Text = Properties.Strings.TextEnableCpuBoost;
             this.cpuBoostCheckBox.UseVisualStyleBackColor = true;
             this.cpuBoostCheckBox.CheckedChanged += new System.EventHandler(this.cpuBoostCheckBox_CheckedChanged);
-            
-            // 
-            // 保持唤醒选项框
-            // 
+
+            // keepAwakeCheckBox
             this.keepAwakeCheckBox.AutoSize = true;
             this.keepAwakeCheckBox.Location = new System.Drawing.Point(261, 34);
             this.keepAwakeCheckBox.Name = "keepAwakeCheckBox";
@@ -230,10 +222,8 @@ namespace RyzenTuner.UI
             this.keepAwakeCheckBox.Text = Properties.Strings.TextStayAwake;
             this.keepAwakeCheckBox.UseVisualStyleBackColor = true;
             this.keepAwakeCheckBox.CheckedChanged += new System.EventHandler(this.keepAwakeCheckBox_CheckedChanged);
-            
-            //
-            // checkBox1
-            //
+
+            // checkBoxEnergyStar
             this.checkBoxEnergyStar.AutoSize = true;
             this.checkBoxEnergyStar.Location = new System.Drawing.Point(21, 34);
             this.checkBoxEnergyStar.Name = "checkBoxEnergyStar";
@@ -243,18 +233,6 @@ namespace RyzenTuner.UI
             this.checkBoxEnergyStar.UseVisualStyleBackColor = true;
             this.checkBoxEnergyStar.CheckedChanged += new System.EventHandler(this.checkBoxEnergyStar_CheckedChanged);
 
-            //
-            // settingsButton
-            //
-            this.settingsButton.AutoSize = true;
-            this.settingsButton.Location = new System.Drawing.Point(490, 72);
-            this.settingsButton.Name = "settingsButton";
-            this.settingsButton.Size = new System.Drawing.Size(190, 28);
-            this.settingsButton.TabIndex = 4;
-            this.settingsButton.Text = Properties.Strings.TextSettings;
-            this.settingsButton.UseVisualStyleBackColor = true;
-            this.settingsButton.Click += new System.EventHandler(this.settingsButton_Click);
-
             // 托盘菜单 icon
             this.notifyIcon1.ContextMenuStrip = this.contextMenuStrip1;
             this.notifyIcon1.Icon = this.getIcon();
@@ -262,13 +240,7 @@ namespace RyzenTuner.UI
             this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
             
             // 托盘菜单选项
-            this.AutoModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SleepModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.PowerSaveModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.BalancedModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.PerformanceModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.CustomModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.SettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ExitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 
@@ -287,62 +259,20 @@ namespace RyzenTuner.UI
             
             // contextMenuStrip：托盘右键菜单
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.AutoModeToolStripMenuItem,
-                this.SleepModeToolStripMenuItem,
-                this.PowerSaveModeToolStripMenuItem,
-                this.BalancedModeToolStripMenuItem,
-                this.PerformanceModeToolStripMenuItem,
-                this.CustomModeToolStripMenuItem,
-                this.toolStripSeparator1,
+                this.SettingsToolStripMenuItem,
                 this.AboutToolStripMenuItem,
                 this.ExitToolStripMenuItem,
             });
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(281, 276);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(281, 120);
 
             // 设置自定义 Renderer，加粗选中项
             this.contextMenuStrip1.Renderer = new ToolStripRenderer();
-            
-            this.AutoModeToolStripMenuItem.Name = "AutoModeToolStripMenuItem";
-            this.AutoModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.AutoModeToolStripMenuItem.Tag = "AutoMode";
-            this.AutoModeToolStripMenuItem.Text = Properties.Strings.AutoMode;
-            this.AutoModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-            
 
-            this.SleepModeToolStripMenuItem.Name = "SleepModeToolStripMenuItem";
-            this.SleepModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.SleepModeToolStripMenuItem.Tag = "SleepMode";
-            this.SleepModeToolStripMenuItem.Text = Properties.Strings.SleepMode;
-            this.SleepModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-           
-            this.PowerSaveModeToolStripMenuItem.Name = "PowerSaveModeToolStripMenuItem";
-            this.PowerSaveModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.PowerSaveModeToolStripMenuItem.Tag = "PowerSaveMode";
-            this.PowerSaveModeToolStripMenuItem.Text = Properties.Strings.PowerSaveMode;
-            this.PowerSaveModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-
-            this.BalancedModeToolStripMenuItem.Name = "BalancedModeToolStripMenuItem";
-            this.BalancedModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.BalancedModeToolStripMenuItem.Tag = "BalancedMode";
-            this.BalancedModeToolStripMenuItem.Text = Properties.Strings.BalancedMode;
-            this.BalancedModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-            
-            this.PerformanceModeToolStripMenuItem.Name = "PerformanceModeToolStripMenuItem";
-            this.PerformanceModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.PerformanceModeToolStripMenuItem.Tag = "PerformanceMode";
-            this.PerformanceModeToolStripMenuItem.Text = Properties.Strings.PerformanceMode;
-            this.PerformanceModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-
-            this.CustomModeToolStripMenuItem.Name = "CustomModeToolStripMenuItem";
-            this.CustomModeToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
-            this.CustomModeToolStripMenuItem.Tag = "CustomMode";
-            this.CustomModeToolStripMenuItem.Text = Properties.Strings.CustomMode;
-            this.CustomModeToolStripMenuItem.Click += new System.EventHandler(this.ToolStripMenuItems_Clicked);
-            
-            // toolStripSeparator1：分割线
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(277, 6);
+            this.SettingsToolStripMenuItem.Name = "SettingsToolStripMenuItem";
+            this.SettingsToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
+            this.SettingsToolStripMenuItem.Text = Properties.Strings.TextSettings;
+            this.SettingsToolStripMenuItem.Click += new System.EventHandler(this.SettingsToolStripMenuItem_Click);
 
             // 托盘菜单选项 - 关于
             this.AboutToolStripMenuItem.Name = "AboutToolStripMenuItem";
@@ -501,22 +431,15 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.RadioButton radioButton1;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.CheckBox checkBoxEnergyStar;
+        private System.Windows.Forms.CheckBox keepAwakeCheckBox;
         private System.Windows.Forms.CheckBox launchAtLogonCheckBox;
         private System.Windows.Forms.CheckBox cpuBoostCheckBox;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem AutoModeToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem SleepModeToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem PowerSaveModeToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem BalancedModeToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem PerformanceModeToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem CustomModeToolStripMenuItem;
-        private System.Windows.Forms.CheckBox keepAwakeCheckBox;
-        private System.Windows.Forms.Button settingsButton;
-        private System.Windows.Forms.Timer mainFormTimer;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem SettingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem AboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ExitToolStripMenuItem;
+        private System.Windows.Forms.Timer mainFormTimer;
         
         // 是否需要运行 BoostAllUserBackgroundProcesses 任务
         private bool _needRunBoostAllBgProcesses;

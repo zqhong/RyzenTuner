@@ -282,7 +282,7 @@ namespace RyzenTuner.UI
             this.buttonSave.Location = new System.Drawing.Point(320, 355);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(100, 35);
-            this.buttonSave.TabIndex = 2;
+            this.buttonSave.TabIndex = 6;
             this.buttonSave.Text = Properties.Strings.TextSave;
             this.buttonSave.UseVisualStyleBackColor = true;
             this.buttonSave.Click += new System.EventHandler(this.buttonSave_Click);

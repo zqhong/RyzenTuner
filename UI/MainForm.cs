@@ -21,13 +21,13 @@ namespace RyzenTuner.UI
         private float? _lastAppliedStampLimit;
         private int? _lastAppliedTctlTemp;
         private bool? _lastCpuBoostEnabled;
-        private bool _isInitializingOptions;
         private DateTime _lastPowerLimitErrorShownAt = DateTime.MinValue;
         private DateTime _lastPowerLimitErrorTime = DateTime.MinValue;
         private DateTime _lastSuccessfulApplyTime = DateTime.MinValue;
         private string _preErrorMode = "BalancedMode";
         private bool _isErrorRecoveryPending;
         private bool _isApplyingPowerLimit;
+        private bool _isInitializingOptions;
 
 #if DEBUG
         private static string GetDebugBuildSuffix()
@@ -70,6 +70,17 @@ namespace RyzenTuner.UI
             keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
 
             WindowState = FormWindowState.Minimized;
+        }
+
+        private void AboutAppToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using var aboutForm = new AboutForm();
+            aboutForm.ShowDialog();
+        }
+
+        private void ExitAppToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
         }
 
         private void checkBoxEnergyStar_CheckedChanged(object sender, EventArgs e)
@@ -148,17 +159,6 @@ namespace RyzenTuner.UI
             Properties.Settings.Default.Save();
 
             DoPowerLimit();
-        }
-
-        private void AboutAppToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            using var aboutForm = new AboutForm();
-            aboutForm.ShowDialog();
-        }
-
-        private void ExitAppToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -501,7 +501,7 @@ namespace RyzenTuner.UI
         private void DoProcessManage()
         {
             // 如果开启【EnergyStar】
-            if (checkBoxEnergyStar.Checked)
+            if (Properties.Settings.Default.EnergyStar)
             {
                 AppContainer.EnergyManager().HandleForeground();
 
@@ -541,21 +541,6 @@ namespace RyzenTuner.UI
                     rb.Checked = true;
                 }
             }
-
-
-            foreach (ToolStripItem tsmi in contextMenuStrip1.Items)
-            {
-                if (tsmi.Tag != null && tsmi.Tag.ToString() == Properties.Settings.Default.CurrentMode)
-                {
-                    var tsmi2 = (ToolStripMenuItem)tsmi;
-                    tsmi2.Checked = true;
-                }
-                else if (tsmi is ToolStripMenuItem)
-                {
-                    var tsmi2 = (ToolStripMenuItem)tsmi;
-                    tsmi2.Checked = false;
-                }
-            }
         }
 
         private void SyncLaunchAtLogonSetting()
@@ -563,7 +548,6 @@ namespace RyzenTuner.UI
             try
             {
                 var isEnabled = StartupTaskScheduler.IsEnabled();
-                launchAtLogonCheckBox.Checked = isEnabled;
 
                 if (Properties.Settings.Default.LaunchAtLogon != isEnabled)
                 {
@@ -573,7 +557,6 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                launchAtLogonCheckBox.Checked = Properties.Settings.Default.LaunchAtLogon;
                 AppContainer.Logger().Warning($"Failed to query launch at logon status: {ex.Message}");
             }
         }
@@ -583,7 +566,6 @@ namespace RyzenTuner.UI
             try
             {
                 var isEnabled = AppContainer.PowerConfig().IsCpuBoostEnabled();
-                cpuBoostCheckBox.Checked = isEnabled;
                 _lastCpuBoostEnabled = isEnabled;
 
                 if (Properties.Settings.Default.CpuBoostEnabled != isEnabled)
@@ -594,7 +576,6 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                cpuBoostCheckBox.Checked = Properties.Settings.Default.CpuBoostEnabled;
                 _lastCpuBoostEnabled = Properties.Settings.Default.CpuBoostEnabled;
                 AppContainer.Logger().Warning($"Failed to query cpu boost status: {ex.Message}");
             }
@@ -650,27 +631,6 @@ namespace RyzenTuner.UI
             return isValid && customMode > 0;
         }
 
-        private void ToolStripMenuItems_Clicked(object sender, EventArgs e)
-        {
-            var menuItem = (ToolStripMenuItem)sender;
-            if (menuItem.CheckState != CheckState.Checked)
-            {
-                menuItem.Checked = true;
-            }
-
-            // 根据用户点击的托盘菜单选项，自动选中不同的【功率限制】按钮
-            foreach (Control c in powerLimitGroupBox.Controls)
-            {
-                if (c.Tag == null || c.Tag.ToString() != ((ToolStripMenuItem)sender).Tag.ToString())
-                {
-                    continue;
-                }
-
-                var radioButton = (RadioButton)c;
-                radioButton.Checked = true;
-            }
-        }
-
         private void Form1_Shown(object sender, EventArgs e)
         {
             if (Environment.GetCommandLineArgs().Length > 1 && Environment.GetCommandLineArgs()[1] == "-hide")
@@ -679,7 +639,7 @@ namespace RyzenTuner.UI
             }
         }
 
-        private void settingsButton_Click(object sender, EventArgs e)
+        private void SettingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using var settingsForm = new SettingsForm();
             if (settingsForm.ShowDialog(this) == DialogResult.OK)
