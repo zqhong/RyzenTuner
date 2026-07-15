@@ -191,7 +191,6 @@ namespace RyzenTuner.UI
         private void mainFormTimer_Tick(object sender, EventArgs e)
         {
             _tickCount++;
-            AppContainer.HardwareMonitor().Monitor();
 
             DoPowerLimit();
 
@@ -232,6 +231,7 @@ namespace RyzenTuner.UI
             try
             {
                 var hw = AppContainer.HardwareMonitor();
+                hw.Monitor();
                 var proc = AppContainer.AmdProcessor();
 
                 // 刷新 SMU 表后再读取，等效 ryzenadj --info 的行为

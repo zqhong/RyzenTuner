@@ -16,6 +16,7 @@ namespace RyzenTuner.Utils
         private static float AutoModePowerLimit()
         {
             var hardwareMonitor = AppContainer.HardwareMonitor();
+            hardwareMonitor.Monitor();  // 确保传感器数据为最新值
 
             var cpuUsage = hardwareMonitor.CpuUsage;
             var videoCard3DUsage = hardwareMonitor.VideoCard3DUsage;
