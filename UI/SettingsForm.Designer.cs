@@ -87,7 +87,7 @@ namespace RyzenTuner.UI
             this.groupBoxModeLimits.Controls.Add(this.labelSleepWatt);
             this.groupBoxModeLimits.Location = new System.Drawing.Point(12, 12);
             this.groupBoxModeLimits.Name = "groupBoxModeLimits";
-            this.groupBoxModeLimits.Size = new System.Drawing.Size(636, 160);
+            this.groupBoxModeLimits.Size = new System.Drawing.Size(1024, 160);
             this.groupBoxModeLimits.TabIndex = 0;
             this.groupBoxModeLimits.TabStop = false;
             this.groupBoxModeLimits.Text = Properties.Strings.TextPowerLimitSettings;

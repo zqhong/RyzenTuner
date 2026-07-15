@@ -29,9 +29,29 @@ namespace RyzenTuner.UI
         private bool _isErrorRecoveryPending;
         private bool _isApplyingPowerLimit;
 
+#if DEBUG
+        private static string GetDebugBuildSuffix()
+        {
+            try
+            {
+                var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+                var buildTime = System.IO.File.GetLastWriteTime(assembly.Location);
+                return $" [Debug Build: {buildTime:yyyy-MM-dd HH:mm}]";
+            }
+            catch
+            {
+                return " [Debug Build]";
+            }
+        }
+#endif
+
         public MainForm()
         {
             InitializeComponent();
+
+#if DEBUG
+            Text += GetDebugBuildSuffix();
+#endif
         }
 
         private void Form1_Load(object sender, EventArgs e)

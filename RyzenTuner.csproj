@@ -30,6 +30,7 @@
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Prefer32bit>false</Prefer32bit>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
