@@ -60,29 +60,11 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 自动.
-        /// </summary>
-        internal static string AutoMode {
-            get {
-                return ResourceManager.GetString("AutoMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to 平衡.
         /// </summary>
         internal static string BalancedMode {
             get {
                 return ResourceManager.GetString("BalancedMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to 手动.
-        /// </summary>
-        internal static string CustomMode {
-            get {
-                return ResourceManager.GetString("CustomMode", resourceCulture);
             }
         }
         
@@ -105,15 +87,6 @@ namespace RyzenTuner.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 睡眠.
-        /// </summary>
-        internal static string SleepMode {
-            get {
-                return ResourceManager.GetString("SleepMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to 关于.
         /// </summary>
         internal static string TextAbout {
@@ -131,15 +104,6 @@ namespace RyzenTuner.Properties {
             }
         }
 
-        /// <summary>
-        ///   Looks up a localized string similar to 手动功率限制必须是大于 0 的有效数字。.
-        /// </summary>
-        internal static string TextCustomPowerLimitInvalid {
-            get {
-                return ResourceManager.GetString("TextCustomPowerLimitInvalid", resourceCulture);
-            }
-        }
-        
         /// <summary>
         ///   Looks up a localized string similar to 启用 Energy Star.
         /// </summary>

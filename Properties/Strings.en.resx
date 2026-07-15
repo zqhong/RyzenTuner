@@ -11,23 +11,14 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
-    <data name="AutoMode" xml:space="preserve">
-        <value>Automatic</value>
-    </data>
     <data name="BalancedMode" xml:space="preserve">
         <value>Balanced</value>
-    </data>
-    <data name="CustomMode" xml:space="preserve">
-        <value>Manual</value>
     </data>
     <data name="PerformanceMode" xml:space="preserve">
         <value>Performance</value>
     </data>
     <data name="PowerSaveMode" xml:space="preserve">
         <value>Power Saver</value>
-    </data>
-    <data name="SleepMode" xml:space="preserve">
-        <value>Sleep</value>
     </data>
     <data name="TextPowerLimit" xml:space="preserve">
         <value>Power Limit</value>

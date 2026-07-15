@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using RyzenTuner.Common.Container;
 
 namespace RyzenTuner.Utils
 {
@@ -45,30 +44,6 @@ namespace RyzenTuner.Utils
         }
 
 
-        /**
-         * 检查当前是否处于【待机模式】
-         */
-        public static bool IsSleepMode(float powerLimit)
-        {
-            return Math.Abs(powerLimit - GetPowerLimitByMode("SleepMode")) < 0.01;
-        }
-
-        /**
-         * 检查当前是否处于【省电模式】
-         */
-        public static bool IsPowerSaveModeMode(float powerLimit)
-        {
-            return Math.Abs(powerLimit - GetPowerLimitByMode("PowerSaveMode")) < 0.01;
-        }
-
-        /**
-         * 检查当前是否处于【平衡模式】
-         */
-        public static bool IsBalancedMode(float powerLimit)
-        {
-            return Math.Abs(powerLimit - GetPowerLimitByMode("BalancedMode")) < 0.01;
-        }
-
         public static float GetPowerLimitByMode(string mode)
         {
             if (TryGetPowerLimitByMode(mode, out var powerLimit))
@@ -91,37 +66,6 @@ namespace RyzenTuner.Utils
 
             return float.TryParse(value, NumberStyles.Float, CultureInfo.CurrentCulture, out powerLimit) ||
                    float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out powerLimit);
-        }
-
-        public static string GetNoticeText()
-        {
-            return GetNoticeText(RyzenAdjUtils.GetPowerLimit());
-        }
-
-        public static string GetNoticeText(float powerLimit)
-        {
-            var hardwareMonitor = AppContainer.HardwareMonitor();
-            var localizedMode = GetLocalizedModeName(Properties.Settings.Default.CurrentMode);
-
-            var powerLimitText = Properties.Strings.TextNoticeText
-                .Replace("{power_limit}", $"{powerLimit:0}")
-                .Replace("{actual_power_limit}", $"{hardwareMonitor.CpuPackagePower:0.00}");
-
-            var metricsText = Properties.Strings.TextNotifyMetrics
-                .Replace("{cpu_usage}", $"{hardwareMonitor.CpuUsage:0}")
-                .Replace("{cpu_temp}", $"{hardwareMonitor.CpuTemperature:0}")
-                .Replace("{cpu_freq}", $"{hardwareMonitor.CpuFreq:0}")
-                .Replace("{gpu_usage}", $"{hardwareMonitor.VideoCard3DUsage:0}");
-
-            var noticeText = $@"{localizedMode}
-{powerLimitText}
-{metricsText}";
-            if (noticeText.Length >= 64)
-            {
-                noticeText = noticeText.Substring(0, 63);
-            }
-
-            return noticeText;
         }
 
         public static string GetModeDetailText(string mode)

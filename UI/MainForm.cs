@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Globalization;
 using System.Windows.Forms;
 using RyzenTuner.Common;
 using RyzenTuner.Common.Container;
@@ -13,8 +12,6 @@ namespace RyzenTuner.UI
     public partial class MainForm : Form
     {
         private Int64 _tickCount;
-        private readonly Color _customModeInputDefaultBackColor = SystemColors.Window;
-        private readonly Color _customModeInputInvalidBackColor = Color.MistyRose;
         private string _lastPowerLimitApplyError = string.Empty;
         private float? _lastAppliedFastPpt;
         private float? _lastAppliedSlowPpt;
@@ -63,8 +60,6 @@ namespace RyzenTuner.UI
             keepAwakeCheckBox.Checked = Properties.Settings.Default.KeepAwake;
             SyncLaunchAtLogonSetting();
             SyncCpuBoostSetting();
-            textBox1.Text = Properties.Settings.Default.CustomMode;
-            UpdateCustomModeInputState(false);
             SyncEnergyModeSelection();
             _isInitializingOptions = false;
 
@@ -173,11 +168,6 @@ namespace RyzenTuner.UI
         {
             if (e.CloseReason == CloseReason.UserClosing)
             {
-                if (radioButton6.Checked)
-                {
-                    ChangeEnergyMode(radioButton6, e);
-                }
-
                 e.Cancel = true;
                 Hide();
             }
@@ -300,12 +290,6 @@ namespace RyzenTuner.UI
             if (((RadioButton)sender).Checked)
             {
                 var checkedMode = ((RadioButton)sender).Tag.ToString();
-
-                if (checkedMode == "CustomMode" && !UpdateCustomModeInputState(true))
-                {
-                    SyncEnergyModeSelection();
-                    return;
-                }
 
                 Settings.Default.CurrentMode = checkedMode;
                 Settings.Default.Save();
@@ -619,56 +603,6 @@ namespace RyzenTuner.UI
             }
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-            UpdateCustomModeInputState(false);
-        }
-
-        private bool UpdateCustomModeInputState(bool showError)
-        {
-            if (TryGetValidatedCustomMode(textBox1.Text, out var customMode))
-            {
-                textBox1.BackColor = _customModeInputDefaultBackColor;
-
-                var normalizedValue = customMode.ToString(CultureInfo.InvariantCulture);
-                if (Properties.Settings.Default.CustomMode != normalizedValue)
-                {
-                    Properties.Settings.Default.CustomMode = normalizedValue;
-                    Properties.Settings.Default.Save();
-                }
-
-                return true;
-            }
-
-            textBox1.BackColor = _customModeInputInvalidBackColor;
-
-            if (showError)
-            {
-                MessageBox.Show(Properties.Strings.TextCustomPowerLimitInvalid,
-                    Properties.Strings.TextExceptionTitle,
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-            }
-
-            return false;
-        }
-
-        private static bool TryGetValidatedCustomMode(string text, out float customMode)
-        {
-            customMode = 0;
-            var value = text.Trim();
-
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return false;
-            }
-
-            var isValid = float.TryParse(value, NumberStyles.Float, CultureInfo.CurrentCulture, out customMode) ||
-                          float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out customMode);
-
-            return isValid && customMode > 0;
-        }
-
         private void Form1_Shown(object sender, EventArgs e)
         {
             if (Environment.GetCommandLineArgs().Length > 1 && Environment.GetCommandLineArgs()[1] == "-hide")
@@ -682,8 +616,6 @@ namespace RyzenTuner.UI
             using var settingsForm = new SettingsForm();
             if (settingsForm.ShowDialog(this) == DialogResult.OK)
             {
-                // 刷新自定义模式输入框（可能默认值已变化）
-                UpdateCustomModeInputState(false);
                 // 刷新各模式标签显示（模式名-XXW）
                 // 部分模式标签可能因设置值损坏而无法解析，单独捕获避免阻断后续操作
                 try
@@ -704,7 +636,6 @@ namespace RyzenTuner.UI
 
         private void RefreshModeLabels()
         {
-            radioButton2.Text = RyzenTunerUtils.GetModeDetailText("SleepMode");
             radioButton3.Text = RyzenTunerUtils.GetModeDetailText("PowerSaveMode");
             radioButton4.Text = RyzenTunerUtils.GetModeDetailText("BalancedMode");
             radioButton5.Text = RyzenTunerUtils.GetModeDetailText("PerformanceMode");
@@ -722,8 +653,7 @@ namespace RyzenTuner.UI
             }
 
             // 直接保存模式并同步界面，避免通过 RadioButton.Checked 事件链
-            // （ChangeEnergyMode 中的 DoPowerLimit 会被重入防护门拦截而无效，
-            //  且直接赋值避免 CustomMode 输入验证干扰恢复流程）。
+            // （ChangeEnergyMode 中的 DoPowerLimit 会被重入防护门拦截而无效）。
             Settings.Default.CurrentMode = mode;
             Settings.Default.Save();
             SyncEnergyModeSelection();

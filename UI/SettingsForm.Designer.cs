@@ -41,9 +41,6 @@ namespace RyzenTuner.UI
             this.labelPowerSaveMode = new System.Windows.Forms.Label();
             this.numericUpDownPowerSaveMode = new System.Windows.Forms.NumericUpDown();
             this.labelPowerSaveWatt = new System.Windows.Forms.Label();
-            this.labelSleepMode = new System.Windows.Forms.Label();
-            this.numericUpDownSleepMode = new System.Windows.Forms.NumericUpDown();
-            this.labelSleepWatt = new System.Windows.Forms.Label();
 
             this.groupBoxAdvanced = new System.Windows.Forms.GroupBox();
             this.labelTctlTemp = new System.Windows.Forms.Label();
@@ -60,7 +57,6 @@ namespace RyzenTuner.UI
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPerformanceMode)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownBalancedMode)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPowerSaveMode)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSleepMode)).BeginInit();
             this.groupBoxAdvanced.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTctlTemp)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownApuSkinTemp)).BeginInit();
@@ -78,50 +74,23 @@ namespace RyzenTuner.UI
             this.groupBoxModeLimits.Controls.Add(this.labelPowerSaveMode);
             this.groupBoxModeLimits.Controls.Add(this.numericUpDownPowerSaveMode);
             this.groupBoxModeLimits.Controls.Add(this.labelPowerSaveWatt);
-            this.groupBoxModeLimits.Controls.Add(this.labelSleepMode);
-            this.groupBoxModeLimits.Controls.Add(this.numericUpDownSleepMode);
-            this.groupBoxModeLimits.Controls.Add(this.labelSleepWatt);
             this.groupBoxModeLimits.Location = new System.Drawing.Point(12, 12);
             this.groupBoxModeLimits.Name = "groupBoxModeLimits";
-            this.groupBoxModeLimits.Size = new System.Drawing.Size(880, 160);
+            this.groupBoxModeLimits.Size = new System.Drawing.Size(880, 130);
             this.groupBoxModeLimits.TabIndex = 0;
             this.groupBoxModeLimits.TabStop = false;
             this.groupBoxModeLimits.Text = Properties.Strings.TextPowerLimitSettings;
 
-            // 第一行左：睡眠模式
-            this.labelSleepMode.AutoSize = true;
-            this.labelSleepMode.Location = new System.Drawing.Point(14, 35);
-            this.labelSleepMode.Name = "labelSleepMode";
-            this.labelSleepMode.Size = new System.Drawing.Size(120, 24);
-            this.labelSleepMode.TabIndex = 0;
-            this.labelSleepMode.Text = Properties.Strings.SleepMode;
-
-            this.numericUpDownSleepMode.Increment = new decimal(new int[] { 1, 0, 0, 0 });
-            this.numericUpDownSleepMode.Location = new System.Drawing.Point(90, 33);
-            this.numericUpDownSleepMode.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
-            this.numericUpDownSleepMode.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            this.numericUpDownSleepMode.Name = "numericUpDownSleepMode";
-            this.numericUpDownSleepMode.Size = new System.Drawing.Size(80, 30);
-            this.numericUpDownSleepMode.TabIndex = 1;
-            this.numericUpDownSleepMode.Value = new decimal(new int[] { 8, 0, 0, 0 });
-
-            this.labelSleepWatt.AutoSize = true;
-            this.labelSleepWatt.Location = new System.Drawing.Point(178, 35);
-            this.labelSleepWatt.Name = "labelSleepWatt";
-            this.labelSleepWatt.Size = new System.Drawing.Size(24, 24);
-            this.labelSleepWatt.TabIndex = 2;
-            this.labelSleepWatt.Text = Properties.Strings.TextWatts;
-
-            // 第二行左：省电模式
+            // 第一行左：省电模式
             this.labelPowerSaveMode.AutoSize = true;
-            this.labelPowerSaveMode.Location = new System.Drawing.Point(14, 73);
+            this.labelPowerSaveMode.Location = new System.Drawing.Point(14, 35);
             this.labelPowerSaveMode.Name = "labelPowerSaveMode";
             this.labelPowerSaveMode.Size = new System.Drawing.Size(120, 24);
             this.labelPowerSaveMode.TabIndex = 3;
             this.labelPowerSaveMode.Text = Properties.Strings.PowerSaveMode;
 
             this.numericUpDownPowerSaveMode.Increment = new decimal(new int[] { 1, 0, 0, 0 });
-            this.numericUpDownPowerSaveMode.Location = new System.Drawing.Point(90, 71);
+            this.numericUpDownPowerSaveMode.Location = new System.Drawing.Point(90, 33);
             this.numericUpDownPowerSaveMode.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
             this.numericUpDownPowerSaveMode.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             this.numericUpDownPowerSaveMode.Name = "numericUpDownPowerSaveMode";
@@ -130,7 +99,7 @@ namespace RyzenTuner.UI
             this.numericUpDownPowerSaveMode.Value = new decimal(new int[] { 16, 0, 0, 0 });
 
             this.labelPowerSaveWatt.AutoSize = true;
-            this.labelPowerSaveWatt.Location = new System.Drawing.Point(178, 73);
+            this.labelPowerSaveWatt.Location = new System.Drawing.Point(178, 35);
             this.labelPowerSaveWatt.Name = "labelPowerSaveWatt";
             this.labelPowerSaveWatt.Size = new System.Drawing.Size(24, 24);
             this.labelPowerSaveWatt.TabIndex = 5;
@@ -160,16 +129,16 @@ namespace RyzenTuner.UI
             this.labelBalancedWatt.TabIndex = 8;
             this.labelBalancedWatt.Text = Properties.Strings.TextWatts;
 
-            // 第四行（右列）：性能模式
+            // 第二行左：性能模式
             this.labelPerformanceMode.AutoSize = true;
-            this.labelPerformanceMode.Location = new System.Drawing.Point(370, 73);
+            this.labelPerformanceMode.Location = new System.Drawing.Point(14, 73);
             this.labelPerformanceMode.Name = "labelPerformanceMode";
             this.labelPerformanceMode.Size = new System.Drawing.Size(120, 24);
             this.labelPerformanceMode.TabIndex = 9;
             this.labelPerformanceMode.Text = Properties.Strings.PerformanceMode;
 
             this.numericUpDownPerformanceMode.Increment = new decimal(new int[] { 1, 0, 0, 0 });
-            this.numericUpDownPerformanceMode.Location = new System.Drawing.Point(446, 71);
+            this.numericUpDownPerformanceMode.Location = new System.Drawing.Point(90, 71);
             this.numericUpDownPerformanceMode.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
             this.numericUpDownPerformanceMode.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             this.numericUpDownPerformanceMode.Name = "numericUpDownPerformanceMode";
@@ -178,7 +147,7 @@ namespace RyzenTuner.UI
             this.numericUpDownPerformanceMode.Value = new decimal(new int[] { 45, 0, 0, 0 });
 
             this.labelPerformanceWatt.AutoSize = true;
-            this.labelPerformanceWatt.Location = new System.Drawing.Point(534, 73);
+            this.labelPerformanceWatt.Location = new System.Drawing.Point(178, 73);
             this.labelPerformanceWatt.Name = "labelPerformanceWatt";
             this.labelPerformanceWatt.Size = new System.Drawing.Size(24, 24);
             this.labelPerformanceWatt.TabIndex = 11;
@@ -291,7 +260,6 @@ namespace RyzenTuner.UI
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPerformanceMode)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownBalancedMode)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPowerSaveMode)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSleepMode)).EndInit();
             this.groupBoxAdvanced.ResumeLayout(false);
             this.groupBoxAdvanced.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTctlTemp)).EndInit();
@@ -305,10 +273,6 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.GroupBox groupBoxAdvanced;
 
         // 各模式功率限制控件
-        private System.Windows.Forms.Label labelSleepMode;
-        private System.Windows.Forms.NumericUpDown numericUpDownSleepMode;
-        private System.Windows.Forms.Label labelSleepWatt;
-
         private System.Windows.Forms.Label labelPowerSaveMode;
         private System.Windows.Forms.NumericUpDown numericUpDownPowerSaveMode;
         private System.Windows.Forms.Label labelPowerSaveWatt;

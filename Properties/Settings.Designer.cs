@@ -73,42 +73,6 @@ namespace RyzenTuner.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("16")]
-        public string CustomMode {
-            get {
-                return ((string)(this["CustomMode"]));
-            }
-            set {
-                this["CustomMode"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("16")]
-        public string AutoMode {
-            get {
-                return ((string)(this["AutoMode"]));
-            }
-            set {
-                this["AutoMode"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("8")]
-        public string SleepMode {
-            get {
-                return ((string)(this["SleepMode"]));
-            }
-            set {
-                this["SleepMode"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("16")]
         public string PowerSaveMode {
             get {
                 return ((string)(this["PowerSaveMode"]));
@@ -144,7 +108,7 @@ namespace RyzenTuner.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("AutoMode")]
+        [global::System.Configuration.DefaultSettingValueAttribute("BalancedMode")]
         public string CurrentMode {
             get {
                 return ((string)(this["CurrentMode"]));

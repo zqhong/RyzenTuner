@@ -65,13 +65,9 @@ namespace RyzenTuner.UI
             
             // 功率限制组
             this.powerLimitGroupBox = new System.Windows.Forms.GroupBox();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.radioButton6 = new System.Windows.Forms.RadioButton();
             this.radioButton5 = new System.Windows.Forms.RadioButton();
             this.radioButton4 = new System.Windows.Forms.RadioButton();
             this.radioButton3 = new System.Windows.Forms.RadioButton();
-            this.radioButton2 = new System.Windows.Forms.RadioButton();
-            this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.checkBoxEnergyStar = new System.Windows.Forms.CheckBox();
             this.keepAwakeCheckBox = new System.Windows.Forms.CheckBox();
@@ -91,102 +87,57 @@ namespace RyzenTuner.UI
             // 
             // groupBox1
             // 
-            this.powerLimitGroupBox.Controls.Add(this.textBox1);
-            this.powerLimitGroupBox.Controls.Add(this.radioButton6);
             this.powerLimitGroupBox.Controls.Add(this.radioButton5);
             this.powerLimitGroupBox.Controls.Add(this.radioButton4);
             this.powerLimitGroupBox.Controls.Add(this.radioButton3);
-            this.powerLimitGroupBox.Controls.Add(this.radioButton2);
-            this.powerLimitGroupBox.Controls.Add(this.radioButton1);
             this.powerLimitGroupBox.Location = new System.Drawing.Point(25, 21);
             this.powerLimitGroupBox.Name = "powerLimitGroupBox";
-            this.powerLimitGroupBox.Size = new System.Drawing.Size(706, 141);
+            this.powerLimitGroupBox.Size = new System.Drawing.Size(706, 80);
             this.powerLimitGroupBox.TabIndex = 0;
             this.powerLimitGroupBox.TabStop = false;
             this.powerLimitGroupBox.Text = Properties.Strings.TextPowerLimit;
             
-            // textBox1
-            this.textBox1.Location = new System.Drawing.Point(596, 87);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(62, 35);
-            this.textBox1.TabIndex = 6;
-            this.textBox1.Text = "20";
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-
-            // radioButton6
-            this.radioButton6.AutoSize = true;
-            this.radioButton6.Location = new System.Drawing.Point(464, 88);
-            this.radioButton6.Name = "radioButton6";
-            this.radioButton6.Size = new System.Drawing.Size(113, 28);
-            this.radioButton6.TabIndex = 5;
-            this.radioButton6.Tag = "CustomMode";
-            this.radioButton6.Text = Properties.Strings.CustomMode;
-            this.radioButton6.UseVisualStyleBackColor = true;
-            this.radioButton6.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
-            
-            // radioButton5
-            this.radioButton5.AutoSize = true;
-            this.radioButton5.Checked = true;
-            this.radioButton5.Location = new System.Drawing.Point(227, 88);
-            this.radioButton5.Name = "radioButton5";
-            this.radioButton5.Size = new System.Drawing.Size(185, 28);
-            this.radioButton5.TabIndex = 4;
-            this.radioButton5.TabStop = true;
-            this.radioButton5.Tag = "PerformanceMode";
-            this.radioButton5.Text = RyzenTunerUtils.GetModeDetailText("PerformanceMode");
-            this.radioButton5.UseVisualStyleBackColor = true;
-            this.radioButton5.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
-            
-            // radioButton4
-            this.radioButton4.AutoSize = true;
-            this.radioButton4.Location = new System.Drawing.Point(24, 88);
-            this.radioButton4.Name = "radioButton4";
-            this.radioButton4.Size = new System.Drawing.Size(185, 28);
-            this.radioButton4.TabIndex = 3;
-            this.radioButton4.Tag = "BalancedMode";
-            this.radioButton4.Text = RyzenTunerUtils.GetModeDetailText("BalancedMode");
-            this.radioButton4.UseVisualStyleBackColor = true;
-            this.radioButton4.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
-
-            // radioButton3
+            // radioButton3（省电）
             this.radioButton3.AutoSize = true;
-            this.radioButton3.Location = new System.Drawing.Point(464, 37);
+            this.radioButton3.Location = new System.Drawing.Point(24, 38);
             this.radioButton3.Name = "radioButton3";
-            this.radioButton3.Size = new System.Drawing.Size(173, 28);
-            this.radioButton3.TabIndex = 2;
+            this.radioButton3.Size = new System.Drawing.Size(185, 28);
+            this.radioButton3.TabIndex = 0;
             this.radioButton3.Tag = "PowerSaveMode";
             this.radioButton3.Text = RyzenTunerUtils.GetModeDetailText("PowerSaveMode");
             this.radioButton3.UseVisualStyleBackColor = true;
             this.radioButton3.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
-            // radioButton2
-            this.radioButton2.AutoSize = true;
-            this.radioButton2.Location = new System.Drawing.Point(227, 38);
-            this.radioButton2.Name = "radioButton2";
-            this.radioButton2.Size = new System.Drawing.Size(221, 28);
-            this.radioButton2.TabIndex = 1;
-            this.radioButton2.Tag = "SleepMode";
-            this.radioButton2.Text = RyzenTunerUtils.GetModeDetailText("SleepMode");
-            this.radioButton2.UseVisualStyleBackColor = true;
-            this.radioButton2.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
+            // radioButton4（平衡）
+            this.radioButton4.AutoSize = true;
+            this.radioButton4.Location = new System.Drawing.Point(265, 38);
+            this.radioButton4.Name = "radioButton4";
+            this.radioButton4.Size = new System.Drawing.Size(185, 28);
+            this.radioButton4.TabIndex = 1;
+            this.radioButton4.Tag = "BalancedMode";
+            this.radioButton4.Text = RyzenTunerUtils.GetModeDetailText("BalancedMode");
+            this.radioButton4.UseVisualStyleBackColor = true;
+            this.radioButton4.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
-            // radioButton1
-            this.radioButton1.AutoSize = true;
-            this.radioButton1.Location = new System.Drawing.Point(24, 38);
-            this.radioButton1.Name = "radioButton1";
-            this.radioButton1.Size = new System.Drawing.Size(197, 28);
-            this.radioButton1.TabIndex = 0;
-            this.radioButton1.Tag = "AutoMode";
-            this.radioButton1.Text = Properties.Strings.AutoMode;
-            this.radioButton1.UseVisualStyleBackColor = true;
-            this.radioButton1.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
+            // radioButton5（性能）
+            this.radioButton5.AutoSize = true;
+            this.radioButton5.Checked = true;
+            this.radioButton5.Location = new System.Drawing.Point(506, 38);
+            this.radioButton5.Name = "radioButton5";
+            this.radioButton5.Size = new System.Drawing.Size(185, 28);
+            this.radioButton5.TabIndex = 2;
+            this.radioButton5.TabStop = true;
+            this.radioButton5.Tag = "PerformanceMode";
+            this.radioButton5.Text = RyzenTunerUtils.GetModeDetailText("PerformanceMode");
+            this.radioButton5.UseVisualStyleBackColor = true;
+            this.radioButton5.CheckedChanged += new System.EventHandler(this.ChangeEnergyMode);
 
             // 其他选项
             this.groupBox3.Controls.Add(this.launchAtLogonCheckBox);
             this.groupBox3.Controls.Add(this.cpuBoostCheckBox);
             this.groupBox3.Controls.Add(this.keepAwakeCheckBox);
             this.groupBox3.Controls.Add(this.checkBoxEnergyStar);
-            this.groupBox3.Location = new System.Drawing.Point(29, 180);
+            this.groupBox3.Location = new System.Drawing.Point(29, 120);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(702, 124);
             this.groupBox3.TabIndex = 2;
@@ -441,13 +392,9 @@ namespace RyzenTuner.UI
         }
         
         private System.Windows.Forms.GroupBox powerLimitGroupBox;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.RadioButton radioButton6;
         private System.Windows.Forms.RadioButton radioButton5;
         private System.Windows.Forms.RadioButton radioButton4;
         private System.Windows.Forms.RadioButton radioButton3;
-        private System.Windows.Forms.RadioButton radioButton2;
-        private System.Windows.Forms.RadioButton radioButton1;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.CheckBox checkBoxEnergyStar;
         private System.Windows.Forms.CheckBox keepAwakeCheckBox;

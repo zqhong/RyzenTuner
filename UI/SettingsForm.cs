@@ -34,7 +34,6 @@ namespace RyzenTuner.UI
         private void LoadSettings()
         {
             // 各模式功率限制
-            TrySetNumericValue(numericUpDownSleepMode, Settings.Default.SleepMode);
             TrySetNumericValue(numericUpDownPowerSaveMode, Settings.Default.PowerSaveMode);
             TrySetNumericValue(numericUpDownBalancedMode, Settings.Default.BalancedMode);
             TrySetNumericValue(numericUpDownPerformanceMode, Settings.Default.PerformanceMode);
@@ -75,7 +74,6 @@ namespace RyzenTuner.UI
         {
             // 保存各模式功率限制（存储为字符串，兼容浮点数）
             // 使用不变区域格式化，确保配置文件跨区域可移植
-            Settings.Default.SleepMode = numericUpDownSleepMode.Value.ToString("F0", CultureInfo.InvariantCulture);
             Settings.Default.PowerSaveMode = numericUpDownPowerSaveMode.Value.ToString("F0", CultureInfo.InvariantCulture);
             Settings.Default.BalancedMode = numericUpDownBalancedMode.Value.ToString("F0", CultureInfo.InvariantCulture);
             Settings.Default.PerformanceMode = numericUpDownPerformanceMode.Value.ToString("F0", CultureInfo.InvariantCulture);

@@ -14,15 +14,6 @@
     <Setting Name="CpuBoostEnabled" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CustomMode" Type="System.String" Scope="User">
-      <Value Profile="(Default)">16</Value>
-    </Setting>
-    <Setting Name="AutoMode" Type="System.String" Scope="User">
-      <Value Profile="(Default)">16</Value>
-    </Setting>
-    <Setting Name="SleepMode" Type="System.String" Scope="User">
-      <Value Profile="(Default)">8</Value>
-    </Setting>
     <Setting Name="PowerSaveMode" Type="System.String" Scope="User">
       <Value Profile="(Default)">16</Value>
     </Setting>
@@ -33,7 +24,7 @@
       <Value Profile="(Default)">45</Value>
     </Setting>
     <Setting Name="CurrentMode" Type="System.String" Scope="User">
-      <Value Profile="(Default)">AutoMode</Value>
+      <Value Profile="(Default)">BalancedMode</Value>
     </Setting>
     <Setting Name="LogLevel" Type="System.String" Scope="User">
       <Value Profile="(Default)">Debug</Value>
