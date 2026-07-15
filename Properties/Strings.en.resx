@@ -249,4 +249,22 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextBenchmarkSeconds" xml:space="preserve">
         <value>s</value>
     </data>
+    <data name="TextBenchmarkExportCsv" xml:space="preserve">
+        <value>Export CSV</value>
+    </data>
+    <data name="TextBenchmarkExportSuccess" xml:space="preserve">
+        <value>CSV exported to: {path}</value>
+    </data>
+    <data name="TextBenchmarkExportFailed" xml:space="preserve">
+        <value>Export CSV failed</value>
+    </data>
+    <data name="TextBenchmarkExportNoData" xml:space="preserve">
+        <value>No data to export</value>
+    </data>
+    <data name="TextBenchmarkExportSaveFilter" xml:space="preserve">
+        <value>CSV Files (*.csv)|*.csv|All Files (*.*)|*.*</value>
+    </data>
+    <data name="TextBenchmarkExportFileName" xml:space="preserve">
+        <value>RyzenTuner-EfficiencyAnalysis</value>
+    </data>
 </root>

@@ -79,6 +79,7 @@ namespace RyzenTuner.UI
             this.groupBoxConfig.Controls.Add(this.labelDurationUnit);
             this.groupBoxConfig.Controls.Add(this.buttonStart);
             this.groupBoxConfig.Controls.Add(this.buttonStop);
+            this.groupBoxConfig.Controls.Add(this.buttonExportCsv);
             this.groupBoxConfig.Controls.Add(this.labelStartPower);
             this.groupBoxConfig.Controls.Add(this.numericUpDownStartPower);
             this.groupBoxConfig.Controls.Add(this.labelStartWatts);
@@ -267,6 +268,17 @@ namespace RyzenTuner.UI
             this.buttonStop.UseVisualStyleBackColor = true;
             this.buttonStop.Click += new System.EventHandler(this.buttonStop_Click);
 
+            // buttonExportCsv
+            this.buttonExportCsv = new System.Windows.Forms.Button();
+            this.buttonExportCsv.Enabled = false;
+            this.buttonExportCsv.Location = new System.Drawing.Point(1000, 66);
+            this.buttonExportCsv.Name = "buttonExportCsv";
+            this.buttonExportCsv.Size = new System.Drawing.Size(120, 35);
+            this.buttonExportCsv.TabIndex = 16;
+            this.buttonExportCsv.Text = Properties.Strings.TextBenchmarkExportCsv;
+            this.buttonExportCsv.UseVisualStyleBackColor = true;
+            this.buttonExportCsv.Click += new System.EventHandler(this.buttonExportCsv_Click);
+
             //
             // labelStatus
             //
@@ -354,6 +366,7 @@ namespace RyzenTuner.UI
         private System.Windows.Forms.Label labelDurationUnit;
         private System.Windows.Forms.Button buttonStart;
         private System.Windows.Forms.Button buttonStop;
+        private System.Windows.Forms.Button buttonExportCsv;
 
         private System.Windows.Forms.Label labelRestTime;
         private System.Windows.Forms.NumericUpDown numericUpDownRestTime;

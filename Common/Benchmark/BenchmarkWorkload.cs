@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,6 +7,7 @@ namespace RyzenTuner.Common.Benchmark
 {
     /// <summary>
     /// CPU 跑分负载 —— 使用 xorshift64 伪随机数生成器作为纯 CPU 密集任务。
+    /// 无需释放资源，可直接丢弃。
     ///
     /// 每次迭代执行一组移位-异或运算（xorshift64 PRNG 步进），
     /// 每一步的结果作为下一步的输入，形成完整的数据依赖链，
@@ -16,7 +18,7 @@ namespace RyzenTuner.Common.Benchmark
     ///   - 每个工作线程独立计算，无锁竞争
     ///   - AboveNormal 优先级 + 预留一个核心给 UI/采样，兼顾负载与响应
     /// </summary>
-    public class BenchmarkWorkload : IDisposable
+    public class BenchmarkWorkload
     {
         /// <summary>
         /// 运行跑分，返回迭代次数。
@@ -58,13 +60,13 @@ namespace RyzenTuner.Common.Benchmark
             Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
             Thread.CurrentThread.IsBackground = true;
 
-            // 使用 long 计算避免 Environment.TickCount 的 int 溢出
-            var stopTime = (long)Environment.TickCount + durationMs;
+            // 使用 Stopwatch 计时，避免 Environment.TickCount 的 int 溢出问题
+            var sw = Stopwatch.StartNew();
             ulong state = seed;
             long iterations = 0;
 
             // 热循环 —— 纯 ALU 运算，零内存分配，单核跑满
-            while ((long)Environment.TickCount < stopTime && !cancellationToken.IsCancellationRequested)
+            while (sw.ElapsedMilliseconds < durationMs && !cancellationToken.IsCancellationRequested)
             {
                 // xorshift64 步进：数据依赖链，计算值影响后续所有步
                 state ^= state << 13;
@@ -77,11 +79,6 @@ namespace RyzenTuner.Common.Benchmark
             }
 
             return iterations;
-        }
-
-        public void Dispose()
-        {
-            // 无托管/非托管资源需要释放
         }
     }
 }

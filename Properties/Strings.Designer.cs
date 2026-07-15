@@ -589,5 +589,29 @@ namespace RyzenTuner.Properties {
         internal static string TextBenchmarkSeconds {
             get { return ResourceManager.GetString("TextBenchmarkSeconds", resourceCulture); }
         }
+
+        internal static string TextBenchmarkExportCsv {
+            get { return ResourceManager.GetString("TextBenchmarkExportCsv", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkExportSuccess {
+            get { return ResourceManager.GetString("TextBenchmarkExportSuccess", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkExportFailed {
+            get { return ResourceManager.GetString("TextBenchmarkExportFailed", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkExportNoData {
+            get { return ResourceManager.GetString("TextBenchmarkExportNoData", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkExportSaveFilter {
+            get { return ResourceManager.GetString("TextBenchmarkExportSaveFilter", resourceCulture); }
+        }
+
+        internal static string TextBenchmarkExportFileName {
+            get { return ResourceManager.GetString("TextBenchmarkExportFileName", resourceCulture); }
+        }
     }
 }

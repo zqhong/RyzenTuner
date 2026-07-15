@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 using RyzenTuner.Common.Benchmark;
 using RyzenTuner.Common.Container;
@@ -69,22 +71,15 @@ namespace RyzenTuner.UI
                 });
             }
 
-            // 调整列宽
+            // 调整列宽（Fill 模式下设置 FillWeight 实现比例分配）
             if (dataGridViewResults.Columns.Count >= 13)
             {
-                dataGridViewResults.Columns[0].Width = 80;  // TDP
-                dataGridViewResults.Columns[1].Width = 100; // Score
-                dataGridViewResults.Columns[2].Width = 90;  // Pmin
-                dataGridViewResults.Columns[3].Width = 90;  // Pmax
-                dataGridViewResults.Columns[4].Width = 90;  // Pavg
-                dataGridViewResults.Columns[5].Width = 90;  // Pmid
-                dataGridViewResults.Columns[6].Width = 90;  // Tmin
-                dataGridViewResults.Columns[7].Width = 90;  // Tmax
-                dataGridViewResults.Columns[8].Width = 90;  // Tavg
-                dataGridViewResults.Columns[9].Width = 90;  // Tmid
-                dataGridViewResults.Columns[10].Width = 90; // Freq
-                dataGridViewResults.Columns[11].Width = 90; // Efficiency
-                dataGridViewResults.Columns[12].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill; // Capability
+                // TDP 窄列, Score 稍宽, 其余均匀, Capability 自适应
+                dataGridViewResults.Columns[0].FillWeight = 80;
+                dataGridViewResults.Columns[1].FillWeight = 100;
+                for (var i = 2; i <= 11; i++)
+                    dataGridViewResults.Columns[i].FillWeight = 90;
+                dataGridViewResults.Columns[12].FillWeight = 120;
             }
         }
 
@@ -101,6 +96,7 @@ namespace RyzenTuner.UI
             numericUpDownStep.Enabled = enabled;
             numericUpDownEndPower.Enabled = enabled;
             numericUpDownDuration.Enabled = enabled;
+            numericUpDownRestTime.Enabled = enabled;
             buttonStart.Enabled = enabled;
             buttonStop.Enabled = !enabled;
         }
@@ -150,6 +146,7 @@ namespace RyzenTuner.UI
             // 重置结果
             _allResults.Clear();
             dataGridViewResults.Rows.Clear();
+            buttonExportCsv.Enabled = false;
             progressBar.Visible = true;
             progressBar.Maximum = pointCount;
             progressBar.Value = 0;
@@ -193,12 +190,13 @@ namespace RyzenTuner.UI
                     if (IsDisposed) return;
                     BeginInvoke(new Action(() =>
                     {
-                        // 刷新能力发挥（计算完成后更新）
+                        // 刷新所有显示值（跑分经过缩放后更新界面）
                         if (results.Count > 0)
                         {
-                            UpdateCapabilityColumn(results);
+                            RefreshAllResults(results);
                         }
 
+                        buttonExportCsv.Enabled = results.Count > 0;
                         EnableConfigMode(true);
                         progressBar.Visible = false;
                         _engine = null;
@@ -211,6 +209,10 @@ namespace RyzenTuner.UI
                     BeginInvoke(new Action(() =>
                     {
                         labelStatus.Text = error;
+                        buttonExportCsv.Enabled = _allResults.Count > 0;
+                        EnableConfigMode(true);
+                        progressBar.Visible = false;
+                        _engine = null;
                         AppContainer.Logger().Error($"能效分析错误: {error}");
                     }));
                 };
@@ -237,6 +239,118 @@ namespace RyzenTuner.UI
                 EnableConfigMode(true);
                 progressBar.Visible = false;
             }
+        }
+
+        /// <summary>
+        /// 导出 CSV
+        /// </summary>
+        private void buttonExportCsv_Click(object sender, EventArgs e)
+        {
+            if (_allResults.Count == 0)
+            {
+                MessageBox.Show(
+                    Properties.Strings.TextBenchmarkExportNoData,
+                    Properties.Strings.TextBenchmarkTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            using var sfd = new SaveFileDialog
+            {
+                Filter = Properties.Strings.TextBenchmarkExportSaveFilter,
+                FilterIndex = 1,
+                RestoreDirectory = true,
+                FileName =
+                    $"{Properties.Strings.TextBenchmarkExportFileName}-{DateTime.Now:yyyyMMdd-HHmmss}.csv",
+            };
+
+            if (sfd.ShowDialog() != DialogResult.OK)
+                return;
+
+            try
+            {
+                ExportResultsToCsv(sfd.FileName);
+                MessageBox.Show(
+                    Properties.Strings.TextBenchmarkExportSuccess.Replace("{path}", sfd.FileName),
+                    Properties.Strings.TextBenchmarkTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Error($"导出 CSV 失败: {ex}");
+                MessageBox.Show(
+                    $"{Properties.Strings.TextBenchmarkExportFailed}: {ex.Message}",
+                    Properties.Strings.TextBenchmarkTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// 将结果写入 CSV 文件
+        /// </summary>
+        private void ExportResultsToCsv(string filePath)
+        {
+            var sb = new StringBuilder();
+
+            // UTF-8 BOM 确保 Excel 正确识别编码
+
+            // 元数据
+            var testType = comboBoxTestType.SelectedIndex == 0
+                ? Properties.Strings.TextBenchmarkSingleCore
+                : Properties.Strings.TextBenchmarkMultiCore;
+            sb.AppendLine($"# {Properties.Strings.TextBenchmarkTitle}");
+            sb.AppendLine($"# {Properties.Strings.TextBenchmarkTestType}: {testType}");
+            sb.AppendLine($"# {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine();
+
+            // CSV 表头（使用 DataGridView 列名，避免与 SetupDataGridView 不同步）
+            var headers = dataGridViewResults.Columns
+                .Cast<DataGridViewColumn>()
+                .Select(c => c.HeaderText);
+
+            sb.AppendLine(string.Join(",", headers.Select(EscapeCsvField)));
+
+            // 数据行
+            // 警告：此数组顺序必须与 SetupDataGridView 中的列定义完全一致。
+            // 添加/删除/重排列时，两处必须同步更新。
+            foreach (var r in _allResults)
+            {
+                var values = new[]
+                {
+                    $"{r.SetTdp:F0}",
+                    r.Score.ToString("D"),
+                    $"{r.PowerMin:F2}",
+                    $"{r.PowerMax:F2}",
+                    $"{r.PowerAvg:F2}",
+                    $"{r.PowerMedian:F2}",
+                    $"{r.TempMin:F1}",
+                    $"{r.TempMax:F1}",
+                    $"{r.TempAvg:F1}",
+                    $"{r.TempMedian:F1}",
+                    $"{r.CpuFreqAvg:F0}",
+                    $"{r.Efficiency:F0}",
+                    $"{r.Capability:P0}",
+                };
+                sb.AppendLine(string.Join(",", values.Select(EscapeCsvField)));
+            }
+
+            File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
+        }
+
+        /// <summary>
+        /// 转义 CSV 字段（包含逗号或引号时加双引号）
+        /// </summary>
+        private static string EscapeCsvField(string field)
+        {
+            if (field.Contains(',') || field.Contains('"') || field.Contains('\n') || field.Contains('\r'))
+            {
+                return $"\"{field.Replace("\"", "\"\"")}\"";
+            }
+
+            return field;
         }
 
         /// <summary>
@@ -271,19 +385,16 @@ namespace RyzenTuner.UI
         }
 
         /// <summary>
-        /// 更新能力发挥列
+        /// 刷新所有结果显示（跑分成绩缩放后更新界面）
         /// </summary>
-        private void UpdateCapabilityColumn(List<BenchmarkTestPoint> results)
+        private void RefreshAllResults(List<BenchmarkTestPoint> results)
         {
-            if (results.Count == 0)
-                return;
-
-            var maxScore = results.Max(r => r.Score);
             for (var i = 0; i < results.Count && i < dataGridViewResults.Rows.Count; i++)
             {
-                var capability = maxScore > 0 ? (double)results[i].Score / maxScore : 0;
-                dataGridViewResults.Rows[i].Cells[12].Value = capability.ToString("P0");
-                results[i].Capability = capability;
+                var r = results[i];
+                dataGridViewResults.Rows[i].Cells[1].Value = r.Score.ToString("N0");
+                dataGridViewResults.Rows[i].Cells[11].Value = r.Efficiency.ToString("F0");
+                dataGridViewResults.Rows[i].Cells[12].Value = r.Capability.ToString("P0");
             }
 
             HighlightBestRow();

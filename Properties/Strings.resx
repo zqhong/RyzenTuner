@@ -256,4 +256,22 @@
     <data name="TextBenchmarkSeconds" xml:space="preserve">
         <value>秒</value>
     </data>
+    <data name="TextBenchmarkExportCsv" xml:space="preserve">
+        <value>导出 CSV</value>
+    </data>
+    <data name="TextBenchmarkExportSuccess" xml:space="preserve">
+        <value>CSV 已导出到：{path}</value>
+    </data>
+    <data name="TextBenchmarkExportFailed" xml:space="preserve">
+        <value>导出 CSV 失败</value>
+    </data>
+    <data name="TextBenchmarkExportNoData" xml:space="preserve">
+        <value>没有可导出的数据</value>
+    </data>
+    <data name="TextBenchmarkExportSaveFilter" xml:space="preserve">
+        <value>CSV 文件 (*.csv)|*.csv|所有文件 (*.*)|*.*</value>
+    </data>
+    <data name="TextBenchmarkExportFileName" xml:space="preserve">
+        <value>RyzenTuner-能效分析</value>
+    </data>
 </root>

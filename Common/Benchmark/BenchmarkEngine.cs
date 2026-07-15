@@ -102,13 +102,36 @@ namespace RyzenTuner.Common.Benchmark
                     OnTestPointCompleted?.Invoke(point);
                 }
 
-                // 计算能力发挥（Capability）
+                // 将跑分成绩缩放到可读范围（控制在五位数以内，≤99,999）
+                // 统一缩放不影响相对比较：Capability（比值）完全不变，
+                // Efficiency（Score/PowerAvg）同步缩放。
                 if (results.Count > 0)
                 {
                     var maxScore = results.Max(r => r.Score);
+                    long divisor = 1;
+
+                    // 用整数循环计算 10 的 n 次幂，避免浮点数精度问题
+                    if (maxScore > 99999)
+                    {
+                        var temp = maxScore;
+                        while (temp > 99999)
+                        {
+                            temp /= 10;
+                            divisor *= 10;
+                        }
+
+                        foreach (var r in results)
+                        {
+                            r.Score = Math.Max(r.Score / divisor, 1L);
+                        }
+                    }
+
+                    // 计算能力发挥（Capability）
+                    // 若未缩放，maxScore 不变；若已缩放，结果同 maxScore / divisor
+                    var finalMax = maxScore > 99999 ? maxScore / divisor : maxScore;
                     foreach (var r in results)
                     {
-                        r.Capability = maxScore > 0 ? (double)r.Score / maxScore : 0;
+                        r.Capability = finalMax > 0 ? (double)r.Score / finalMax : 0;
                     }
                 }
 
@@ -172,7 +195,7 @@ namespace RyzenTuner.Common.Benchmark
             var tempSamples = new List<float>(totalSamples);
             var freqSamples = new List<float>(totalSamples);
 
-            using var workload = new BenchmarkWorkload();
+            var workload = new BenchmarkWorkload();
 
             // 启动数据采集任务
             var samplingTask = Task.Run(() =>
@@ -216,12 +239,13 @@ namespace RyzenTuner.Common.Benchmark
             int totalDurationMs, int sampleIntervalMs,
             CancellationToken ct)
         {
-            var stopTime = Environment.TickCount + totalDurationMs + 100; // 多留 100ms 余量
-            var sw = new Stopwatch();
+            // 使用 Stopwatch 计时，避免 Environment.TickCount 的 int 溢出
+            var totalSw = Stopwatch.StartNew();
+            var sampleSw = new Stopwatch();
 
-            while (Environment.TickCount < stopTime && !ct.IsCancellationRequested)
+            while (totalSw.ElapsedMilliseconds < totalDurationMs + 100 && !ct.IsCancellationRequested)
             {
-                sw.Restart();
+                sampleSw.Restart();
 
                 // 刷新并读取传感器数据
                 hwMonitor.Monitor();
@@ -230,18 +254,10 @@ namespace RyzenTuner.Common.Benchmark
                 freqSamples.Add(hwMonitor.CpuFreq);
 
                 // 等待剩余时间以达到采样间隔
-                var elapsed = sw.ElapsedMilliseconds;
-                var remaining = sampleIntervalMs - (int)elapsed;
+                var remaining = sampleIntervalMs - (int)sampleSw.ElapsedMilliseconds;
                 if (remaining > 0 && !ct.IsCancellationRequested)
                 {
-                    try
-                    {
-                        Task.Delay(remaining, ct).Wait(ct);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        break;
-                    }
+                    Thread.Sleep(remaining);
                 }
             }
         }

@@ -29,6 +29,7 @@ namespace RyzenTuner.UI
         private bool _isErrorRecoveryPending;
         private bool _isApplyingPowerLimit;
         private bool _isInitializingOptions;
+        private bool _isBenchmarkRunning;
 
 #if DEBUG
         private static string GetDebugBuildSuffix()
@@ -79,7 +80,9 @@ namespace RyzenTuner.UI
 
         private void BenchmarkToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            _isBenchmarkRunning = true;
             using var benchmarkForm = new BenchmarkForm();
+            benchmarkForm.FormClosed += (_, _) => _isBenchmarkRunning = false;
             benchmarkForm.ShowDialog(this);
         }
 
@@ -314,7 +317,7 @@ namespace RyzenTuner.UI
 
         private void DoPowerLimit()
         {
-            if (_isApplyingPowerLimit)
+            if (_isApplyingPowerLimit || _isBenchmarkRunning)
             {
                 return;
             }
