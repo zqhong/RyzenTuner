@@ -1,9 +1,6 @@
----
-name: check-fix
-description: 开发或修复 bug 后运行 code-review + 编译验证，直到零错误
----
+# check-fix
 
-在修改代码后，执行以下两步循环，直到全部通过：
+开发或修复 bug 后运行 code-review + 编译验证，直到零错误。
 
 ## 步骤 1：code-review
 
