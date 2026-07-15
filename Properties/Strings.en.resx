@@ -144,4 +144,7 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextSettingsSavedHint" xml:space="preserve">
         <value>Some settings will take effect on next application.</value>
     </data>
+    <data name="TextMonitorInfo" xml:space="preserve">
+        <value>Monitor Info</value>
+    </data>
 </root>

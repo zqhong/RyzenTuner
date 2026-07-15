@@ -151,4 +151,7 @@
     <data name="TextSettingsSavedHint" xml:space="preserve">
         <value>部分设置将在下次应用时生效。</value>
     </data>
+    <data name="TextMonitorInfo" xml:space="preserve">
+        <value>监控信息</value>
+    </data>
 </root>

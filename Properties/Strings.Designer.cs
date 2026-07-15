@@ -449,5 +449,14 @@ namespace RyzenTuner.Properties {
                 return ResourceManager.GetString("TextSettingsSavedHint", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 监控信息.
+        /// </summary>
+        internal static string TextMonitorInfo {
+            get {
+                return ResourceManager.GetString("TextMonitorInfo", resourceCulture);
+            }
+        }
     }
 }

@@ -184,10 +184,79 @@ namespace RyzenTuner.UI
         {
             _tickCount++;
             AppContainer.HardwareMonitor().Monitor();
-            
+
             DoPowerLimit();
 
             DoProcessManage();
+
+            UpdateMonitoringInfo();
+        }
+
+/// <summary>
+        /// 展开/收起监控信息面板
+        /// </summary>
+        private void monitoringToggleBtn_Click(object sender, EventArgs e)
+        {
+            if (monitoringGroupBox.Visible)
+            {
+                monitoringGroupBox.Visible = false;
+                monitoringToggleBtn.Text = "▸";
+                ClientSize = new Size(ClientSize.Width, monitoringToggleBtn.Bottom + 15);
+            }
+            else
+            {
+                monitoringGroupBox.Visible = true;
+                monitoringToggleBtn.Text = "▾";
+                ClientSize = new Size(ClientSize.Width, monitoringGroupBox.Bottom + 26);
+                UpdateMonitoringInfo();
+            }
+        }
+
+        /// <summary>
+        /// 更新监控信息标签
+        /// </summary>
+        private void UpdateMonitoringInfo()
+        {
+            if (!monitoringGroupBox.Visible)
+            {
+                return;
+            }
+            try
+            {
+                var hw = AppContainer.HardwareMonitor();
+                var proc = AppContainer.AmdProcessor();
+
+                // 刷新 SMU 表后再读取，等效 ryzenadj --info 的行为
+                proc.RefreshTable();
+
+                var fastLimit = proc.GetFastLimit();
+                fastLimitLabel.Text = float.IsNaN(fastLimit)
+                    ? "Fast 上限: N/A"
+                    : $"Fast 上限: {fastLimit:F1} W";
+
+                var slowLimit = proc.GetSlowLimit();
+                slowLimitLabel.Text = float.IsNaN(slowLimit)
+                    ? "Slow 上限: N/A"
+                    : $"Slow 上限: {slowLimit:F1} W";
+
+                var stampLimit = proc.GetStampLimit();
+                stampLimitLabel.Text = float.IsNaN(stampLimit)
+                    ? "Stapm 上限: N/A"
+                    : $"Stapm 上限: {stampLimit:F1} W";
+
+                var tctlTemp = proc.GetTctlTempLimit();
+                tctlTempLabel.Text = float.IsNaN(tctlTemp)
+                    ? "温度上限: N/A"
+                    : $"温度上限: {tctlTemp:F0} °C";
+
+                currentPowerLabel.Text = $"封装功耗: {hw.CpuPackagePower:F1} W";
+                currentFreqLabel.Text = $"当前频率: {hw.CpuFreq:F0} MHz";
+                currentTempLabel.Text = $"当前温度: {hw.CpuTemperature:F1} °C";
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Warning($"更新监控信息失败: {ex.Message}");
+            }
         }
 
 

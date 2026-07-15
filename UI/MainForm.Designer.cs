@@ -271,6 +271,19 @@ namespace RyzenTuner.UI
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.AboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ExitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+
+            // 监控信息组
+            this.monitoringGroupBox = new System.Windows.Forms.GroupBox();
+            this.fastLimitLabel = new System.Windows.Forms.Label();
+            this.slowLimitLabel = new System.Windows.Forms.Label();
+            this.stampLimitLabel = new System.Windows.Forms.Label();
+            this.tctlTempLabel = new System.Windows.Forms.Label();
+            this.currentPowerLabel = new System.Windows.Forms.Label();
+            this.currentFreqLabel = new System.Windows.Forms.Label();
+            this.currentTempLabel = new System.Windows.Forms.Label();
+
+            // 监控展开/收起按钮
+            this.monitoringToggleBtn = new System.Windows.Forms.Button();
             
             // contextMenuStrip：托盘右键菜单
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -330,7 +343,7 @@ namespace RyzenTuner.UI
             // toolStripSeparator1：分割线
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(277, 6);
-            
+
             // 托盘菜单选项 - 关于
             this.AboutToolStripMenuItem.Name = "AboutToolStripMenuItem";
             this.AboutToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
@@ -342,10 +355,102 @@ namespace RyzenTuner.UI
             this.ExitToolStripMenuItem.Size = new System.Drawing.Size(280, 38);
             this.ExitToolStripMenuItem.Text = Properties.Strings.TextExit;
             this.ExitToolStripMenuItem.Click += new System.EventHandler(this.ExitAppToolStripMenuItem_Click);
-            
-            // 
+
+            //
+            // monitoringGroupBox: 监控信息
+            //
+            this.monitoringGroupBox.Controls.Add(this.fastLimitLabel);
+            this.monitoringGroupBox.Controls.Add(this.slowLimitLabel);
+            this.monitoringGroupBox.Controls.Add(this.stampLimitLabel);
+            this.monitoringGroupBox.Controls.Add(this.tctlTempLabel);
+            this.monitoringGroupBox.Controls.Add(this.currentPowerLabel);
+            this.monitoringGroupBox.Controls.Add(this.currentFreqLabel);
+            this.monitoringGroupBox.Controls.Add(this.currentTempLabel);
+            this.monitoringGroupBox.Location = new System.Drawing.Point(29, 314);
+            this.monitoringGroupBox.Name = "monitoringGroupBox";
+            this.monitoringGroupBox.Size = new System.Drawing.Size(702, 160);
+            this.monitoringGroupBox.TabIndex = 3;
+            this.monitoringGroupBox.TabStop = false;
+            this.monitoringGroupBox.Text = Properties.Strings.TextMonitorInfo;
+
+            //
+            // fastLimitLabel
+            //
+            this.fastLimitLabel.AutoSize = true;
+            this.fastLimitLabel.Location = new System.Drawing.Point(15, 32);
+            this.fastLimitLabel.Name = "fastLimitLabel";
+            this.fastLimitLabel.Size = new System.Drawing.Size(380, 24);
+            this.fastLimitLabel.TabIndex = 0;
+
+            //
+            // slowLimitLabel
+            //
+            this.slowLimitLabel.AutoSize = true;
+            this.slowLimitLabel.Location = new System.Drawing.Point(15, 66);
+            this.slowLimitLabel.Name = "slowLimitLabel";
+            this.slowLimitLabel.Size = new System.Drawing.Size(380, 24);
+            this.slowLimitLabel.TabIndex = 1;
+
+            //
+            // stampLimitLabel
+            //
+            this.stampLimitLabel.AutoSize = true;
+            this.stampLimitLabel.Location = new System.Drawing.Point(15, 100);
+            this.stampLimitLabel.Name = "stampLimitLabel";
+            this.stampLimitLabel.Size = new System.Drawing.Size(380, 24);
+            this.stampLimitLabel.TabIndex = 2;
+
+            //
+            // currentTempLabel
+            //
+            this.currentTempLabel.AutoSize = true;
+            this.currentTempLabel.Location = new System.Drawing.Point(15, 134);
+            this.currentTempLabel.Name = "currentTempLabel";
+            this.currentTempLabel.Size = new System.Drawing.Size(380, 24);
+            this.currentTempLabel.TabIndex = 3;
+
+            //
+            // tctlTempLabel
+            //
+            this.tctlTempLabel.AutoSize = true;
+            this.tctlTempLabel.Location = new System.Drawing.Point(360, 32);
+            this.tctlTempLabel.Name = "tctlTempLabel";
+            this.tctlTempLabel.Size = new System.Drawing.Size(320, 24);
+            this.tctlTempLabel.TabIndex = 4;
+
+            //
+            // currentPowerLabel
+            //
+            this.currentPowerLabel.AutoSize = true;
+            this.currentPowerLabel.Location = new System.Drawing.Point(360, 66);
+            this.currentPowerLabel.Name = "currentPowerLabel";
+            this.currentPowerLabel.Size = new System.Drawing.Size(320, 24);
+            this.currentPowerLabel.TabIndex = 5;
+
+            //
+            // currentFreqLabel
+            //
+            this.currentFreqLabel.AutoSize = true;
+            this.currentFreqLabel.Location = new System.Drawing.Point(360, 100);
+            this.currentFreqLabel.Name = "currentFreqLabel";
+            this.currentFreqLabel.Size = new System.Drawing.Size(320, 24);
+            this.currentFreqLabel.TabIndex = 6;
+
+            //
+            // monitoringToggleBtn: 展开/收起监控信息
+            //
+            this.monitoringToggleBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.monitoringToggleBtn.Location = new System.Drawing.Point(650, 307);
+            this.monitoringToggleBtn.Name = "monitoringToggleBtn";
+            this.monitoringToggleBtn.Size = new System.Drawing.Size(30, 22);
+            this.monitoringToggleBtn.TabIndex = 7;
+            this.monitoringToggleBtn.Text = "▸";
+            this.monitoringToggleBtn.UseVisualStyleBackColor = true;
+            this.monitoringToggleBtn.Click += new System.EventHandler(this.monitoringToggleBtn_Click);
+
+            //
             // MainFormTimer
-            // 
+            //
             this.mainFormTimer.Enabled = true;
             this.mainFormTimer.Interval = 2048;        // 单位：毫秒
             this.mainFormTimer.Tick += new System.EventHandler(this.mainFormTimer_Tick);
@@ -355,9 +460,14 @@ namespace RyzenTuner.UI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(757, 325);
+            this.ClientSize = new System.Drawing.Size(757, 340);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.powerLimitGroupBox);
+            this.Controls.Add(this.monitoringToggleBtn);
+            this.Controls.Add(this.monitoringGroupBox);
+
+            // 默认收起监控面板
+            this.monitoringGroupBox.Visible = false;
             this.Icon = this.getIcon();
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -375,6 +485,8 @@ namespace RyzenTuner.UI
             this.powerLimitGroupBox.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
+            this.monitoringGroupBox.ResumeLayout(false);
+            this.monitoringGroupBox.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
         }
@@ -408,5 +520,15 @@ namespace RyzenTuner.UI
         
         // 是否需要运行 BoostAllUserBackgroundProcesses 任务
         private bool _needRunBoostAllBgProcesses;
+
+        private System.Windows.Forms.GroupBox monitoringGroupBox;
+        private System.Windows.Forms.Button monitoringToggleBtn;
+        private System.Windows.Forms.Label fastLimitLabel;
+        private System.Windows.Forms.Label slowLimitLabel;
+        private System.Windows.Forms.Label stampLimitLabel;
+        private System.Windows.Forms.Label tctlTempLabel;
+        private System.Windows.Forms.Label currentPowerLabel;
+        private System.Windows.Forms.Label currentFreqLabel;
+        private System.Windows.Forms.Label currentTempLabel;
     }
 }

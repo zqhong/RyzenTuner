@@ -12,6 +12,7 @@ namespace RyzenTuner.Common.Hardware
         private float _cpuPackagePower;
         private float _cpuTemperature;
         private float _cpuFreq;
+        private string _cpuName = "Unknown";
 
         private float _videoCard3DUsage;
 
@@ -66,31 +67,12 @@ namespace RyzenTuner.Common.Hardware
 
         public float VideoCard3DUsage => _videoCard3DUsage;
 
+        public string CpuName => _cpuName;
+
         private void Update()
         {
             // Triggers the IVisitor.VisitComputer method for the given observer.
             _computer.Accept(new UpdateVisitor());
-        }
-
-        /// <summary>
-        /// 获取 CPU 传感器信息
-        ///
-        /// CPU 名称示例：
-        ///     AMD Ryzen 7 PRO 6850HS with Radeon Graphics
-        ///     AMD Ryzen 7 4800H with Radeon Graphics
-        /// 
-        /// 备注：如果有多个 CPU，可能会有问题。可忽略，普通电脑一般只有一个 CPU 插槽
-        /// </summary>
-        /// <returns></returns>
-        private List<ISensor> FetchHardwareCpu()
-        {
-            var hardwareCpu = _computer
-                .Hardware
-                .Where(i => i.HardwareType == HardwareType.Cpu)
-                .SelectMany(s => s.Sensors);
-            var cpuEnumerable = hardwareCpu.ToList();
-
-            return cpuEnumerable;
         }
 
         /// <summary>
@@ -117,7 +99,16 @@ namespace RyzenTuner.Common.Hardware
             {
                 Update();
 
-                var cpuSensorList = FetchHardwareCpu();
+                var cpuHardwareList = _computer
+                    .Hardware
+                    .Where(i => i.HardwareType == HardwareType.Cpu)
+                    .ToList();
+
+                _cpuName = cpuHardwareList.Count > 0
+                    ? cpuHardwareList[0].Name
+                    : "Unknown";
+
+                var cpuSensorList = cpuHardwareList.SelectMany(s => s.Sensors).ToList();
                 _cpuUsage = FetchCpuUsage(cpuSensorList);
                 _cpuPackagePower = FetchCpuPackage(cpuSensorList);
                 _cpuTemperature = FetchCpuTemperature(cpuSensorList);
