@@ -1169,37 +1169,43 @@ namespace RyzenTuner.UI
             }
         }
 
+        /// <summary>
+        /// 应用功率限制。
+        /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
+        /// </summary>
         private static bool TryApplyPowerLimit(float? lastAppliedValue, float targetValue, Func<bool> applyAction, out bool changed)
         {
-            changed = !lastAppliedValue.HasValue || Math.Abs(lastAppliedValue.Value - targetValue) >= 0.01f;
-            if (!changed)
-            {
-                return true;
-            }
-
-            return applyAction();
+            // ReSharper disable once UnusedParameter.Local
+            _ = lastAppliedValue;
+            var result = applyAction();
+            changed = result;
+            return result;
         }
 
+        /// <summary>
+        /// 应用 Tctl 温度限制。
+        /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
+        /// </summary>
         private bool TryApplyTctlTemp(int targetValue, Func<bool> applyAction, out bool changed)
         {
-            changed = !_lastAppliedTctlTemp.HasValue || _lastAppliedTctlTemp.Value != targetValue;
-            if (!changed)
-            {
-                return true;
-            }
-
-            return applyAction();
+            // ReSharper disable once UnusedParameter.Local
+            _ = _lastAppliedTctlTemp;
+            var result = applyAction();
+            changed = result;
+            return result;
         }
 
+        /// <summary>
+        /// 应用整数型 SMU 设置（如 ApuSkinTemp）。
+        /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
+        /// </summary>
         private static bool TryApplyIntSetting(int? lastAppliedValue, int targetValue, Func<bool> applyAction, out bool changed)
         {
-            changed = !lastAppliedValue.HasValue || lastAppliedValue.Value != targetValue;
-            if (!changed)
-            {
-                return true;
-            }
-
-            return applyAction();
+            // ReSharper disable once UnusedParameter.Local
+            _ = lastAppliedValue;
+            var result = applyAction();
+            changed = result;
+            return result;
         }
 
         private bool TryApplyCpuBoost(bool targetValue, Func<bool> applyAction, out bool changed)
