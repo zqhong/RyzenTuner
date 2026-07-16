@@ -199,7 +199,7 @@ namespace RyzenTuner.Common.Benchmark
 
             // 启动数据采集任务
             var samplingTask = Task.Run(() =>
-                SamplingLoop(hwMonitor, powerSamples, tempSamples, freqSamples,
+                SamplingLoopAsync(hwMonitor, powerSamples, tempSamples, freqSamples,
                     config.DurationSeconds * 1000, sampleIntervalMs, _cts.Token));
 
             // 启动跑分
@@ -233,7 +233,7 @@ namespace RyzenTuner.Common.Benchmark
         /// <summary>
         /// 数据采集循环（每 sampleIntervalMs 采样一次）
         /// </summary>
-        private void SamplingLoop(
+        private async Task SamplingLoopAsync(
             Hardware.HardwareMonitor hwMonitor,
             List<float> powerSamples, List<float> tempSamples, List<float> freqSamples,
             int totalDurationMs, int sampleIntervalMs,
@@ -253,19 +253,15 @@ namespace RyzenTuner.Common.Benchmark
                 tempSamples.Add(hwMonitor.CpuTemperature);
                 freqSamples.Add(hwMonitor.CpuFreq);
 
-                // 等待剩余时间以达到采样间隔
+                // 等待剩余时间以达到采样间隔（异步等待，不阻塞线程池线程）
                 var remaining = sampleIntervalMs - (int)sampleSw.ElapsedMilliseconds;
                 if (remaining > 0 && !ct.IsCancellationRequested)
                 {
                     try
                     {
-                        Task.Delay(remaining, ct).Wait(ct);
+                        await Task.Delay(remaining, ct);
                     }
                     catch (OperationCanceledException)
-                    {
-                        break;
-                    }
-                    catch (AggregateException) when (ct.IsCancellationRequested)
                     {
                         break;
                     }

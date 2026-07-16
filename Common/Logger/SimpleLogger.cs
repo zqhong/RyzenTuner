@@ -24,15 +24,16 @@ SOFTWARE.
 
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
 
 namespace RyzenTuner.Common.Logger
 {
     /**
      * Refer: https://gist.github.com/heiswayi/69ef5413c0f28b3a58d964447c275058
      */
-    public class SimpleLogger
+    public class SimpleLogger : IDisposable
     {
-        [Flags]
         public enum LogLevel
         {
             Trace = 0,
@@ -47,6 +48,8 @@ namespace RyzenTuner.Common.Logger
         private readonly object _fileLock = new();
         private readonly string _datetimeFormat;
         private readonly string _logFilename;
+        private StreamWriter? _writer;
+        private bool _disposed;
 
         public LogLevel DefaultLogLevel;
 
@@ -59,6 +62,25 @@ namespace RyzenTuner.Common.Logger
             _datetimeFormat = "yyyy-MM-dd HH:mm:ss";
             _logFilename = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + FileExt;
             DefaultLogLevel = LogLevel.Warning;
+
+            // Prepend BOM for UTF-8 and keep writer open for the lifetime of the logger
+            _writer = new StreamWriter(_logFilename, true, Encoding.UTF8)
+            {
+                AutoFlush = true,
+            };
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+            _disposed = true;
+
+            lock (_fileLock)
+            {
+                _writer?.Dispose();
+                _writer = null;
+            }
         }
 
         public LogLevel ToLogLevel(string logLevel)
@@ -131,13 +153,15 @@ namespace RyzenTuner.Common.Logger
 
         public void LogException(Exception e)
         {
+            if (e == null)
+                return;
+
             // Get stack trace for the exception with source file information
             var st = new StackTrace(e, true);
-            // Get the top stack frame
+            // Get the top stack frame (may be null if stack trace is empty)
             var frame = st.GetFrame(0);
-            // Get the line number from the stack frame
-            var line = frame.GetFileLineNumber();
-            
+            var line = frame?.GetFileLineNumber() ?? 0;
+
             Warning($"Exception: {e.Message}\nLine: {line}\nStackTrace: {st}");
         }
 
@@ -150,11 +174,10 @@ namespace RyzenTuner.Common.Logger
 
             lock (_fileLock)
             {
-                using (System.IO.StreamWriter writer =
-                       new System.IO.StreamWriter(_logFilename, append, System.Text.Encoding.UTF8))
-                {
-                    writer.WriteLine(text);
-                }
+                if (_writer == null)
+                    return;
+
+                _writer.WriteLine(text);
             }
         }
 

@@ -1097,7 +1097,5 @@ namespace RyzenTuner.UI
         private ToolStripMenuItem toolStripMenuItemExit;
         private Timer mainFormTimer;
 
-        // 是否需要运行 BoostAllUserBackgroundProcesses 任务
-        private bool _needRunBoostAllBgProcesses;
     }
 }

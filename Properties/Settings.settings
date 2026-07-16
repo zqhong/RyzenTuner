@@ -30,7 +30,7 @@
       <Value Profile="(Default)">Debug</Value>
     </Setting>
     <Setting Name="EnergyStarBypassProcessList" Type="System.String" Scope="User">
-      <Value Profile="(Default)">example1.exe,example2.exe</Value>
+      <Value Profile="(Default)"></Value>
     </Setting>
     <Setting Name="TctlTemp" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">100</Value>

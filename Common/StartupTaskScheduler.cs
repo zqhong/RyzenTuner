@@ -171,9 +171,11 @@ namespace RyzenTuner.Common
             };
 
             process.Start();
+
+            // 同步读取 stdout（先读取，后 WaitForExit，避免管道缓冲区满导致死锁）
             var standardOutput = process.StandardOutput.ReadToEnd();
-            var standardError = process.StandardError.ReadToEnd();
             process.WaitForExit();
+            var standardError = process.StandardError.ReadToEnd();
 
             var result = new SchtasksResult(process.ExitCode, standardOutput, standardError);
             if (throwOnError && result.ExitCode != 0)

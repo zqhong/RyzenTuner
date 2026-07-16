@@ -35,7 +35,7 @@ namespace RyzenTuner.Common
             HKEY powerKey = default;
             var activeGuid = GetActiveScheme();
 
-            PowerReadACValueIndex(
+            var acResult = PowerReadACValueIndex(
                 powerKey,
                 activeGuid,
                 GUID_PROCESSOR_SETTINGS_SUBGROUP,
@@ -43,13 +43,17 @@ namespace RyzenTuner.Common
                 out var acValue
             );
 
-            PowerReadDCValueIndex(
+            var dcResult = PowerReadDCValueIndex(
                 powerKey,
                 activeGuid,
                 GUID_PROCESSOR_SETTINGS_SUBGROUP,
                 GUID_PROCESSOR_PERF_BOOST_MODE,
                 out var dcValue
             );
+
+            // 读取失败时保守地返回 false（视为已禁用），避免意外覆盖用户设置
+            if (acResult != Win32Error.NO_ERROR || dcResult != Win32Error.NO_ERROR)
+                return false;
 
             return acValue == Enabled && dcValue == Enabled;
         }

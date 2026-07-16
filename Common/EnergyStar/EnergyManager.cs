@@ -16,7 +16,7 @@ namespace RyzenTuner.Common.EnergyStar
     {
         private const string UnknownProcessName = "Unknown-K7Ncy4PUIQBNyGTl.exe";
 
-        private readonly HashSet<string> _bypassProcessList = new()
+        private readonly HashSet<string> _bypassProcessList = new(StringComparer.OrdinalIgnoreCase)
         {
             // Edge 浏览器会自动调度
             "msedge.exe",
@@ -118,19 +118,6 @@ namespace RyzenTuner.Common.EnergyStar
                     .Select(x => x.Trim());
             _bypassProcessList.UnionWith(bypassSetting);
 
-            // 将 _bypassProcessList 的元素全部替代为小写字符串
-            foreach (var processName in _bypassProcessList.ToArray())
-            {
-                var lowerProcessName = processName.ToLower();
-                if (processName == lowerProcessName)
-                {
-                    continue;
-                }
-
-                _bypassProcessList.Remove(processName);
-                _bypassProcessList.Add(lowerProcessName);
-            }
-
             _szControlBlock = Marshal.SizeOf<Win32Api.ProcessPowerThrottlingState>();
             _pThrottleOn = Marshal.AllocHGlobal(_szControlBlock);
             _pThrottleOff = Marshal.AllocHGlobal(_szControlBlock);
@@ -194,7 +181,7 @@ namespace RyzenTuner.Common.EnergyStar
                     return;
                 }
 
-                if (_bypassProcessList.Contains(appName.ToLower()))
+                if (_bypassProcessList.Contains(appName))
                 {
                     logger.Debug($"ToggleEfficiencyMode: 不处理白名单列表中的应用 {appName}");
                     return;

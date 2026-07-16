@@ -136,7 +136,7 @@ namespace RyzenTuner.Common.Container
         // Container lifetime management
         class ContainerLifetime : ObjectCache, ILifetime
         {
-            // Retrieves the factory functino from the given type, provided by owning container
+            // Retrieves the factory function from the given type, provided by owning container
             public Func<Type, Func<ILifetime, object>> GetFactory { get; private set; }
 
             public ContainerLifetime(Func<Type, Func<ILifetime, object>> getFactory) => GetFactory = getFactory;

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RyzenTuner.Common.EnergyStar.Interop
 {
-    internal class Win32Api
+    internal static class Win32Api
     {
         [DllImport("kernel32.dll")]
         public static extern int GetProcessId(IntPtr handle);

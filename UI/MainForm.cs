@@ -38,6 +38,8 @@ namespace RyzenTuner.UI
         private BenchmarkEngine? _engine;
         private readonly List<BenchmarkTestPoint> _allResults = new();
         private BenchmarkTestType _benchmarkTestType;
+        // 是否需要运行 BoostAllUserBackgroundProcesses 任务
+        private bool _needRunBoostAllBgProcesses;
 
 #if DEBUG
         private static string GetDebugBuildSuffix()

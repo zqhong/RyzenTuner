@@ -228,8 +228,12 @@ namespace RyzenTuner.Common.Processor
             }
 
             // 例如：15W : 15000 mW
+            // 保护：拒绝负数或零值，避免 (uint) 转换后环绕为超大值
+            if (limit <= 0)
+                return false;
+
             limit *= 1000;
-            
+
             var result = type switch
             {
                 PowerType.Fast => RyzenAdj.set_fast_limit(_ry, (uint)limit),
@@ -237,7 +241,7 @@ namespace RyzenTuner.Common.Processor
                 PowerType.Stapm => RyzenAdj.set_stapm_limit(_ry, (uint)limit),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
-            
+
             return result == (int)ErrCode.AdjErrNone;
         }
 
