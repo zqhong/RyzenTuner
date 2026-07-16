@@ -21,7 +21,10 @@ namespace RyzenTuner.Common
                 throw new Exception(result.ToString());
             }
 
-            return activeGuidHandle.ToStructure<Guid>();
+            using (activeGuidHandle)
+            {
+                return activeGuidHandle.ToStructure<Guid>();
+            }
         }
 
         /**

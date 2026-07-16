@@ -57,6 +57,11 @@ namespace RyzenTuner.Utils
         public static bool TryGetPowerLimitByMode(string mode, out float powerLimit)
         {
             powerLimit = 0;
+
+            // 检查设置项是否存在（避免升级后残留的旧模式名引发 SettingsPropertyNotFoundException）
+            if (Properties.Settings.Default.Properties[mode] == null)
+                return false;
+
             var value = Properties.Settings.Default[mode]?.ToString();
 
             if (string.IsNullOrWhiteSpace(value))
@@ -70,7 +75,7 @@ namespace RyzenTuner.Utils
 
         public static string GetModeDetailText(string mode)
         {
-            return $"{Properties.Strings.ResourceManager.GetString(mode)}-{GetPowerLimitByMode(mode)}W";
+            return $"{GetLocalizedModeName(mode)}-{GetPowerLimitByMode(mode)}W";
         }
 
         public static string GetLocalizedModeName(string mode)

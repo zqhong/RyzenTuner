@@ -258,4 +258,13 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextBenchmarkExportFileName" xml:space="preserve">
         <value>RyzenTuner-EfficiencyAnalysis</value>
     </data>
+    <data name="TextAboutVersion" xml:space="preserve">
+        <value>V{version}</value>
+    </data>
+    <data name="TextAboutCopyright" xml:space="preserve">
+        <value>© 2022-{year} By zqhong</value>
+    </data>
+    <data name="TextAboutRyzenAdj" xml:space="preserve">
+        <value>ryzenadj build date: {ryzenadj_date}</value>
+    </data>
 </root>

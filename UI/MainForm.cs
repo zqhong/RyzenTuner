@@ -1,8 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 using RyzenTuner.Common;
+using RyzenTuner.Common.Benchmark;
 using RyzenTuner.Common.Container;
 using RyzenTuner.Properties;
 using RyzenTuner.Utils;
@@ -27,6 +32,12 @@ namespace RyzenTuner.UI
         private bool _isApplyingPowerLimit;
         private bool _isInitializingOptions;
         private bool _isBenchmarkRunning;
+        private bool _aboutInfoLoaded;
+
+        // --- 跑分引擎字段 ---
+        private BenchmarkEngine? _engine;
+        private readonly List<BenchmarkTestPoint> _allResults = new();
+        private BenchmarkTestType _benchmarkTestType;
 
 #if DEBUG
         private static string GetDebugBuildSuffix()
@@ -65,29 +76,740 @@ namespace RyzenTuner.UI
 
             // 设置系统唤醒状态
             keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
+
+            // 初始化设置页
+            SettingsLoadValues();
+
+            // 初始化跑分页
+            SetupBenchmarkDataGridView();
+
+            // 初始化布局（关于页延迟到首次访问时加载）
+            RecalcCardColumns();
         }
 
-        private void AboutAppToolStripMenuItem_Click(object sender, EventArgs e)
+        // ================================================================
+        // 页面切换
+        // ================================================================
+
+        private void NavButton_Click(object? sender, EventArgs e)
         {
-            using var aboutForm = new AboutForm();
-            aboutForm.ShowDialog();
+            if (sender is Button btn)
+            {
+                var pageId = "";
+                if (btn == navHome) pageId = "home";
+                else if (btn == navSettings) pageId = "settings";
+                else if (btn == navBenchmark) pageId = "benchmark";
+                else if (btn == navAbout) pageId = "about";
+
+                SwitchPage(pageId);
+            }
         }
 
-        private void BenchmarkToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SwitchPage(string pageId)
         {
+            // 跑分进行中时禁止离开跑分页（无法从其他页面停止跑分）
+            if (_isBenchmarkRunning && pageId != "benchmark")
+            {
+                MessageBox.Show(
+                    Properties.Strings.TextBenchmarkRunning,
+                    Properties.Strings.TextBenchmarkTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 隐藏所有页面
+            pageHome.Visible = false;
+            pageSettings.Visible = false;
+            pageBenchmark.Visible = false;
+            pageAbout.Visible = false;
+
+            // 重置导航按钮背景
+            navHome.BackColor = Color.Transparent;
+            navSettings.BackColor = Color.Transparent;
+            navBenchmark.BackColor = Color.Transparent;
+            navAbout.BackColor = Color.Transparent;
+
+            // 显示目标页面
+            switch (pageId)
+            {
+                case "settings":
+                    pageSettings.Visible = true;
+                    navSettings.BackColor = Color.White;
+                    SettingsLoadValues();
+                    break;
+                case "benchmark":
+                    pageBenchmark.Visible = true;
+                    navBenchmark.BackColor = Color.White;
+                    break;
+                case "about":
+                    pageAbout.Visible = true;
+                    navAbout.BackColor = Color.White;
+                    if (!_aboutInfoLoaded)
+                    {
+                        LoadAboutInfo();
+                        _aboutInfoLoaded = true;
+                    }
+                    break;
+                default:
+                    pageHome.Visible = true;
+                    navHome.BackColor = Color.White;
+                    break;
+            }
+        }
+
+        // ================================================================
+        // 关于页
+        // ================================================================
+
+        private void LoadAboutInfo()
+        {
+            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+            version = System.Text.RegularExpressions.Regex.Replace(version, @"(\d+\.\d+\.\d+)\.\d+", "$1");
+
+            var year = DateTime.Now.Year.ToString();
+            var ryzenadjDate = LoadRyzenAdjDate();
+
+            labelAboutVersion.Text = Properties.Strings.TextAboutVersion.Replace("{version}", version);
+            labelAboutCopyright.Text = Properties.Strings.TextAboutCopyright.Replace("{year}", year);
+            labelAboutRyzenAdj.Text = Properties.Strings.TextAboutRyzenAdj.Replace("{ryzenadj_date}", ryzenadjDate);
+        }
+
+        private static string LoadRyzenAdjDate()
+        {
+            try
+            {
+                var ryzenadjPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "libryzenadj.dll");
+                if (!File.Exists(ryzenadjPath))
+                    return "N/A";
+
+                using var stream = File.OpenRead(ryzenadjPath);
+                using var reader = new BinaryReader(stream);
+
+                stream.Seek(0x3C, SeekOrigin.Begin);
+                var peOffset = reader.ReadInt32();
+                stream.Seek(peOffset + 8, SeekOrigin.Begin);
+                var timestamp = reader.ReadUInt32();
+
+                if (timestamp == 0)
+                    return "N/A";
+
+                var date = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    .AddSeconds(timestamp)
+                    .ToLocalTime();
+
+                return date.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            catch
+            {
+                return "N/A";
+            }
+        }
+
+        // ================================================================
+        // 设置页（内嵌 SettingsForm 逻辑）
+        // ================================================================
+
+        private void SettingsLoadValues()
+        {
+            TrySetNumericValue(numericUpDownPowerSaveMode, Settings.Default.PowerSaveMode);
+            TrySetNumericValue(numericUpDownBalancedMode, Settings.Default.BalancedMode);
+            TrySetNumericValue(numericUpDownPerformanceMode, Settings.Default.PerformanceMode);
+
+            numericUpDownTctlTemp.Value = ClampNumeric(Settings.Default.TctlTemp, numericUpDownTctlTemp);
+            numericUpDownApuSkinTemp.Value = ClampNumeric(Settings.Default.ApuSkinTemp, numericUpDownApuSkinTemp);
+        }
+
+        private static void TrySetNumericValue(NumericUpDown control, string mode)
+        {
+            // 复用已有的双文化解析 — SettingsDefault 的[ ]索引器可能抛异常，
+            // 但调用方已确保 mode 是有效的已定义模式名
+            if (RyzenTunerUtils.TryGetPowerLimitByMode(mode, out var result))
+            {
+                control.Value = ClampNumeric((decimal)result, control);
+            }
+        }
+
+        private static decimal ClampNumeric(decimal value, NumericUpDown control)
+        {
+            if (value < control.Minimum) return control.Minimum;
+            if (value > control.Maximum) return control.Maximum;
+            return value;
+        }
+
+        private static int ClampNumeric(int value, NumericUpDown control)
+        {
+            if (value < (int)control.Minimum) return (int)control.Minimum;
+            if (value > (int)control.Maximum) return (int)control.Maximum;
+            return value;
+        }
+
+        private void SettingsSave_Click(object? sender, EventArgs e)
+        {
+            Settings.Default.PowerSaveMode = numericUpDownPowerSaveMode.Value.ToString("F0", CultureInfo.InvariantCulture);
+            Settings.Default.BalancedMode = numericUpDownBalancedMode.Value.ToString("F0", CultureInfo.InvariantCulture);
+            Settings.Default.PerformanceMode = numericUpDownPerformanceMode.Value.ToString("F0", CultureInfo.InvariantCulture);
+
+            Settings.Default.TctlTemp = (int)numericUpDownTctlTemp.Value;
+            Settings.Default.ApuSkinTemp = (int)numericUpDownApuSkinTemp.Value;
+
+            Settings.Default.Save();
+
+            // 刷新首页模式标签
+            try
+            {
+                RefreshModeLabels();
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Warning($"刷新模式标签失败: {ex.Message}");
+            }
+
+            // 立即重新应用功率限制
+            DoPowerLimit();
+            notifyIcon1.Text = "";
+        }
+
+        private void SettingsCancel_Click(object? sender, EventArgs e)
+        {
+            SettingsLoadValues();
+            SwitchPage("home");
+        }
+
+        // ================================================================
+        // 跑分页（内嵌 BenchmarkForm 逻辑）
+        // ================================================================
+
+        private void SetupBenchmarkDataGridView()
+        {
+            dataGridViewResults.Columns.Clear();
+
+            var columns = new[]
+            {
+                Properties.Strings.TextBenchmarkSetPower,
+                Properties.Strings.TextBenchmarkScore,
+                Properties.Strings.TextBenchmarkPowerMin,
+                Properties.Strings.TextBenchmarkPowerMax,
+                Properties.Strings.TextBenchmarkPowerAvg,
+                Properties.Strings.TextBenchmarkPowerMid,
+                Properties.Strings.TextBenchmarkTempMin,
+                Properties.Strings.TextBenchmarkTempMax,
+                Properties.Strings.TextBenchmarkTempAvg,
+                Properties.Strings.TextBenchmarkTempMid,
+                Properties.Strings.TextBenchmarkFreq,
+                Properties.Strings.TextBenchmarkEfficiency,
+                Properties.Strings.TextBenchmarkCapability,
+            };
+
+            foreach (var header in columns)
+            {
+                dataGridViewResults.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    HeaderText = header,
+                    ReadOnly = true,
+                    SortMode = DataGridViewColumnSortMode.NotSortable,
+                });
+            }
+
+            if (dataGridViewResults.Columns.Count >= 13)
+            {
+                dataGridViewResults.Columns[0].FillWeight = 80;
+                dataGridViewResults.Columns[1].FillWeight = 100;
+                for (var i = 2; i <= 11; i++)
+                    dataGridViewResults.Columns[i].FillWeight = 90;
+                dataGridViewResults.Columns[12].FillWeight = 120;
+            }
+
+            buttonExportCsv.Enabled = false;
+        }
+
+        private void EnableBenchmarkConfig(bool enabled)
+        {
+            comboBoxTestType.Enabled = enabled;
+            numericUpDownStartPower.Enabled = enabled;
+            numericUpDownStep.Enabled = enabled;
+            numericUpDownEndPower.Enabled = enabled;
+            numericUpDownDuration.Enabled = enabled;
+            numericUpDownRestTime.Enabled = enabled;
+            buttonStart.Enabled = enabled;
+            buttonStop.Enabled = !enabled;
+        }
+
+        private async void BenchmarkStart_Click(object? sender, EventArgs e)
+        {
+            if (_isBenchmarkRunning)
+            {
+                MessageBox.Show(
+                    Properties.Strings.TextBenchmarkRunning,
+                    Properties.Strings.TextBenchmarkTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            var config = new BenchmarkConfig
+            {
+                TestType = comboBoxTestType.SelectedIndex == 0
+                    ? BenchmarkTestType.SingleCore
+                    : BenchmarkTestType.MultiCore,
+                StartTdp = (float)numericUpDownStartPower.Value,
+                StepTdp = (float)numericUpDownStep.Value,
+                EndTdp = (float)numericUpDownEndPower.Value,
+                DurationSeconds = (int)numericUpDownDuration.Value * 60,
+                RestSeconds = (int)numericUpDownRestTime.Value,
+            };
+
+            if (config.StartTdp > config.EndTdp)
+            {
+                MessageBox.Show(
+                    Properties.Strings.TextBenchmarkErrorNoData,
+                    Properties.Strings.TextBenchmarkTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            var pointCount = config.GetTestPointCount();
+            var totalMinutes = pointCount * (int)numericUpDownDuration.Value;
+
+            var confirmMsg = Properties.Strings.TextBenchmarkConfirmStart
+                .Replace("{count}", pointCount.ToString())
+                .Replace("{time}", totalMinutes.ToString());
+
+            if (MessageBox.Show(confirmMsg,
+                    Properties.Strings.TextBenchmarkTitle,
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) != DialogResult.Yes)
+            {
+                return;
+            }
+
             _isBenchmarkRunning = true;
-            using var benchmarkForm = new BenchmarkForm();
-            benchmarkForm.FormClosed += (_, _) => _isBenchmarkRunning = false;
-            benchmarkForm.ShowDialog(this);
+            _benchmarkTestType = config.TestType;
+            _allResults.Clear();
+            dataGridViewResults.Rows.Clear();
+            buttonExportCsv.Enabled = false;
+            progressBar.Visible = true;
+            progressBar.Maximum = pointCount;
+            progressBar.Value = 0;
+
+            EnableBenchmarkConfig(false);
+            labelStatus.Text = Properties.Strings.TextBenchmarkRunning;
+
+            try
+            {
+                using (_engine = new BenchmarkEngine())
+                {
+                    _engine.OnProgressChanged += (current, total) =>
+                    {
+                        if (IsDisposed) return;
+                        BeginInvoke(new Action(() =>
+                        {
+                            progressBar.Value = Math.Min(current, total);
+                        }));
+                    };
+
+                    _engine.OnStatusChanged += (msg) =>
+                    {
+                        if (IsDisposed) return;
+                        BeginInvoke(new Action(() =>
+                        {
+                            labelStatus.Text = msg;
+                        }));
+                    };
+
+                    _engine.OnTestPointCompleted += (point) =>
+                    {
+                        if (IsDisposed) return;
+                        BeginInvoke(new Action(() =>
+                        {
+                            _allResults.Add(point);
+                            AddBenchmarkResultRow(point);
+                        }));
+                    };
+
+                    _engine.OnCompleted += (results) =>
+                    {
+                        if (IsDisposed) return;
+                        BeginInvoke(new Action(() =>
+                        {
+                            if (results.Count > 0)
+                            {
+                                RefreshAllResults(results);
+                            }
+
+                            buttonExportCsv.Enabled = results.Count > 0;
+                            EnableBenchmarkConfig(true);
+                            progressBar.Visible = false;
+                            // _isBenchmarkRunning 和 _engine 由 finally 块统一清理
+                        }));
+                    };
+
+                    _engine.OnError += (error) =>
+                    {
+                        if (IsDisposed) return;
+                        BeginInvoke(new Action(() =>
+                        {
+                            labelStatus.Text = error;
+                            buttonExportCsv.Enabled = _allResults.Count > 0;
+                            EnableBenchmarkConfig(true);
+                            progressBar.Visible = false;
+                            // _isBenchmarkRunning 和 _engine 由 finally 块统一清理
+                            AppContainer.Logger().Error($"能效分析错误: {error}");
+                        }));
+                    };
+
+                    await _engine.RunAsync(config);
+                }
+            }
+            finally
+            {
+                // 异常保护：若引擎 setup/RunAsync 同步抛出导致 OnCompleted/OnError 未触发，
+                // 确保 _isBenchmarkRunning 被重置，避免 DoPowerLimit 永久跳过
+                if (_isBenchmarkRunning)
+                {
+                    _isBenchmarkRunning = false;
+                    EnableBenchmarkConfig(true);
+                    progressBar.Visible = false;
+                    _engine = null;
+                }
+            }
         }
 
-        private void ExitAppToolStripMenuItem_Click(object sender, EventArgs e)
+        private void BenchmarkStop_Click(object? sender, EventArgs e)
+        {
+            if (_engine == null || !_engine.IsRunning)
+                return;
+
+            var result = MessageBox.Show(
+                Properties.Strings.TextBenchmarkCancel,
+                Properties.Strings.TextBenchmarkTitle,
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
+            {
+                _engine.Stop();
+                EnableBenchmarkConfig(true);
+                progressBar.Visible = false;
+                // 注意：不清除 _isBenchmarkRunning，避免 DoPowerLimit 在引擎 cleanup
+                // （RestoreOriginalSettings → ApplyTdpLimit）完成前进入并发写 SMU 寄存器。
+                // OnCompleted/OnError 的 BeginInvoke 回调会在 cleanup 后清除此标志。
+                labelStatus.Text = Properties.Strings.TextBenchmarkStopped;
+            }
+        }
+
+        private void BenchmarkExportCsv_Click(object? sender, EventArgs e)
+        {
+            if (_allResults.Count == 0)
+            {
+                MessageBox.Show(
+                    Properties.Strings.TextBenchmarkExportNoData,
+                    Properties.Strings.TextBenchmarkTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            using var sfd = new SaveFileDialog
+            {
+                Filter = Properties.Strings.TextBenchmarkExportSaveFilter,
+                FilterIndex = 1,
+                RestoreDirectory = true,
+                FileName =
+                    $"{Properties.Strings.TextBenchmarkExportFileName}-{DateTime.Now:yyyyMMdd-HHmmss}.csv",
+            };
+
+            if (sfd.ShowDialog() != DialogResult.OK)
+                return;
+
+            try
+            {
+                ExportResultsToCsv(sfd.FileName);
+                MessageBox.Show(
+                    Properties.Strings.TextBenchmarkExportSuccess.Replace("{path}", sfd.FileName),
+                    Properties.Strings.TextBenchmarkTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Error($"导出 CSV 失败: {ex}");
+                MessageBox.Show(
+                    $"{Properties.Strings.TextBenchmarkExportFailed}: {ex.Message}",
+                    Properties.Strings.TextBenchmarkTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        private void ExportResultsToCsv(string filePath)
+        {
+            var sb = new StringBuilder();
+            var testType = _benchmarkTestType == BenchmarkTestType.SingleCore
+                ? Properties.Strings.TextBenchmarkSingleCore
+                : Properties.Strings.TextBenchmarkMultiCore;
+            sb.AppendLine($"# {Properties.Strings.TextBenchmarkTitle}");
+            sb.AppendLine($"# {Properties.Strings.TextBenchmarkTestType}: {testType}");
+            sb.AppendLine($"# {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine();
+
+            var headers = dataGridViewResults.Columns
+                .Cast<DataGridViewColumn>()
+                .Select(c => c.HeaderText);
+
+            sb.AppendLine(string.Join(",", headers.Select(EscapeCsvField)));
+
+            foreach (var r in _allResults)
+            {
+                var values = new[]
+                {
+                    $"{r.SetTdp:F0}",
+                    r.Score.ToString("D"),
+                    $"{r.PowerMin:F2}",
+                    $"{r.PowerMax:F2}",
+                    $"{r.PowerAvg:F2}",
+                    $"{r.PowerMedian:F2}",
+                    $"{r.TempMin:F1}",
+                    $"{r.TempMax:F1}",
+                    $"{r.TempAvg:F1}",
+                    $"{r.TempMedian:F1}",
+                    $"{r.CpuFreqAvg:F0}",
+                    $"{r.Efficiency:F0}",
+                    $"{r.Capability:P0}",
+                };
+                sb.AppendLine(string.Join(",", values.Select(EscapeCsvField)));
+            }
+
+            File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
+        }
+
+        private static string EscapeCsvField(string field)
+        {
+            if (field.Contains(',') || field.Contains('"') || field.Contains('\n') || field.Contains('\r'))
+            {
+                return $"\"{field.Replace("\"", "\"\"")}\"";
+            }
+
+            return field;
+        }
+
+        private void AddBenchmarkResultRow(BenchmarkTestPoint point)
+        {
+            var rowIndex = dataGridViewResults.Rows.Add(
+                $"{point.SetTdp:F0}",
+                point.Score.ToString("N0"),
+                $"{point.PowerMin:F2}",
+                $"{point.PowerMax:F2}",
+                $"{point.PowerAvg:F2}",
+                $"{point.PowerMedian:F2}",
+                $"{point.TempMin:F1}",
+                $"{point.TempMax:F1}",
+                $"{point.TempAvg:F1}",
+                $"{point.TempMedian:F1}",
+                $"{point.CpuFreqAvg:F0}",
+                $"{point.Efficiency:F0}",
+                $"{point.Capability:P0}"
+            );
+
+            if (rowIndex >= 0)
+            {
+                dataGridViewResults.FirstDisplayedScrollingRowIndex = rowIndex;
+            }
+
+            HighlightBestRow();
+        }
+
+        private void RefreshAllResults(List<BenchmarkTestPoint> results)
+        {
+            // results 参数与 _allResults 字段持有相同的对象引用
+            for (var i = 0; i < _allResults.Count && i < dataGridViewResults.Rows.Count; i++)
+            {
+                var r = _allResults[i];
+                dataGridViewResults.Rows[i].Cells[1].Value = r.Score.ToString("N0");
+                dataGridViewResults.Rows[i].Cells[11].Value = r.Efficiency.ToString("F0");
+                dataGridViewResults.Rows[i].Cells[12].Value = r.Capability.ToString("P0");
+            }
+
+            HighlightBestRow();
+        }
+
+        private void HighlightBestRow()
+        {
+            foreach (DataGridViewRow row in dataGridViewResults.Rows)
+            {
+                row.DefaultCellStyle.BackColor = SystemColors.Window;
+                row.DefaultCellStyle.ForeColor = SystemColors.ControlText;
+            }
+
+            if (_allResults.Count == 0 || dataGridViewResults.Rows.Count == 0)
+                return;
+
+            var bestEfficiency = float.MinValue;
+            var bestRowIndex = -1;
+
+            // 直接从 _allResults 读取数据，避免字符串 → 浮点的往返转换
+            for (var i = 0; i < _allResults.Count && i < dataGridViewResults.Rows.Count; i++)
+            {
+                var eff = _allResults[i].Efficiency;
+                if (eff > bestEfficiency)
+                {
+                    bestEfficiency = eff;
+                    bestRowIndex = i;
+                }
+            }
+
+            if (bestRowIndex >= 0)
+            {
+                dataGridViewResults.Rows[bestRowIndex].DefaultCellStyle.BackColor = Color.LightGreen;
+            }
+        }
+
+        private void LabelAboutLink_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://github.com/zqhong/RyzenTuner",
+                    UseShellExecute = true,
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Warning($"打开 GitHub 链接失败: {ex.Message}");
+            }
+        }
+
+        // ================================================================
+        // 原有功能
+        // ================================================================
+
+        private void Form1_Shown(object sender, EventArgs e)
+        {
+            RecalcCardColumns();
+            if (Environment.GetCommandLineArgs().Length > 1 && Environment.GetCommandLineArgs()[1] == "-hide")
+            {
+                Hide();
+            }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;
+                Hide();
+            }
+        }
+
+        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            Show();
+        }
+
+        private void ExitAppToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             Application.Exit();
         }
 
+        private DateTime _lastResizeTime = DateTime.MinValue;
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Minimized)
+            {
+                Hide();
+                return;
+            }
+
+            // 防抖：拖拽窗口时 Resize 高频触发，限制重算频率
+            var now = DateTime.UtcNow;
+            if ((now - _lastResizeTime).TotalMilliseconds < 50)
+                return;
+            _lastResizeTime = now;
+
+            RecalcCardColumns();
+        }
+
+        private void RecalcCardColumns()
+        {
+            if (pageHome == null || !pageHome.Visible) return;
+            const int gap = 12;
+            int pad;
+            pad = groupBoxMode.Padding.Left;
+            int modeW = groupBoxMode.ClientSize.Width;
+            if (modeW > 100) {
+                int colW = (modeW - pad * 2 - gap * 2) / 3;
+                if (colW < 50) return;
+                radioButton3.Left = pad; radioButton4.Left = pad + colW + gap; radioButton5.Left = pad + 2 * (colW + gap);
+            }
+            pad = groupBoxStatus.Padding.Left;
+            int statW = groupBoxStatus.ClientSize.Width;
+            if (statW > 100) {
+                int colW = (statW - pad * 2 - gap * 2) / 3;
+                if (colW < 50) return;
+                int c1 = pad, c2 = pad + colW + gap, c3 = pad + 2 * (colW + gap);
+                labelCpuFreqTitle.Left = c1; currentFreqLabel.Left = c1;
+                labelCpuPowerTitle.Left = c2; currentPowerLabel.Left = c2;
+                labelCpuTempTitle.Left = c3; currentTempLabel.Left = c3;
+            }
+            pad = groupBoxParams.Padding.Left;
+            int paramW = groupBoxParams.ClientSize.Width;
+            if (paramW > 100) {
+                int colW = (paramW - pad * 2 - gap * 2) / 3;
+                if (colW < 50) return;
+                int c1 = pad, c2 = pad + colW + gap, c3 = pad + 2 * (colW + gap);
+                labelFastLimitTitle.Left = c1; fastLimitLabel.Left = c1;
+                labelSlowLimitTitle.Left = c2; slowLimitLabel.Left = c2;
+                labelTctlLimitTitle.Left = c3; tctlTempLabel.Left = c3;
+                labelStampLimitTitle.Left = c1; stampLimitLabel.Left = c1;
+                labelApuSkinTitle.Left = c2; apuSkinTempLabel.Left = c2;
+            }
+            pad = groupBoxOptions.Padding.Left;
+            int optW = groupBoxOptions.ClientSize.Width;
+            if (optW > 100) {
+                int colW = (optW - pad * 2 - gap) / 2;
+                if (colW < 50) return;
+                checkBoxEnergyStar.Left = pad;
+                keepAwakeCheckBox.Left = pad + colW + gap;
+                launchAtLogonCheckBox.Left = pad;
+                cpuBoostCheckBox.Left = pad + colW + gap;
+            }
+        }
+        private void mainFormTimer_Tick(object sender, EventArgs e)
+        {
+            _tickCount++;
+
+            DoPowerLimit();
+            DoProcessManage();
+            UpdateMonitoringInfo();
+        }
+
+        private void ChangeEnergyMode(object sender, EventArgs e)
+        {
+            if (((RadioButton)sender).Checked)
+            {
+                var tag = ((RadioButton)sender).Tag;
+                if (tag == null) return;
+                var checkedMode = tag.ToString();
+
+                Settings.Default.CurrentMode = checkedMode;
+                Settings.Default.Save();
+                SyncEnergyModeSelection();
+
+                DoPowerLimit();
+            }
+        }
+
         private void checkBoxEnergyStar_CheckedChanged(object sender, EventArgs e)
         {
+            if (_isInitializingOptions)
+            {
+                return;
+            }
+
             Properties.Settings.Default.EnergyStar = checkBoxEnergyStar.Checked;
             Properties.Settings.Default.Save();
 
@@ -164,90 +886,103 @@ namespace RyzenTuner.UI
             DoPowerLimit();
         }
 
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        private void RefreshModeLabels()
         {
-            if (e.CloseReason == CloseReason.UserClosing)
+            radioButton3.Text = RyzenTunerUtils.GetModeDetailText("PowerSaveMode");
+            radioButton4.Text = RyzenTunerUtils.GetModeDetailText("BalancedMode");
+            radioButton5.Text = RyzenTunerUtils.GetModeDetailText("PerformanceMode");
+        }
+
+        private void SyncEnergyModeSelection()
+        {
+            foreach (Control c in groupBoxMode.Controls)
             {
-                e.Cancel = true;
-                Hide();
+                if (c.Tag != null && c.Tag.ToString() == Properties.Settings.Default.CurrentMode)
+                {
+                    var rb = (RadioButton)c;
+                    rb.Checked = true;
+                }
             }
         }
 
-        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void SyncLaunchAtLogonSetting()
         {
-            Show();
+            try
+            {
+                var isEnabled = StartupTaskScheduler.IsEnabled();
+
+                if (Properties.Settings.Default.LaunchAtLogon != isEnabled)
+                {
+                    Properties.Settings.Default.LaunchAtLogon = isEnabled;
+                    Properties.Settings.Default.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Warning($"Failed to query launch at logon status: {ex.Message}");
+            }
         }
 
-        private void mainFormTimer_Tick(object sender, EventArgs e)
+        private void SyncCpuBoostSetting()
         {
-            _tickCount++;
+            try
+            {
+                var isEnabled = AppContainer.PowerConfig().IsCpuBoostEnabled();
+                _lastCpuBoostEnabled = isEnabled;
 
-            DoPowerLimit();
-
-            DoProcessManage();
-
-            UpdateMonitoringInfo();
+                if (Properties.Settings.Default.CpuBoostEnabled != isEnabled)
+                {
+                    Properties.Settings.Default.CpuBoostEnabled = isEnabled;
+                    Properties.Settings.Default.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                _lastCpuBoostEnabled = Properties.Settings.Default.CpuBoostEnabled;
+                AppContainer.Logger().Warning($"Failed to query cpu boost status: {ex.Message}");
+            }
         }
 
-/// <summary>
-        /// 展开/收起监控信息面板
+        /// <summary>
+        /// 展开/收起监控信息面板（保留兼容，新 UI 中监控信息始终可见）
         /// </summary>
-        private void monitoringToggleBtn_Click(object sender, EventArgs e)
-        {
-            if (monitoringGroupBox.Visible)
-            {
-                monitoringGroupBox.Visible = false;
-                monitoringToggleBtn.Text = "▸";
-                ClientSize = new Size(ClientSize.Width, monitoringToggleBtn.Bottom + 15);
-            }
-            else
-            {
-                monitoringGroupBox.Visible = true;
-                monitoringToggleBtn.Text = "▾";
-                ClientSize = new Size(ClientSize.Width, monitoringGroupBox.Bottom + 26);
-                UpdateMonitoringInfo();
-            }
-        }
+
 
         /// <summary>
         /// 更新监控信息标签
         /// </summary>
         private void UpdateMonitoringInfo()
         {
-            if (!monitoringGroupBox.Visible)
-            {
-                return;
-            }
             try
             {
                 var hw = AppContainer.HardwareMonitor();
-                hw.Monitor();
+                // 跑分进行中时由 BenchmarkEngine 后台线程负责采集，避免竞争
+                if (!_isBenchmarkRunning)
+                {
+                    hw.Monitor();
+                }
                 var proc = AppContainer.AmdProcessor();
 
-                // 刷新 SMU 表后再读取，等效 ryzenadj --info 的行为
+                // 刷新 SMU 表后再读取
                 proc.RefreshTable();
 
-                // ===== RyzenAdj 功率限制（左列） =====
+                // ===== 当前状态（首页） =====
+                currentFreqLabel.Text = $"{hw.CpuFreq:F0} MHz";
+                currentPowerLabel.Text = $"{hw.CpuPackagePower:F1} W";
+                currentTempLabel.Text = $"{hw.CpuTemperature:F1} ℃";
 
+                // ===== 生效参数（首页） =====
                 var fastLimit = proc.GetFastLimit();
-                fastLimitLabel.Text = float.IsNaN(fastLimit)
-                    ? "FastPPT: N/A"
-                    : $"FastPPT: {fastLimit:F1} W";
+                fastLimitLabel.Text = float.IsNaN(fastLimit) ? "N/A" : $"{fastLimit:F1} W";
 
                 var slowLimit = proc.GetSlowLimit();
-                slowLimitLabel.Text = float.IsNaN(slowLimit)
-                    ? "SlowPPT: N/A"
-                    : $"SlowPPT: {slowLimit:F1} W";
-
-                var stampLimit = proc.GetStampLimit();
-                stampLimitLabel.Text = float.IsNaN(stampLimit)
-                    ? "StapmPPT: N/A"
-                    : $"StapmPPT: {stampLimit:F1} W";
+                slowLimitLabel.Text = float.IsNaN(slowLimit) ? "N/A" : $"{slowLimit:F1} W";
 
                 var tctlTemp = proc.GetTctlTempLimit();
-                tctlTempLabel.Text = float.IsNaN(tctlTemp)
-                    ? "TctlTemp: N/A"
-                    : $"TctlTemp: {tctlTemp:F0} °C";
+                tctlTempLabel.Text = float.IsNaN(tctlTemp) ? "N/A" : $"{tctlTemp:F0} ℃";
+
+                var stampLimit = proc.GetStampLimit();
+                stampLimitLabel.Text = float.IsNaN(stampLimit) ? "N/A" : $"{stampLimit:F1} W";
 
                 try
                 {
@@ -255,28 +990,22 @@ namespace RyzenTuner.UI
                     var apuSkinValue = proc.GetApuSkinTempValue();
                     if (float.IsNaN(apuSkinLimit) && float.IsNaN(apuSkinValue))
                     {
-                        apuSkinTempLabel.Text = "ApuSkinTemp: N/A";
+                        apuSkinTempLabel.Text = "N/A";
                     }
                     else if (float.IsNaN(apuSkinValue))
                     {
-                        apuSkinTempLabel.Text = $"ApuSkinTemp: {apuSkinLimit:F0} °C";
+                        apuSkinTempLabel.Text = $"{apuSkinLimit:F0} ℃";
                     }
                     else
                     {
-                        apuSkinTempLabel.Text = $"ApuSkinTemp: {apuSkinLimit:F0} °C ({apuSkinValue:F0} °C)";
+                        apuSkinTempLabel.Text = $"{apuSkinLimit:F0} ℃ ({apuSkinValue:F0} ℃)";
                     }
                 }
-                catch (Exception ex)
+                catch (Exception apuEx)
                 {
-                    apuSkinTempLabel.Text = "ApuSkinTemp: N/A";
-                    AppContainer.Logger().Warning($"读取 ApuSkinTemp 失败: {ex.Message}");
+                    apuSkinTempLabel.Text = "N/A";
+                    AppContainer.Logger().Warning($"读取 APU SkinTemp 失败: {apuEx.Message}");
                 }
-
-                // ===== 系统状态（右列） =====
-
-                currentPowerLabel.Text = $"封装功耗: {hw.CpuPackagePower:F1} W";
-                currentFreqLabel.Text = $"当前频率: {hw.CpuFreq:F0} MHz";
-                currentTempLabel.Text = $"当前温度: {hw.CpuTemperature:F1} °C";
             }
             catch (Exception ex)
             {
@@ -284,20 +1013,9 @@ namespace RyzenTuner.UI
             }
         }
 
-
-        private void ChangeEnergyMode(object sender, EventArgs e)
-        {
-            if (((RadioButton)sender).Checked)
-            {
-                var checkedMode = ((RadioButton)sender).Tag.ToString();
-
-                Settings.Default.CurrentMode = checkedMode;
-                Settings.Default.Save();
-                SyncEnergyModeSelection();
-
-                DoPowerLimit();
-            }
-        }
+        // ================================================================
+        // 功耗限制管理（与之前一致）
+        // ================================================================
 
         private void DoPowerLimit()
         {
@@ -306,8 +1024,6 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            // 错误冷却检查：上次错误后 15 秒内，跳过完整的 try-block，让定时器下次节拍再试
-            // 防止持久性错误时每 2 秒无意义地执行全部 I/O 操作
             var now = DateTime.UtcNow;
             if (_lastPowerLimitErrorTime > _lastSuccessfulApplyTime &&
                 now - _lastPowerLimitErrorTime < TimeSpan.FromSeconds(15))
@@ -317,7 +1033,6 @@ namespace RyzenTuner.UI
 
             _isApplyingPowerLimit = true;
 
-            // 仅首次进入（非恢复状态）时保存用户原始模式，防止冷却过期后被覆盖
             if (!_isErrorRecoveryPending)
             {
                 _preErrorMode = Settings.Default.CurrentMode;
@@ -333,12 +1048,9 @@ namespace RyzenTuner.UI
                 var shouldEnableCpuBoost = Settings.Default.CpuBoostEnabled;
 
                 notifyIcon1.Text = "";
-                
-                // 所有 PPT 限制均设为相同值（stampLimit），使 CPU 在所有时间窗口内维持一致功率
+
                 var applyErrors = new List<string>();
 
-                // 注意：仅在 applyAction 成功后更新 _lastApplied* 跟踪字段，
-                // 防止单次瞬态失败导致该设置永久被跳过（见 TryApply* 中的 changed=true 在 applyAction 前设置）
                 if (!TryApplyPowerLimit(_lastAppliedFastPpt, stampLimit, () => processor.SetFastPPT(stampLimit), out var fastPptChanged))
                 {
                     applyErrors.Add($"SetFastPPT({stampLimit:0.##}W)");
@@ -384,8 +1096,6 @@ namespace RyzenTuner.UI
                     _lastAppliedApuSkinTemp = apuSkinTemp;
                 }
 
-                // 配置系统电源计划
-                // 睿频改为显式开关，仅在用户手动切换后同步系统电源计划
                 if (_lastCpuBoostEnabled != shouldEnableCpuBoost)
                 {
                     var boostChanged = false;
@@ -416,11 +1126,16 @@ namespace RyzenTuner.UI
                 {
                     _lastSuccessfulApplyTime = DateTime.UtcNow;
 
-                    // 错误恢复后自动还原用户的原始模式
                     if (_isErrorRecoveryPending)
                     {
                         _isErrorRecoveryPending = false;
-                        SetCurrentMode(_preErrorMode);
+                        // 若恢复期间用户手动切换了模式，尊重用户选择，不覆盖
+                        if (Settings.Default.CurrentMode == "PerformanceMode")
+                        {
+                            // catch 块设了 PerformanceMode，用户未干预 — 尝试还原原始模式
+                            SetCurrentMode(_preErrorMode);
+                        }
+                        // 否则用户已手动切换，保持用户的选择
                     }
                 }
             }
@@ -442,14 +1157,8 @@ namespace RyzenTuner.UI
                     AppContainer.Logger().Warning(e.ToString());
                 }
 
-                // 切换到 PerformanceMode 作为安全回退
                 _isErrorRecoveryPending = true;
                 radioButton5.Checked = true;
-                // 注意：radioButton5.Checked = true 会通过 CheckedChanged 事件触发
-                // ChangeEnergyMode 保存 CurrentMode 并同步界面状态。
-                // 其中的 DoPowerLimit 调用被重入防护门（_isApplyingPowerLimit）拦截，
-                // 实际的硬件限制切换由下一次定时器节拍完成（最长 2048ms 后）。
-                // 不在此处显式调用 ChangeEnergyMode（旧有冗余代码已移除）。
             }
             finally
             {
@@ -517,21 +1226,14 @@ namespace RyzenTuner.UI
             notifyIcon1.ShowBalloonTip(3000);
         }
 
-        /// <summary>
-        /// 执行进程管理任务（EnergyStar）
-        /// </summary>
         private void DoProcessManage()
         {
-            // 如果开启【EnergyStar】
             if (Properties.Settings.Default.EnergyStar)
             {
                 AppContainer.EnergyManager().HandleForeground();
 
-                // Throttle 当前用户的所有后台进程
                 if (
-                    // 首次运行 30 秒
                     _tickCount == 15 ||
-                    // 每 5 分钟
                     _tickCount % 150 == 0
                 )
                 {
@@ -541,10 +1243,8 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            // 关闭【EnergyStar】的情况
             if (_needRunBoostAllBgProcesses)
             {
-                // Boost 当前用户的所有后台进程：每 5 分钟检查一次，一般只运行一次
                 if (_tickCount % 150 == 0)
                 {
                     AppContainer.EnergyManager().BoostAllUserBackgroundProcesses();
@@ -553,98 +1253,6 @@ namespace RyzenTuner.UI
             }
         }
 
-        private void SyncEnergyModeSelection()
-        {
-            foreach (Control c in powerLimitGroupBox.Controls)
-            {
-                if (c.Tag != null && c.Tag.ToString() == Properties.Settings.Default.CurrentMode)
-                {
-                    var rb = (RadioButton)c;
-                    rb.Checked = true;
-                }
-            }
-        }
-
-        private void SyncLaunchAtLogonSetting()
-        {
-            try
-            {
-                var isEnabled = StartupTaskScheduler.IsEnabled();
-
-                if (Properties.Settings.Default.LaunchAtLogon != isEnabled)
-                {
-                    Properties.Settings.Default.LaunchAtLogon = isEnabled;
-                    Properties.Settings.Default.Save();
-                }
-            }
-            catch (Exception ex)
-            {
-                AppContainer.Logger().Warning($"Failed to query launch at logon status: {ex.Message}");
-            }
-        }
-
-        private void SyncCpuBoostSetting()
-        {
-            try
-            {
-                var isEnabled = AppContainer.PowerConfig().IsCpuBoostEnabled();
-                _lastCpuBoostEnabled = isEnabled;
-
-                if (Properties.Settings.Default.CpuBoostEnabled != isEnabled)
-                {
-                    Properties.Settings.Default.CpuBoostEnabled = isEnabled;
-                    Properties.Settings.Default.Save();
-                }
-            }
-            catch (Exception ex)
-            {
-                _lastCpuBoostEnabled = Properties.Settings.Default.CpuBoostEnabled;
-                AppContainer.Logger().Warning($"Failed to query cpu boost status: {ex.Message}");
-            }
-        }
-
-        private void Form1_Shown(object sender, EventArgs e)
-        {
-            if (Environment.GetCommandLineArgs().Length > 1 && Environment.GetCommandLineArgs()[1] == "-hide")
-            {
-                Hide();
-            }
-        }
-
-        private void SettingsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            using var settingsForm = new SettingsForm();
-            if (settingsForm.ShowDialog(this) == DialogResult.OK)
-            {
-                // 刷新各模式标签显示（模式名-XXW）
-                // 部分模式标签可能因设置值损坏而无法解析，单独捕获避免阻断后续操作
-                try
-                {
-                    RefreshModeLabels();
-                }
-                catch (Exception ex)
-                {
-                    AppContainer.Logger().Warning($"刷新模式标签失败: {ex.Message}");
-                }
-
-                // 立即重新应用功率限制
-                DoPowerLimit();
-                // 更新通知栏文本
-                notifyIcon1.Text = "";
-            }
-        }
-
-        private void RefreshModeLabels()
-        {
-            radioButton3.Text = RyzenTunerUtils.GetModeDetailText("PowerSaveMode");
-            radioButton4.Text = RyzenTunerUtils.GetModeDetailText("BalancedMode");
-            radioButton5.Text = RyzenTunerUtils.GetModeDetailText("PerformanceMode");
-        }
-
-        /// <summary>
-        /// 将当前模式设置为指定模式（不触发 DoPowerLimit）。
-        /// 用于错误恢复时还原用户的原始选择。
-        /// </summary>
         private void SetCurrentMode(string mode)
         {
             if (mode == Settings.Default.CurrentMode)
@@ -652,8 +1260,6 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            // 直接保存模式并同步界面，避免通过 RadioButton.Checked 事件链
-            // （ChangeEnergyMode 中的 DoPowerLimit 会被重入防护门拦截而无效）。
             Settings.Default.CurrentMode = mode;
             Settings.Default.Save();
             SyncEnergyModeSelection();

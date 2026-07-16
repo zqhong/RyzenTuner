@@ -49,7 +49,6 @@ namespace RyzenTuner.Common.Benchmark
             if (_isRunning)
                 return;
 
-            _isRunning = true;
             var results = new List<BenchmarkTestPoint>();
             var processor = AppContainer.AmdProcessor();
             var hwMonitor = AppContainer.HardwareMonitor();
@@ -69,6 +68,7 @@ namespace RyzenTuner.Common.Benchmark
 
             try
             {
+                _isRunning = true;
                 for (var i = 0; i < totalPoints; i++)
                 {
                     if (_cts.Token.IsCancellationRequested)
@@ -127,8 +127,8 @@ namespace RyzenTuner.Common.Benchmark
                     }
 
                     // 计算能力发挥（Capability）
-                    // 若未缩放，maxScore 不变；若已缩放，结果同 maxScore / divisor
-                    var finalMax = maxScore > 99999 ? maxScore / divisor : maxScore;
+                    // 未缩放时 divisor = 1，maxScore / 1 ≈ maxScore，与旧值等价
+                    var finalMax = maxScore / divisor;
                     foreach (var r in results)
                     {
                         r.Capability = finalMax > 0 ? (double)r.Score / finalMax : 0;
@@ -257,7 +257,18 @@ namespace RyzenTuner.Common.Benchmark
                 var remaining = sampleIntervalMs - (int)sampleSw.ElapsedMilliseconds;
                 if (remaining > 0 && !ct.IsCancellationRequested)
                 {
-                    Thread.Sleep(remaining);
+                    try
+                    {
+                        Task.Delay(remaining, ct).Wait(ct);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                    catch (AggregateException) when (ct.IsCancellationRequested)
+                    {
+                        break;
+                    }
                 }
             }
         }

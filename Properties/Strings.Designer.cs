@@ -577,5 +577,17 @@ namespace RyzenTuner.Properties {
         internal static string TextBenchmarkExportFileName {
             get { return ResourceManager.GetString("TextBenchmarkExportFileName", resourceCulture); }
         }
+
+        internal static string TextAboutVersion {
+            get { return ResourceManager.GetString("TextAboutVersion", resourceCulture); }
+        }
+
+        internal static string TextAboutCopyright {
+            get { return ResourceManager.GetString("TextAboutCopyright", resourceCulture); }
+        }
+
+        internal static string TextAboutRyzenAdj {
+            get { return ResourceManager.GetString("TextAboutRyzenAdj", resourceCulture); }
+        }
     }
 }
