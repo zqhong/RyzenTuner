@@ -60,7 +60,9 @@ namespace RyzenTuner.Common.Logger
         public SimpleLogger()
         {
             _datetimeFormat = "yyyy-MM-dd HH:mm:ss";
-            _logFilename = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + FileExt;
+            var logDir = AppDomain.CurrentDomain.BaseDirectory;
+            _logFilename = Path.Combine(logDir,
+                System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + FileExt);
             DefaultLogLevel = LogLevel.Warning;
 
             // Prepend BOM for UTF-8 and keep writer open for the lifetime of the logger

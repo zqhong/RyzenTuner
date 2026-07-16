@@ -198,6 +198,8 @@ namespace RyzenTuner.Common.Benchmark
             var workload = new BenchmarkWorkload();
 
             // 启动数据采集任务
+            // 使用 Task.Run 确保采样循环运行在线程池上，避免因 SynchronizationContext
+            // （UI 线程）导致每次 await Task.Delay 后回送到 UI 线程阻塞消息泵
             var samplingTask = Task.Run(() =>
                 SamplingLoopAsync(hwMonitor, powerSamples, tempSamples, freqSamples,
                     config.DurationSeconds * 1000, sampleIntervalMs, _cts.Token));

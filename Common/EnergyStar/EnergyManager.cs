@@ -355,8 +355,14 @@ namespace RyzenTuner.Common.EnergyStar
                             }
 
                             var hProcess = NativeOpenProcess(proc.Id);
-                            ToggleEfficiencyMode(hProcess, enable);
-                            Win32Api.CloseHandle(hProcess);
+                            try
+                            {
+                                ToggleEfficiencyMode(hProcess, enable);
+                            }
+                            finally
+                            {
+                                Win32Api.CloseHandle(hProcess);
+                            }
                         }
                     }
                     catch (Exception e)

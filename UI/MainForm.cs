@@ -86,7 +86,7 @@ namespace RyzenTuner.UI
             SetupBenchmarkDataGridView();
 
             // 初始化布局（关于页延迟到首次访问时加载）
-            RecalcCardColumns();
+            // RecalcCardColumns 在 Form1_Shown 中调用，此时布局已最终确定
         }
 
         // ================================================================
@@ -703,6 +703,7 @@ namespace RyzenTuner.UI
             {
                 e.Cancel = true;
                 Hide();
+                // 图标在设计中已设置为始终可见 (notifyIcon1.Visible = true)
             }
         }
 
@@ -1247,11 +1248,9 @@ namespace RyzenTuner.UI
 
             if (_needRunBoostAllBgProcesses)
             {
-                if (_tickCount % 150 == 0)
-                {
-                    AppContainer.EnergyManager().BoostAllUserBackgroundProcesses();
-                    _needRunBoostAllBgProcesses = false;
-                }
+                // 立即提升，不等待 _tickCount 条件（用户刚关闭 EnergyStar，期望立即恢复）
+                AppContainer.EnergyManager().BoostAllUserBackgroundProcesses();
+                _needRunBoostAllBgProcesses = false;
             }
         }
 
