@@ -653,5 +653,37 @@ namespace RyzenTuner.Properties {
         internal static string TextLanguageEnglish {
             get { return ResourceManager.GetString("TextLanguageEnglish", resourceCulture); }
         }
+
+        internal static string TextHotkeySettings {
+            get { return ResourceManager.GetString("TextHotkeySettings", resourceCulture); }
+        }
+
+        internal static string TextHotkeyPowerSaveMode {
+            get { return ResourceManager.GetString("TextHotkeyPowerSaveMode", resourceCulture); }
+        }
+
+        internal static string TextHotkeyBalancedMode {
+            get { return ResourceManager.GetString("TextHotkeyBalancedMode", resourceCulture); }
+        }
+
+        internal static string TextHotkeyPerformanceMode {
+            get { return ResourceManager.GetString("TextHotkeyPerformanceMode", resourceCulture); }
+        }
+
+        internal static string TextHotkeyNone {
+            get { return ResourceManager.GetString("TextHotkeyNone", resourceCulture); }
+        }
+
+        internal static string TextHotkeyPressKeys {
+            get { return ResourceManager.GetString("TextHotkeyPressKeys", resourceCulture); }
+        }
+
+        internal static string TextHotkeyConflict {
+            get { return ResourceManager.GetString("TextHotkeyConflict", resourceCulture); }
+        }
+
+        internal static string TextHotkeyConflictTitle {
+            get { return ResourceManager.GetString("TextHotkeyConflictTitle", resourceCulture); }
+        }
     }
 }

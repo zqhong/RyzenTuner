@@ -315,4 +315,28 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextLanguageEnglish" xml:space="preserve">
         <value>English</value>
     </data>
+    <data name="TextHotkeySettings" xml:space="preserve">
+        <value>Hotkeys</value>
+    </data>
+    <data name="TextHotkeyPowerSaveMode" xml:space="preserve">
+        <value>Power Saver Hotkey</value>
+    </data>
+    <data name="TextHotkeyBalancedMode" xml:space="preserve">
+        <value>Balanced Hotkey</value>
+    </data>
+    <data name="TextHotkeyPerformanceMode" xml:space="preserve">
+        <value>Performance Hotkey</value>
+    </data>
+    <data name="TextHotkeyNone" xml:space="preserve">
+        <value>None</value>
+    </data>
+    <data name="TextHotkeyPressKeys" xml:space="preserve">
+        <value>Press shortcut...</value>
+    </data>
+    <data name="TextHotkeyConflict" xml:space="preserve">
+        <value>Shortcut "{hotkey}" is already in use by another program. Please choose a different one.</value>
+    </data>
+    <data name="TextHotkeyConflictTitle" xml:space="preserve">
+        <value>Hotkey Conflict</value>
+    </data>
 </root>

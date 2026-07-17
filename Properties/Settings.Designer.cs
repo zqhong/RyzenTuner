@@ -156,6 +156,42 @@ namespace RyzenTuner.Properties {
 
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string HotkeyPowerSaveMode {
+            get {
+                return ((string)(this["HotkeyPowerSaveMode"]));
+            }
+            set {
+                this["HotkeyPowerSaveMode"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string HotkeyBalancedMode {
+            get {
+                return ((string)(this["HotkeyBalancedMode"]));
+            }
+            set {
+                this["HotkeyBalancedMode"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string HotkeyPerformanceMode {
+            get {
+                return ((string)(this["HotkeyPerformanceMode"]));
+            }
+            set {
+                this["HotkeyPerformanceMode"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("100")]
         public int TctlTemp {
             get {

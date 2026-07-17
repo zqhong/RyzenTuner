@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using RyzenTuner.Common;
@@ -41,6 +42,28 @@ namespace RyzenTuner.UI
         private BenchmarkTestType _benchmarkTestType;
         // 是否需要运行 BoostAllUserBackgroundProcesses 任务
         private bool _needRunBoostAllBgProcesses;
+
+        // ================================================================
+        // 全局快捷键
+        // ================================================================
+
+        private const int WM_HOTKEY = 0x0312;
+
+        private const int MOD_ALT = 0x0001;
+        private const int MOD_CONTROL = 0x0002;
+        private const int MOD_SHIFT = 0x0004;
+        private const int MOD_WIN = 0x0008;
+        private const int MOD_NOREPEAT = 0x4000;
+
+        private const int HOTKEY_ID_POWERSAVE = 1;
+        private const int HOTKEY_ID_BALANCED = 2;
+        private const int HOTKEY_ID_PERFORMANCE = 3;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
 #if DEBUG
         private static string GetDebugBuildSuffix()
@@ -118,6 +141,9 @@ namespace RyzenTuner.UI
 
             // 刷新首页模式标签（Designer 中只显示模式名，运行时补上功率值）
             RefreshModeLabels();
+
+            // 注册全局快捷键
+            RegisterAllHotkeys();
 
             // 初始化布局（关于页延迟到首次访问时加载）
             // RecalcCardColumns 在 Form1_Shown 中调用，此时布局已最终确定
@@ -254,6 +280,9 @@ namespace RyzenTuner.UI
 
             numericUpDownTctlTemp.Value = ClampNumeric(Settings.Default.TctlTemp, numericUpDownTctlTemp);
             numericUpDownApuSkinTemp.Value = ClampNumeric(Settings.Default.ApuSkinTemp, numericUpDownApuSkinTemp);
+
+            // 加载快捷键设置
+            LoadHotkeySettings();
         }
 
         private static void TrySetNumericValue(NumericUpDown control, string mode)
@@ -282,12 +311,62 @@ namespace RyzenTuner.UI
 
         private void SettingsSave_Click(object? sender, EventArgs e)
         {
+            // ===== 收集新的快捷键值 =====
+            var newHotkeyPowerSave = GetHotkeyFromTextBox(textBoxHotkeyPowerSave);
+            var newHotkeyBalanced = GetHotkeyFromTextBox(textBoxHotkeyBalanced);
+            var newHotkeyPerformance = GetHotkeyFromTextBox(textBoxHotkeyPerformance);
+
+            // ===== 验证快捷键是否被系统占用 =====
+            var oldHotkeyPowerSave = Settings.Default.HotkeyPowerSaveMode;
+            var oldHotkeyBalanced = Settings.Default.HotkeyBalancedMode;
+            var oldHotkeyPerformance = Settings.Default.HotkeyPerformanceMode;
+
+            // 先注销旧的，再尝试注册新的
+            UnregisterAllHotkeys();
+
+            var conflictList = new List<string>();
+
+            if (!TryRegisterHotkey(newHotkeyPowerSave, HOTKEY_ID_POWERSAVE))
+                conflictList.Add(GetHotkeyDisplayText(newHotkeyPowerSave));
+            if (!TryRegisterHotkey(newHotkeyBalanced, HOTKEY_ID_BALANCED))
+                conflictList.Add(GetHotkeyDisplayText(newHotkeyBalanced));
+            if (!TryRegisterHotkey(newHotkeyPerformance, HOTKEY_ID_PERFORMANCE))
+                conflictList.Add(GetHotkeyDisplayText(newHotkeyPerformance));
+
+            if (conflictList.Count > 0)
+            {
+                // 恢复旧的快捷键
+                UnregisterAllHotkeys();
+                TryRegisterHotkey(oldHotkeyPowerSave, HOTKEY_ID_POWERSAVE);
+                TryRegisterHotkey(oldHotkeyBalanced, HOTKEY_ID_BALANCED);
+                TryRegisterHotkey(oldHotkeyPerformance, HOTKEY_ID_PERFORMANCE);
+
+                // 恢复文本框显示
+                SetHotkeyTextBox(textBoxHotkeyPowerSave, oldHotkeyPowerSave);
+                SetHotkeyTextBox(textBoxHotkeyBalanced, oldHotkeyBalanced);
+                SetHotkeyTextBox(textBoxHotkeyPerformance, oldHotkeyPerformance);
+
+                var conflictMsg = string.Join("\n", conflictList);
+                MessageBox.Show(
+                    Properties.Strings.TextHotkeyConflict.Replace("{hotkey}", conflictMsg),
+                    Properties.Strings.TextHotkeyConflictTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            // ===== 快捷键验证通过，保存所有设置 =====
             Settings.Default.PowerSaveMode = numericUpDownPowerSaveMode.Value.ToString("F0", CultureInfo.InvariantCulture);
             Settings.Default.BalancedMode = numericUpDownBalancedMode.Value.ToString("F0", CultureInfo.InvariantCulture);
             Settings.Default.PerformanceMode = numericUpDownPerformanceMode.Value.ToString("F0", CultureInfo.InvariantCulture);
 
             Settings.Default.TctlTemp = (int)numericUpDownTctlTemp.Value;
             Settings.Default.ApuSkinTemp = (int)numericUpDownApuSkinTemp.Value;
+
+            // 保存快捷键设置（快捷键已经注册成功，只需保存值）
+            Settings.Default.HotkeyPowerSaveMode = newHotkeyPowerSave;
+            Settings.Default.HotkeyBalancedMode = newHotkeyBalanced;
+            Settings.Default.HotkeyPerformanceMode = newHotkeyPerformance;
 
             Settings.Default.Save();
 
@@ -844,7 +923,11 @@ namespace RyzenTuner.UI
                 e.Cancel = true;
                 Hide();
                 // 图标在设计中已设置为始终可见 (notifyIcon1.Visible = true)
+                return;
             }
+
+            // 真正退出时注销全局快捷键
+            UnregisterAllHotkeys();
         }
 
         private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -1413,6 +1496,291 @@ namespace RyzenTuner.UI
             Settings.Default.CurrentMode = mode;
             Settings.Default.Save();
             SyncEnergyModeSelection();
+        }
+
+        // ================================================================
+        // 全局快捷键处理
+        // ================================================================
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_HOTKEY)
+            {
+                var id = (int)m.WParam;
+                switch (id)
+                {
+                    case HOTKEY_ID_POWERSAVE:
+                        SwitchToMode("PowerSaveMode");
+                        break;
+                    case HOTKEY_ID_BALANCED:
+                        SwitchToMode("BalancedMode");
+                        break;
+                    case HOTKEY_ID_PERFORMANCE:
+                        SwitchToMode("PerformanceMode");
+                        break;
+                }
+            }
+
+            base.WndProc(ref m);
+        }
+
+        /// <summary>
+        /// 切换到指定模式（被快捷键触发）
+        /// </summary>
+        private void SwitchToMode(string mode)
+        {
+            // 跑分进行中时禁止切换
+            if (_isBenchmarkRunning)
+                return;
+
+            if (mode == Settings.Default.CurrentMode)
+                return;
+
+            Settings.Default.CurrentMode = mode;
+            Settings.Default.Save();
+            SyncEnergyModeSelection();
+            DoPowerLimit();
+        }
+
+        /// <summary>
+        /// 注册所有已配置的快捷键
+        /// </summary>
+        private void RegisterAllHotkeys()
+        {
+            UnregisterAllHotkeys();
+
+            TryRegisterHotkey(Settings.Default.HotkeyPowerSaveMode, HOTKEY_ID_POWERSAVE);
+            TryRegisterHotkey(Settings.Default.HotkeyBalancedMode, HOTKEY_ID_BALANCED);
+            TryRegisterHotkey(Settings.Default.HotkeyPerformanceMode, HOTKEY_ID_PERFORMANCE);
+        }
+
+        /// <summary>
+        /// 尝试注册单个快捷键到当前窗口
+        /// </summary>
+        private bool TryRegisterHotkey(string hotkeyStr, int id)
+        {
+            if (string.IsNullOrEmpty(hotkeyStr))
+                return true;
+
+            if (!TryParseHotkeyString(hotkeyStr, out var modifiers, out var key))
+                return false;
+
+            // MOD_NOREPEAT 防止按键不放时重复触发
+            return RegisterHotKey(Handle, id, modifiers | MOD_NOREPEAT, (uint)key);
+        }
+
+        /// <summary>
+        /// 注销所有快捷键
+        /// </summary>
+        private void UnregisterAllHotkeys()
+        {
+            UnregisterHotKey(Handle, HOTKEY_ID_POWERSAVE);
+            UnregisterHotKey(Handle, HOTKEY_ID_BALANCED);
+            UnregisterHotKey(Handle, HOTKEY_ID_PERFORMANCE);
+        }
+
+        // ================================================================
+        // 快捷键字符串辅助方法
+        // ================================================================
+
+        /// <summary>
+        /// 将修饰键和虚拟键码转换为快捷键字符串（如 "Ctrl+Alt+P"）
+        /// </summary>
+        private static string FormatHotkeyString(uint modifiers, Keys key)
+        {
+            var parts = new List<string>();
+
+            if ((modifiers & MOD_CONTROL) != 0)
+                parts.Add("Ctrl");
+            if ((modifiers & MOD_ALT) != 0)
+                parts.Add("Alt");
+            if ((modifiers & MOD_SHIFT) != 0)
+                parts.Add("Shift");
+            if ((modifiers & MOD_WIN) != 0)
+                parts.Add("Win");
+
+            // 获取键名（移除修饰键前缀以避免冗余）
+            var keyName = key switch
+            {
+                Keys.ControlKey or Keys.LControlKey or Keys.RControlKey => "",
+                Keys.Menu or Keys.LMenu or Keys.RMenu => "",
+                Keys.ShiftKey or Keys.LShiftKey or Keys.RShiftKey => "",
+                Keys.LWin or Keys.RWin => "",
+                _ => key.ToString(),
+            };
+
+            if (!string.IsNullOrEmpty(keyName))
+                parts.Add(keyName);
+
+            return parts.Count > 0 ? string.Join("+", parts) : "";
+        }
+
+        /// <summary>
+        /// 解析快捷键字符串为修饰键掩码和虚拟键码
+        /// </summary>
+        private static bool TryParseHotkeyString(string str, out uint modifiers, out Keys key)
+        {
+            modifiers = 0;
+            key = Keys.None;
+
+            if (string.IsNullOrWhiteSpace(str))
+                return false;
+
+            var parts = str.Split('+');
+            if (parts.Length < 2)
+                return false;
+
+            // 最后一个部分是键
+            if (!Enum.TryParse<Keys>(parts[parts.Length - 1], true, out key) || key == Keys.None)
+                return false;
+
+            // 前面的部分是修饰键
+            for (var i = 0; i < parts.Length - 1; i++)
+            {
+                switch (parts[i].ToLowerInvariant())
+                {
+                    case "ctrl":
+                    case "control":
+                        modifiers |= MOD_CONTROL;
+                        break;
+                    case "alt":
+                        modifiers |= MOD_ALT;
+                        break;
+                    case "shift":
+                        modifiers |= MOD_SHIFT;
+                        break;
+                    case "win":
+                        modifiers |= MOD_WIN;
+                        break;
+                    default:
+                        return false;
+                }
+            }
+
+            // 必须至少有一个修饰键
+            return modifiers != 0;
+        }
+
+        /// <summary>
+        /// 获取快捷键的人可读显示文本（空键返回 "未设置" / "None"）
+        /// </summary>
+        private static string GetHotkeyDisplayText(string hotkeyStr)
+        {
+            return string.IsNullOrEmpty(hotkeyStr)
+                ? Properties.Strings.TextHotkeyNone
+                : hotkeyStr;
+        }
+
+        // ================================================================
+        // 快捷键拾取器事件处理
+        // ================================================================
+
+        private TextBox? _activeHotkeyTextBox;
+
+        private void TextBoxHotkey_Enter(object? sender, EventArgs e)
+        {
+            if (sender is TextBox tb)
+            {
+                _activeHotkeyTextBox = tb;
+                tb.Text = Properties.Strings.TextHotkeyPressKeys;
+            }
+        }
+
+        private void TextBoxHotkey_Leave(object? sender, EventArgs e)
+        {
+            if (sender is TextBox tb)
+            {
+                _activeHotkeyTextBox = null;
+                // 恢复为已保存的值
+                var hotkeyStr = tb.Tag?.ToString() ?? "";
+                tb.Text = GetHotkeyDisplayText(hotkeyStr);
+            }
+        }
+
+        private void TextBoxHotkey_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (sender is not TextBox tb)
+                return;
+
+            // 清除快捷键
+            if (e.KeyCode == Keys.Back || e.KeyCode == Keys.Escape)
+            {
+                tb.Tag = "";
+                tb.Text = Properties.Strings.TextHotkeyPressKeys;
+                e.SuppressKeyPress = true;
+                return;
+            }
+
+            // 只处理组合键（修饰键 + 功能/字母键）
+            var isModifier = e.KeyCode == Keys.ControlKey ||
+                             e.KeyCode == Keys.LControlKey ||
+                             e.KeyCode == Keys.RControlKey ||
+                             e.KeyCode == Keys.Menu ||
+                             e.KeyCode == Keys.LMenu ||
+                             e.KeyCode == Keys.RMenu ||
+                             e.KeyCode == Keys.ShiftKey ||
+                             e.KeyCode == Keys.LShiftKey ||
+                             e.KeyCode == Keys.RShiftKey ||
+                             e.KeyCode == Keys.LWin ||
+                             e.KeyCode == Keys.RWin;
+
+            if (isModifier)
+            {
+                e.SuppressKeyPress = true;
+                return;
+            }
+
+            // 必须有至少一个修饰键
+            var modifiers = e.Modifiers;
+            if (modifiers == Keys.None)
+            {
+                e.SuppressKeyPress = true;
+                return;
+            }
+
+            // 转换为内部修饰键表示
+            uint modMask = 0;
+            if ((modifiers & Keys.Control) != 0)
+                modMask |= MOD_CONTROL;
+            if ((modifiers & Keys.Alt) != 0)
+                modMask |= MOD_ALT;
+            if ((modifiers & Keys.Shift) != 0)
+                modMask |= MOD_SHIFT;
+            // Win 键无法通过 KeyEventArgs.Modifiers 检测，但 RegisterHotKey 支持
+
+            var hotkeyStr = FormatHotkeyString(modMask, e.KeyCode);
+            if (string.IsNullOrEmpty(hotkeyStr))
+            {
+                e.SuppressKeyPress = true;
+                return;
+            }
+
+            tb.Tag = hotkeyStr;
+            tb.Text = hotkeyStr;
+            e.SuppressKeyPress = true;
+        }
+
+        // ================================================================
+        // 快捷键设置加载/保存
+        // ================================================================
+
+        private void LoadHotkeySettings()
+        {
+            SetHotkeyTextBox(textBoxHotkeyPowerSave, Settings.Default.HotkeyPowerSaveMode);
+            SetHotkeyTextBox(textBoxHotkeyBalanced, Settings.Default.HotkeyBalancedMode);
+            SetHotkeyTextBox(textBoxHotkeyPerformance, Settings.Default.HotkeyPerformanceMode);
+        }
+
+        private static void SetHotkeyTextBox(TextBox tb, string hotkeyStr)
+        {
+            var str = hotkeyStr ?? "";
+            tb.Tag = str;
+            tb.Text = GetHotkeyDisplayText(str);
+        }
+
+        private static string GetHotkeyFromTextBox(TextBox tb)
+        {
+            return tb.Tag?.ToString() ?? "";
         }
     }
 }

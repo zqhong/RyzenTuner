@@ -41,5 +41,14 @@
     <Setting Name="Language" Type="System.String" Scope="User">
       <Value Profile="(Default)"></Value>
     </Setting>
+    <Setting Name="HotkeyPowerSaveMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)"></Value>
+    </Setting>
+    <Setting Name="HotkeyBalancedMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)"></Value>
+    </Setting>
+    <Setting Name="HotkeyPerformanceMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)"></Value>
+    </Setting>
   </Settings>
 </SettingsFile>

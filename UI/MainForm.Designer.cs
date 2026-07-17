@@ -133,6 +133,13 @@ namespace RyzenTuner.UI
     this.labelAboutLink = new Label();
     this.notifyIcon1 = new NotifyIcon(this.components);
     this.mainFormTimer = new Timer(this.components);
+    this.groupBoxHotkey = new GroupBox();
+    this.labelHotkeyPowerSave = new Label();
+    this.textBoxHotkeyPowerSave = new TextBox();
+    this.labelHotkeyBalanced = new Label();
+    this.textBoxHotkeyBalanced = new TextBox();
+    this.labelHotkeyPerformance = new Label();
+    this.textBoxHotkeyPerformance = new TextBox();
 
     // 【重要修正 1】必须挂起所有容器的布局，防止绝对定位计算出错
     this.SuspendLayout();
@@ -149,6 +156,7 @@ namespace RyzenTuner.UI
     this.groupBoxSettingsPerformance.SuspendLayout();
     this.groupBoxAdvanced.SuspendLayout();
     this.groupBoxLanguage.SuspendLayout();
+    this.groupBoxHotkey.SuspendLayout();
     this.pageBenchmark.SuspendLayout();
     this.groupBoxBenchmarkConfig.SuspendLayout();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPowerSaveMode)).BeginInit();
@@ -430,6 +438,7 @@ namespace RyzenTuner.UI
     this.pageSettings.Controls.Add(this.groupBoxSettingsBalanced);
     this.pageSettings.Controls.Add(this.groupBoxSettingsPerformance);
     this.pageSettings.Controls.Add(this.groupBoxLanguage);
+    this.pageSettings.Controls.Add(this.groupBoxHotkey);
     this.pageSettings.Controls.Add(this.groupBoxAdvanced);
     this.pageSettings.Controls.Add(this.buttonSave);
     this.pageSettings.Controls.Add(this.buttonCancel);
@@ -551,6 +560,17 @@ namespace RyzenTuner.UI
     this.groupBoxLanguage.Size = new Size(300, 60);
     this.groupBoxLanguage.Text = Properties.Strings.TextLanguage;
 
+    // ============================================================
+    // 快捷键设置
+    // ============================================================
+    this.groupBoxHotkey = new GroupBox();
+    this.labelHotkeyPowerSave = new Label();
+    this.textBoxHotkeyPowerSave = new TextBox();
+    this.labelHotkeyBalanced = new Label();
+    this.textBoxHotkeyBalanced = new TextBox();
+    this.labelHotkeyPerformance = new Label();
+    this.textBoxHotkeyPerformance = new TextBox();
+
     this.labelLanguage.AutoSize = true;
     this.labelLanguage.Location = new Point(12, 24);
     this.labelLanguage.Text = Properties.Strings.TextLanguage;
@@ -565,6 +585,57 @@ namespace RyzenTuner.UI
     this.comboBoxLanguage.Size = new Size(140, 26);
     // SelectedIndex 由 MainForm.InitLanguageSelection() 运行时设置
     this.comboBoxLanguage.SelectedIndexChanged += new EventHandler(this.ComboBoxLanguage_SelectedIndexChanged);
+
+    // ---- 快捷键设置 ----
+    this.groupBoxHotkey.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+    this.groupBoxHotkey.Controls.Add(this.labelHotkeyPowerSave);
+    this.groupBoxHotkey.Controls.Add(this.textBoxHotkeyPowerSave);
+    this.groupBoxHotkey.Controls.Add(this.labelHotkeyBalanced);
+    this.groupBoxHotkey.Controls.Add(this.textBoxHotkeyBalanced);
+    this.groupBoxHotkey.Controls.Add(this.labelHotkeyPerformance);
+    this.groupBoxHotkey.Controls.Add(this.textBoxHotkeyPerformance);
+    this.groupBoxHotkey.Location = new Point(16, 356);
+    this.groupBoxHotkey.Size = new Size(624, 130);
+    this.groupBoxHotkey.Text = Properties.Strings.TextHotkeySettings;
+
+    // 省电模式快捷键
+    this.labelHotkeyPowerSave.AutoSize = true;
+    this.labelHotkeyPowerSave.Location = new Point(12, 28);
+    this.labelHotkeyPowerSave.Text = Properties.Strings.TextHotkeyPowerSaveMode;
+
+    this.textBoxHotkeyPowerSave.Location = new Point(160, 26);
+    this.textBoxHotkeyPowerSave.Size = new Size(200, 26);
+    this.textBoxHotkeyPowerSave.ReadOnly = true;
+    this.textBoxHotkeyPowerSave.Text = Properties.Strings.TextHotkeyNone;
+    this.textBoxHotkeyPowerSave.Enter += new EventHandler(this.TextBoxHotkey_Enter);
+    this.textBoxHotkeyPowerSave.Leave += new EventHandler(this.TextBoxHotkey_Leave);
+    this.textBoxHotkeyPowerSave.KeyDown += new KeyEventHandler(this.TextBoxHotkey_KeyDown);
+
+    // 平衡模式快捷键
+    this.labelHotkeyBalanced.AutoSize = true;
+    this.labelHotkeyBalanced.Location = new Point(12, 60);
+    this.labelHotkeyBalanced.Text = Properties.Strings.TextHotkeyBalancedMode;
+
+    this.textBoxHotkeyBalanced.Location = new Point(160, 58);
+    this.textBoxHotkeyBalanced.Size = new Size(200, 26);
+    this.textBoxHotkeyBalanced.ReadOnly = true;
+    this.textBoxHotkeyBalanced.Text = Properties.Strings.TextHotkeyNone;
+    this.textBoxHotkeyBalanced.Enter += new EventHandler(this.TextBoxHotkey_Enter);
+    this.textBoxHotkeyBalanced.Leave += new EventHandler(this.TextBoxHotkey_Leave);
+    this.textBoxHotkeyBalanced.KeyDown += new KeyEventHandler(this.TextBoxHotkey_KeyDown);
+
+    // 性能模式快捷键
+    this.labelHotkeyPerformance.AutoSize = true;
+    this.labelHotkeyPerformance.Location = new Point(12, 92);
+    this.labelHotkeyPerformance.Text = Properties.Strings.TextHotkeyPerformanceMode;
+
+    this.textBoxHotkeyPerformance.Location = new Point(160, 90);
+    this.textBoxHotkeyPerformance.Size = new Size(200, 26);
+    this.textBoxHotkeyPerformance.ReadOnly = true;
+    this.textBoxHotkeyPerformance.Text = Properties.Strings.TextHotkeyNone;
+    this.textBoxHotkeyPerformance.Enter += new EventHandler(this.TextBoxHotkey_Enter);
+    this.textBoxHotkeyPerformance.Leave += new EventHandler(this.TextBoxHotkey_Leave);
+    this.textBoxHotkeyPerformance.KeyDown += new KeyEventHandler(this.TextBoxHotkey_KeyDown);
 
     this.buttonSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
     this.buttonSave.Location = new Point(436, 520);
@@ -838,6 +909,8 @@ namespace RyzenTuner.UI
     this.groupBoxAdvanced.PerformLayout();
     this.groupBoxLanguage.ResumeLayout(false);
     this.groupBoxLanguage.PerformLayout();
+    this.groupBoxHotkey.ResumeLayout(false);
+    this.groupBoxHotkey.PerformLayout();
     this.pageBenchmark.ResumeLayout(false);
     this.pageBenchmark.PerformLayout();
     this.groupBoxBenchmarkConfig.ResumeLayout(false);
@@ -932,6 +1005,15 @@ namespace RyzenTuner.UI
         private GroupBox groupBoxLanguage;
         private Label labelLanguage;
         private ComboBox comboBoxLanguage;
+
+        // ---- 快捷键设置 ----
+        private GroupBox groupBoxHotkey;
+        private Label labelHotkeyPowerSave;
+        private TextBox textBoxHotkeyPowerSave;
+        private Label labelHotkeyBalanced;
+        private TextBox textBoxHotkeyBalanced;
+        private Label labelHotkeyPerformance;
+        private TextBox textBoxHotkeyPerformance;
 
         // ---- 跑分页 ----
         private GroupBox groupBoxBenchmarkConfig;

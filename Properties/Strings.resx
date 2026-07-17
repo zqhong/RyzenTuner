@@ -319,4 +319,28 @@
     <data name="TextLanguageEnglish" xml:space="preserve">
         <value>English</value>
     </data>
+    <data name="TextHotkeySettings" xml:space="preserve">
+        <value>快捷键</value>
+    </data>
+    <data name="TextHotkeyPowerSaveMode" xml:space="preserve">
+        <value>省电模式快捷键</value>
+    </data>
+    <data name="TextHotkeyBalancedMode" xml:space="preserve">
+        <value>平衡模式快捷键</value>
+    </data>
+    <data name="TextHotkeyPerformanceMode" xml:space="preserve">
+        <value>性能模式快捷键</value>
+    </data>
+    <data name="TextHotkeyNone" xml:space="preserve">
+        <value>未设置</value>
+    </data>
+    <data name="TextHotkeyPressKeys" xml:space="preserve">
+        <value>请按下快捷键...</value>
+    </data>
+    <data name="TextHotkeyConflict" xml:space="preserve">
+        <value>快捷键“{hotkey}”已被其他程序占用，请换一个快捷键。</value>
+    </data>
+    <data name="TextHotkeyConflictTitle" xml:space="preserve">
+        <value>快捷键冲突</value>
+    </data>
 </root>
