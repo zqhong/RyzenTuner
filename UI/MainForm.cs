@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -66,8 +67,34 @@ namespace RyzenTuner.UI
 #endif
         }
 
+        /// <summary>
+        /// 返回图标（在 Designer.cs 外部实现，避免 Rider CodeDom 解析器卡死）
+        /// </summary>
+        private static System.Drawing.Icon getIcon()
+        {
+            if (_cachedIcon != null)
+                return _cachedIcon;
+            try
+            {
+                _cachedIcon = System.Drawing.Icon.ExtractAssociatedIcon(
+                    System.Reflection.Assembly.GetExecutingAssembly().Location);
+            }
+            catch { }
+
+            _cachedIcon ??= SystemIcons.Application;
+            return _cachedIcon;
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
+            if (DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            {
+                return;
+            }
+
+            // 运行时启动定时器
+            mainFormTimer.Enabled = true;
+
             _isInitializingOptions = true;
             checkBoxEnergyStar.Checked = Properties.Settings.Default.EnergyStar;
             keepAwakeCheckBox.Checked = Properties.Settings.Default.KeepAwake;
@@ -84,6 +111,9 @@ namespace RyzenTuner.UI
 
             // 初始化跑分页
             SetupBenchmarkDataGridView();
+
+            // 刷新首页模式标签（Designer 中只显示模式名，运行时补上功率值）
+            RefreshModeLabels();
 
             // 初始化布局（关于页延迟到首次访问时加载）
             // RecalcCardColumns 在 Form1_Shown 中调用，此时布局已最终确定
@@ -690,6 +720,11 @@ namespace RyzenTuner.UI
 
         private void Form1_Shown(object sender, EventArgs e)
         {
+            if (DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            {
+                return;
+            }
+
             RecalcCardColumns();
             if (Environment.GetCommandLineArgs().Length > 1 && Environment.GetCommandLineArgs()[1] == "-hide")
             {
@@ -783,6 +818,11 @@ namespace RyzenTuner.UI
         }
         private void mainFormTimer_Tick(object sender, EventArgs e)
         {
+            if (DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+            {
+                return;
+            }
+
             _tickCount++;
 
             DoPowerLimit();
