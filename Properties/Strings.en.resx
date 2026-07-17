@@ -129,6 +129,9 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextPowerLimitUpdateInterval" xml:space="preserve">
         <value>Power Limit Update Interval</value>
     </data>
+    <data name="TextPowerLimitUpdateIntervalTip" xml:space="preserve">
+        <value>The actual interval may deviate by approximately 2 seconds due to timer granularity.</value>
+    </data>
     <data name="TextSecond" xml:space="preserve">
         <value>s</value>
     </data>

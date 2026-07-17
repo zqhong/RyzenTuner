@@ -133,6 +133,9 @@
     <data name="TextPowerLimitUpdateInterval" xml:space="preserve">
         <value>功率限制更新间隔</value>
     </data>
+    <data name="TextPowerLimitUpdateIntervalTip" xml:space="preserve">
+        <value>实际间隔因定时器精度可能有约 2 秒偏差。</value>
+    </data>
     <data name="TextSecond" xml:space="preserve">
         <value>秒</value>
     </data>

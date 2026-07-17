@@ -397,6 +397,15 @@ namespace RyzenTuner.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to 实际间隔因定时器精度可能有约 2 秒偏差。.
+        /// </summary>
+        internal static string TextPowerLimitUpdateIntervalTip {
+            get {
+                return ResourceManager.GetString("TextPowerLimitUpdateIntervalTip", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to 秒.
         /// </summary>
         internal static string TextSecond {

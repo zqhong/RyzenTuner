@@ -136,6 +136,7 @@ namespace RyzenTuner.UI
     this.labelAboutLink = new Label();
     this.notifyIcon1 = new NotifyIcon(this.components);
     this.mainFormTimer = new Timer(this.components);
+    this.toolTipPowerLimitUpdateInterval = new System.Windows.Forms.ToolTip(this.components);
     this.groupBoxHotkey = new GroupBox();
     this.labelHotkeyPowerSave = new Label();
     this.textBoxHotkeyPowerSave = new TextBox();
@@ -569,6 +570,9 @@ namespace RyzenTuner.UI
     this.numericUpDownPowerLimitUpdateInterval.Maximum = new decimal(new int[] { 60, 0, 0, 0 });
     this.numericUpDownPowerLimitUpdateInterval.Size = new Size(80, 26);
     this.numericUpDownPowerLimitUpdateInterval.Value = new decimal(new int[] { 4, 0, 0, 0 });
+
+    // toolTipPowerLimitUpdateInterval
+    this.toolTipPowerLimitUpdateInterval.SetToolTip(this.numericUpDownPowerLimitUpdateInterval, Properties.Strings.TextPowerLimitUpdateIntervalTip);
 
     // labelPowerLimitUpdateIntervalUnit
     this.labelPowerLimitUpdateIntervalUnit.AutoSize = true;
@@ -1015,6 +1019,7 @@ namespace RyzenTuner.UI
         private Label labelPowerLimitUpdateInterval;
         private NumericUpDown numericUpDownPowerLimitUpdateInterval;
         private Label labelPowerLimitUpdateIntervalUnit;
+        private ToolTip toolTipPowerLimitUpdateInterval;
         private Button buttonSave;
         private Button buttonCancel;
 

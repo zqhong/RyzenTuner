@@ -1118,7 +1118,7 @@ namespace RyzenTuner.UI
 
             // 根据用户配置的间隔控制 DoPowerLimit 的更新频率（默认 4 秒）
             var interval = Settings.Default.PowerLimitUpdateInterval;
-            if (interval < 1) interval = 4; // 防御：确保最小值为 1 秒
+            if (interval < 1) interval = 1; // 防御：确保最小值为 1 秒
             if (DateTime.UtcNow - _lastPowerLimitRunTime >= TimeSpan.FromSeconds(interval))
             {
                 _lastPowerLimitRunTime = DateTime.UtcNow;
