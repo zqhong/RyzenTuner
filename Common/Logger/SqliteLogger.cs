@@ -27,6 +27,9 @@ namespace RyzenTuner.Common.Logger
         private const string DbDirName = "logs";
         private const string DbFileName = "RyzenTuner.db";
 
+        // 注意：_datetimeFormat 必须保持 "yyyy-MM-dd HH:mm:ss" 格式不变，
+        // Cleanup() 中的 DELETE 查询使用字符串字典序比较 timestamp 列，
+        // 任何格式变更（如省略前导零、12 小时制）都会导致时间比较失效。
         private readonly string _datetimeFormat;
         private readonly string _logFilename;
         private readonly string _dbPath;
@@ -34,7 +37,6 @@ namespace RyzenTuner.Common.Logger
         private readonly object _dbLock = new();
         private StreamWriter? _writer;
         private bool _disposed;
-        private SQLiteConnection? _connection;
         private bool _dbInitialized;
 
         public LogLevel DefaultLogLevel;
@@ -139,13 +141,6 @@ namespace RyzenTuner.Common.Logger
                 _writer?.Dispose();
                 _writer = null;
             }
-
-            lock (_dbLock)
-            {
-                _connection?.Close();
-                _connection?.Dispose();
-                _connection = null;
-            }
         }
 
         public LogLevel ToLogLevel(string logLevel)
@@ -158,7 +153,7 @@ namespace RyzenTuner.Common.Logger
                 "Warning" => LogLevel.Warning,
                 "Error" => LogLevel.Error,
                 "Fatal" => LogLevel.Fatal,
-                _ => throw new Exception($"不正确的 log level 类型：{logLevel}")
+                _ => throw new ArgumentException($"不正确的 log level 类型：{logLevel}")
             };
         }
 
@@ -270,7 +265,7 @@ namespace RyzenTuner.Common.Logger
 
                 var sql = "SELECT timestamp, level, action, details, elapsed_ms FROM logs WHERE 1=1";
 
-                if (!string.IsNullOrEmpty(levelFilter) && levelFilter != "All")
+                if (!string.IsNullOrEmpty(levelFilter))
                 {
                     sql += " AND level = @level";
                     cmd.Parameters.AddWithValue("@level", levelFilter);
@@ -369,16 +364,8 @@ namespace RyzenTuner.Common.Logger
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "DELETE FROM logs WHERE timestamp < @cutoff";
                 cmd.Parameters.AddWithValue("@cutoff",
-                    DateTime.Now.AddDays(-retentionDays).ToString(_datetimeFormat));
+                    DateTime.UtcNow.AddDays(-retentionDays).ToString(_datetimeFormat));
                 var deleted = cmd.ExecuteNonQuery();
-
-                // VACUUM only if we deleted a substantial number of rows (>1000)
-                if (deleted > 1000)
-                {
-                    using var vacuumCmd = conn.CreateCommand();
-                    vacuumCmd.CommandText = "VACUUM";
-                    vacuumCmd.ExecuteNonQuery();
-                }
 
                 WriteLine($"[SQLite] 已清理 {deleted} 条过期日志（保留 {retentionDays} 天）");
             }
@@ -402,19 +389,21 @@ namespace RyzenTuner.Common.Logger
                 return;
             }
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
+            // 注意：.log 文件使用本地时间显示，方便 tail -f 查看；SQLite 使用 UTC 确保时区不变性
+            var localNow = now.ToLocalTime();
             var pretext = level switch
             {
-                LogLevel.Trace => now.ToString(_datetimeFormat) + " [TRACE]   ",
-                LogLevel.Info => now.ToString(_datetimeFormat) + " [INFO]    ",
-                LogLevel.Debug => now.ToString(_datetimeFormat) + " [DEBUG]   ",
-                LogLevel.Warning => now.ToString(_datetimeFormat) + " [WARNING] ",
-                LogLevel.Error => now.ToString(_datetimeFormat) + " [ERROR]   ",
-                LogLevel.Fatal => now.ToString(_datetimeFormat) + " [FATAL]   ",
+                LogLevel.Trace => localNow.ToString(_datetimeFormat) + " [TRACE]   ",
+                LogLevel.Info => localNow.ToString(_datetimeFormat) + " [INFO]    ",
+                LogLevel.Debug => localNow.ToString(_datetimeFormat) + " [DEBUG]   ",
+                LogLevel.Warning => localNow.ToString(_datetimeFormat) + " [WARNING] ",
+                LogLevel.Error => localNow.ToString(_datetimeFormat) + " [ERROR]   ",
+                LogLevel.Fatal => localNow.ToString(_datetimeFormat) + " [FATAL]   ",
                 _ => ""
             };
 
-            // Write to .log file
+            // Write to .log file (local time for readability)
             var logLine = pretext + text;
             if (elapsedMs.HasValue)
             {
@@ -422,7 +411,7 @@ namespace RyzenTuner.Common.Logger
             }
             WriteLine(logLine);
 
-            // Write to SQLite
+            // Write to SQLite (UTC for timezone-invariant comparison)
             WriteToDatabase(new LogEntry
             {
                 Timestamp = now,
