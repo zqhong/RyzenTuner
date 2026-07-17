@@ -192,6 +192,18 @@ namespace RyzenTuner.Properties {
 
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int LogRetentionDays {
+            get {
+                return ((int)(this["LogRetentionDays"]));
+            }
+            set {
+                this["LogRetentionDays"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("4")]
         public int PowerLimitUpdateInterval {
             get {

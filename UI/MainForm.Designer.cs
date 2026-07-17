@@ -46,6 +46,7 @@ namespace RyzenTuner.UI
     this.navSettings = new Button();
     this.navBenchmark = new Button();
     this.navAbout = new Button();
+    this.navLogs = new Button();
     this.panelContent = new Panel();
     this.pageHome = new Panel();
     this.groupBoxMode = new GroupBox();
@@ -129,6 +130,12 @@ namespace RyzenTuner.UI
     this.progressBar = new ProgressBar();
     this.dataGridViewResults = new DataGridView();
     this.pageAbout = new Panel();
+    this.pageLog = new Panel();
+    this.labelLogViewerTitle = new Label();
+    this.comboBoxLogLevelFilter = new ComboBox();
+    this.dataGridViewLogs = new DataGridView();
+    this.buttonRefreshLogs = new Button();
+    this.buttonDeleteOldLogs = new Button();
     this.labelAboutTitle = new Label();
     this.labelAboutVersion = new Label();
     this.labelAboutCopyright = new Label();
@@ -144,6 +151,13 @@ namespace RyzenTuner.UI
     this.textBoxHotkeyBalanced = new TextBox();
     this.labelHotkeyPerformance = new Label();
     this.textBoxHotkeyPerformance = new TextBox();
+    this.groupBoxLogSettings = new GroupBox();
+    this.labelLogLevel = new Label();
+    this.comboBoxLogLevel = new ComboBox();
+    this.labelLogSaveDays = new Label();
+    this.numericUpDownLogSaveDays = new NumericUpDown();
+    this.labelLogSaveDaysUnit = new Label();
+    this.buttonOpenLogViewer = new Button();
 
     // 【重要修正 1】必须挂起所有容器的布局，防止绝对定位计算出错
     this.SuspendLayout();
@@ -161,7 +175,11 @@ namespace RyzenTuner.UI
     this.groupBoxAdvanced.SuspendLayout();
     this.groupBoxLanguage.SuspendLayout();
     this.groupBoxHotkey.SuspendLayout();
+    this.groupBoxLogSettings.SuspendLayout();
+    ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLogSaveDays)).BeginInit();
     this.pageBenchmark.SuspendLayout();
+    this.pageLog.SuspendLayout();
+    ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLogs)).BeginInit();
     this.groupBoxBenchmarkConfig.SuspendLayout();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPowerSaveMode)).BeginInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownBalancedMode)).BeginInit();
@@ -197,6 +215,7 @@ namespace RyzenTuner.UI
     this.panelSidebar.Controls.Add(this.navSettings);
     this.panelSidebar.Controls.Add(this.navBenchmark);
     this.panelSidebar.Controls.Add(this.navAbout);
+    this.panelSidebar.Controls.Add(this.navLogs);
     this.panelSidebar.Dock = DockStyle.Left;
     this.panelSidebar.Location = new Point(0, 0);
     this.panelSidebar.Name = "panelSidebar";
@@ -212,12 +231,12 @@ namespace RyzenTuner.UI
     this.labelAppTitle.TextAlign = ContentAlignment.MiddleLeft;
 
     int navBtnHeight = 36;
-    int[] navBtnY = { 72, 72 + navBtnHeight + 4, 72 + (navBtnHeight + 4) * 2, 72 + (navBtnHeight + 4) * 3 };
-    string[] navBtnNames = { "navHome", "navSettings", "navBenchmark", "navAbout" };
-    string[] navBtnTexts = { Properties.Strings.TextNavHome, Properties.Strings.TextNavSettings, Properties.Strings.TextNavBenchmark, Properties.Strings.TextNavAbout };
-    Button[] navBtns = { this.navHome, this.navSettings, this.navBenchmark, this.navAbout };
+    int[] navBtnY = { 72, 72 + navBtnHeight + 4, 72 + (navBtnHeight + 4) * 2, 72 + (navBtnHeight + 4) * 3, 72 + (navBtnHeight + 4) * 4 };
+    string[] navBtnNames = { "navHome", "navSettings", "navBenchmark", "navLogs", "navAbout" };
+    string[] navBtnTexts = { Properties.Strings.TextNavHome, Properties.Strings.TextNavSettings, Properties.Strings.TextNavBenchmark, Properties.Strings.TextNavLogs, Properties.Strings.TextNavAbout };
+    Button[] navBtns = { this.navHome, this.navSettings, this.navBenchmark, this.navLogs, this.navAbout };
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {
         Button btn = navBtns[i];
         btn.FlatStyle = FlatStyle.Flat;
@@ -243,6 +262,7 @@ namespace RyzenTuner.UI
     this.panelContent.Controls.Add(this.pageSettings);
     this.panelContent.Controls.Add(this.pageBenchmark);
     this.panelContent.Controls.Add(this.pageAbout);
+    this.panelContent.Controls.Add(this.pageLog);
     this.panelContent.Dock = DockStyle.Fill;
     this.panelContent.Location = new Point(200, 0);
     this.panelContent.Name = "panelContent";
@@ -439,6 +459,7 @@ namespace RyzenTuner.UI
     // ============================================================
     // 设置页 pageSettings
     // ============================================================
+    this.pageSettings.AutoScroll = true;
     this.pageSettings.Controls.Add(this.groupBoxSettingsPowerSave);
     this.pageSettings.Controls.Add(this.groupBoxSettingsBalanced);
     this.pageSettings.Controls.Add(this.groupBoxSettingsPerformance);
@@ -654,8 +675,51 @@ namespace RyzenTuner.UI
     this.textBoxHotkeyPerformance.Leave += new EventHandler(this.TextBoxHotkey_Leave);
     this.textBoxHotkeyPerformance.KeyDown += new KeyEventHandler(this.TextBoxHotkey_KeyDown);
 
+    // ---- 日志设置 ----
+    this.groupBoxLogSettings.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+    this.groupBoxLogSettings.Controls.Add(this.labelLogLevel);
+    this.groupBoxLogSettings.Controls.Add(this.comboBoxLogLevel);
+    this.groupBoxLogSettings.Controls.Add(this.labelLogSaveDays);
+    this.groupBoxLogSettings.Controls.Add(this.numericUpDownLogSaveDays);
+    this.groupBoxLogSettings.Controls.Add(this.labelLogSaveDaysUnit);
+    this.groupBoxLogSettings.Controls.Add(this.buttonOpenLogViewer);
+    this.groupBoxLogSettings.Location = new Point(16, 530);
+    this.groupBoxLogSettings.Size = new Size(624, 60);
+    this.groupBoxLogSettings.Text = Properties.Strings.TextLogSettings;
+
+    this.labelLogLevel.AutoSize = true;
+    this.labelLogLevel.Location = new Point(12, 28);
+    this.labelLogLevel.Text = Properties.Strings.TextLogLevel;
+
+    this.comboBoxLogLevel.DropDownStyle = ComboBoxStyle.DropDownList;
+    this.comboBoxLogLevel.Items.AddRange(new object[] {
+        "Trace", "Debug", "Info", "Warning", "Error", "Fatal"
+    });
+    this.comboBoxLogLevel.Location = new Point(80, 26);
+    this.comboBoxLogLevel.Size = new Size(120, 26);
+    this.comboBoxLogLevel.SelectedItem = "Warning";
+
+    this.labelLogSaveDays.AutoSize = true;
+    this.labelLogSaveDays.Location = new Point(230, 28);
+    this.labelLogSaveDays.Text = Properties.Strings.TextLogSaveDays;
+
+    this.numericUpDownLogSaveDays.Location = new Point(340, 26);
+    this.numericUpDownLogSaveDays.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+    this.numericUpDownLogSaveDays.Maximum = new decimal(new int[] { 365, 0, 0, 0 });
+    this.numericUpDownLogSaveDays.Size = new Size(60, 26);
+    this.numericUpDownLogSaveDays.Value = new decimal(new int[] { 3, 0, 0, 0 });
+
+    this.labelLogSaveDaysUnit.AutoSize = true;
+    this.labelLogSaveDaysUnit.Location = new Point(406, 28);
+    this.labelLogSaveDaysUnit.Text = Properties.Strings.TextLogDay;
+
+    this.buttonOpenLogViewer.Location = new Point(480, 24);
+    this.buttonOpenLogViewer.Size = new Size(120, 26);
+    this.buttonOpenLogViewer.Text = Properties.Strings.TextLogViewLogs;
+    this.buttonOpenLogViewer.Click += new EventHandler(this.ButtonOpenLogViewer_Click);
+
     this.buttonSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-    this.buttonSave.Location = new Point(436, 520);
+    this.buttonSave.Location = new Point(436, 600);
     this.buttonSave.Size = new Size(100, 35);
     this.buttonSave.Text = Properties.Strings.TextSave;
     this.buttonSave.Click += new EventHandler(this.SettingsSave_Click);
@@ -861,6 +925,59 @@ namespace RyzenTuner.UI
     this.labelAboutLink.Click += new EventHandler(this.LabelAboutLink_Click);
 
     // ============================================================
+    // 日志查看页 pageLog
+    // ============================================================
+    this.pageLog.Controls.Add(this.labelLogViewerTitle);
+    this.pageLog.Controls.Add(this.comboBoxLogLevelFilter);
+    this.pageLog.Controls.Add(this.dataGridViewLogs);
+    this.pageLog.Controls.Add(this.buttonRefreshLogs);
+    this.pageLog.Controls.Add(this.buttonDeleteOldLogs);
+    this.pageLog.Dock = DockStyle.Fill;
+    this.pageLog.Location = new Point(0, 0);
+    this.pageLog.Name = "pageLog";
+    this.pageLog.Padding = new Padding(16);
+    this.pageLog.Size = new Size(660, 580);
+    this.pageLog.Visible = false;
+
+    this.labelLogViewerTitle.AutoSize = true;
+    this.labelLogViewerTitle.Font = new Font(this.Font.FontFamily, 14F, FontStyle.Bold);
+    this.labelLogViewerTitle.Location = new Point(16, 16);
+    this.labelLogViewerTitle.Size = new Size(0, 24);
+    this.labelLogViewerTitle.Text = Properties.Strings.TextLogViewerTitle;
+
+    this.comboBoxLogLevelFilter.DropDownStyle = ComboBoxStyle.DropDownList;
+    this.comboBoxLogLevelFilter.Items.AddRange(new object[] {
+        Properties.Strings.TextLogLevelAll,
+        "Trace", "Debug", "Info", "Warning", "Error", "Fatal"
+    });
+    this.comboBoxLogLevelFilter.Location = new Point(16, 48);
+    this.comboBoxLogLevelFilter.Size = new Size(120, 26);
+    this.comboBoxLogLevelFilter.SelectedIndex = 0;
+    this.comboBoxLogLevelFilter.SelectedIndexChanged += new EventHandler(this.ComboBoxLogLevelFilter_SelectedIndexChanged);
+
+    this.buttonRefreshLogs.Location = new Point(150, 48);
+    this.buttonRefreshLogs.Size = new Size(80, 26);
+    this.buttonRefreshLogs.Text = Properties.Strings.TextLogRefresh;
+    this.buttonRefreshLogs.Click += new EventHandler(this.ButtonRefreshLogs_Click);
+
+    this.buttonDeleteOldLogs.Location = new Point(240, 48);
+    this.buttonDeleteOldLogs.Size = new Size(120, 26);
+    this.buttonDeleteOldLogs.Text = Properties.Strings.TextLogDeleteOld;
+    this.buttonDeleteOldLogs.Click += new EventHandler(this.ButtonDeleteOldLogs_Click);
+
+    this.dataGridViewLogs.AllowUserToAddRows = false;
+    this.dataGridViewLogs.AllowUserToDeleteRows = false;
+    this.dataGridViewLogs.AllowUserToResizeRows = false;
+    this.dataGridViewLogs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+    this.dataGridViewLogs.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+    this.dataGridViewLogs.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+    this.dataGridViewLogs.Location = new Point(16, 88);
+    this.dataGridViewLogs.Name = "dataGridViewLogs";
+    this.dataGridViewLogs.ReadOnly = true;
+    this.dataGridViewLogs.RowHeadersVisible = false;
+    this.dataGridViewLogs.Size = new Size(628, 472);
+
+    // ============================================================
     // 系统托盘及计时器
     // ============================================================
     this.contextMenuStripIcon = new ContextMenuStrip(this.components);
@@ -959,6 +1076,7 @@ namespace RyzenTuner.UI
         private Button navSettings;
         private Button navBenchmark;
         private Button navAbout;
+        private Button navLogs;
 
         // ---- 内容区 ----
         private Panel panelContent;
@@ -966,6 +1084,7 @@ namespace RyzenTuner.UI
         private Panel pageSettings;
         private Panel pageBenchmark;
         private Panel pageAbout;
+        private Panel pageLog;
 
         // ---- 首页 ----
         private GroupBox groupBoxMode;
@@ -1070,6 +1189,22 @@ namespace RyzenTuner.UI
         private Label labelAboutRyzenAdj;
         private Label labelAboutLink;
 
+        // ---- 日志设置 ----
+        private GroupBox groupBoxLogSettings;
+        private Label labelLogLevel;
+        private ComboBox comboBoxLogLevel;
+        private Label labelLogSaveDays;
+        private NumericUpDown numericUpDownLogSaveDays;
+        private Label labelLogSaveDaysUnit;
+        private Button buttonOpenLogViewer;
+
+        // ---- 日志查看页 ----
+        private Label labelLogViewerTitle;
+        private ComboBox comboBoxLogLevelFilter;
+        private DataGridView dataGridViewLogs;
+        private Button buttonRefreshLogs;
+        private Button buttonDeleteOldLogs;
+
         // ---- 基础组件 ----
         private NotifyIcon notifyIcon1;
         private ContextMenuStrip contextMenuStripIcon;
@@ -1078,3 +1213,4 @@ namespace RyzenTuner.UI
 
     }
 }
+

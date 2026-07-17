@@ -348,4 +348,55 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextHotkeyConflictTitle" xml:space="preserve">
         <value>Hotkey Conflict</value>
     </data>
+    <data name="TextLogSettings" xml:space="preserve">
+        <value>Log Settings</value>
+    </data>
+    <data name="TextLogLevel" xml:space="preserve">
+        <value>Log Level</value>
+    </data>
+    <data name="TextLogSaveDays" xml:space="preserve">
+        <value>Retention Days</value>
+    </data>
+    <data name="TextLogDay" xml:space="preserve">
+        <value>day(s)</value>
+    </data>
+    <data name="TextNavLogs" xml:space="preserve">
+        <value>  Logs</value>
+    </data>
+    <data name="TextLogViewerTitle" xml:space="preserve">
+        <value>Search Logs</value>
+    </data>
+    <data name="TextLogLevelAll" xml:space="preserve">
+        <value>All Levels</value>
+    </data>
+    <data name="TextLogColumnTime" xml:space="preserve">
+        <value>Time</value>
+    </data>
+    <data name="TextLogColumnLevel" xml:space="preserve">
+        <value>Level</value>
+    </data>
+    <data name="TextLogColumnAction" xml:space="preserve">
+        <value>Action</value>
+    </data>
+    <data name="TextLogColumnDetails" xml:space="preserve">
+        <value>Details</value>
+    </data>
+    <data name="TextLogColumnElapsed" xml:space="preserve">
+        <value>Elapsed</value>
+    </data>
+    <data name="TextLogRefresh" xml:space="preserve">
+        <value>Refresh</value>
+    </data>
+    <data name="TextLogDeleteOld" xml:space="preserve">
+        <value>Delete Old Logs</value>
+    </data>
+    <data name="TextLogDeleteConfirm" xml:space="preserve">
+        <value>Delete all logs older than retention days?</value>
+    </data>
+    <data name="TextLogOpenDb" xml:space="preserve">
+        <value>Open Log Database</value>
+    </data>
+    <data name="TextLogViewLogs" xml:space="preserve">
+        <value>View Logs</value>
+    </data>
 </root>

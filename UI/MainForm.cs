@@ -188,6 +188,19 @@ namespace RyzenTuner.UI
             // 注册全局快捷键
             RegisterAllHotkeys();
 
+            // 日志：记录启动事件
+            AppContainer.Logger().Info("System", "RyzenTuner started");
+
+            // 日志：清理过期日志
+            try
+            {
+                AppContainer.Logger().Cleanup(Settings.Default.LogRetentionDays);
+            }
+            catch (Exception cleanupEx)
+            {
+                AppContainer.Logger().Warning($"启动时日志清理失败: {cleanupEx.Message}");
+            }
+
             // 初始化布局（关于页延迟到首次访问时加载）
             // RecalcCardColumns 在 Form1_Shown 中调用，此时布局已最终确定
         }
@@ -204,6 +217,7 @@ namespace RyzenTuner.UI
                 if (btn == navHome) pageId = "home";
                 else if (btn == navSettings) pageId = "settings";
                 else if (btn == navBenchmark) pageId = "benchmark";
+                else if (btn == navLogs) pageId = "log";
                 else if (btn == navAbout) pageId = "about";
 
                 SwitchPage(pageId);
@@ -228,11 +242,13 @@ namespace RyzenTuner.UI
             pageSettings.Visible = false;
             pageBenchmark.Visible = false;
             pageAbout.Visible = false;
+            pageLog.Visible = false;
 
             // 重置导航按钮背景
             navHome.BackColor = Color.Transparent;
             navSettings.BackColor = Color.Transparent;
             navBenchmark.BackColor = Color.Transparent;
+            navLogs.BackColor = Color.Transparent;
             navAbout.BackColor = Color.Transparent;
 
             // 显示目标页面
@@ -246,6 +262,11 @@ namespace RyzenTuner.UI
                 case "benchmark":
                     pageBenchmark.Visible = true;
                     navBenchmark.BackColor = Color.White;
+                    break;
+                case "log":
+                    pageLog.Visible = true;
+                    navLogs.BackColor = Color.White;
+                    LoadLogViewerData();
                     break;
                 case "about":
                     pageAbout.Visible = true;
@@ -327,6 +348,19 @@ namespace RyzenTuner.UI
 
             // 加载快捷键设置
             LoadHotkeySettings();
+
+            // 加载日志设置
+            var logLevel = Settings.Default.LogLevel;
+            for (var i = 0; i < comboBoxLogLevel.Items.Count; i++)
+            {
+                if (comboBoxLogLevel.Items[i].ToString() == logLevel)
+                {
+                    comboBoxLogLevel.SelectedIndex = i;
+                    break;
+                }
+            }
+
+            numericUpDownLogSaveDays.Value = ClampNumeric(Settings.Default.LogRetentionDays, numericUpDownLogSaveDays);
         }
 
         private static void TrySetNumericValue(NumericUpDown control, string mode)
@@ -471,7 +505,33 @@ namespace RyzenTuner.UI
             Settings.Default.HotkeyBalancedMode = newHotkeyBalanced;
             Settings.Default.HotkeyPerformanceMode = newHotkeyPerformance;
 
+            // 保存日志设置
+            var selectedLogLevel = comboBoxLogLevel.SelectedItem?.ToString() ?? "Warning";
+            Settings.Default.LogLevel = selectedLogLevel;
+            Settings.Default.LogRetentionDays = (int)numericUpDownLogSaveDays.Value;
+
             Settings.Default.Save();
+
+            // 应用日志级别到运行时日志记录器
+            try
+            {
+                AppContainer.Logger().DefaultLogLevel =
+                    AppContainer.Logger().ToLogLevel(selectedLogLevel);
+            }
+            catch (Exception logEx)
+            {
+                AppContainer.Logger().Warning($"应用日志级别失败: {logEx.Message}");
+            }
+
+            // 保存后立即执行日志清理
+            try
+            {
+                AppContainer.Logger().Cleanup(Settings.Default.LogRetentionDays);
+            }
+            catch (Exception cleanupEx)
+            {
+                AppContainer.Logger().Warning($"日志清理失败: {cleanupEx.Message}");
+            }
 
             // 刷新首页模式标签
             try
@@ -1951,6 +2011,134 @@ namespace RyzenTuner.UI
         private static string GetHotkeyFromTextBox(TextBox tb)
         {
             return tb.Tag?.ToString() ?? "";
+        }
+
+        // ================================================================
+        // 日志功能
+        // ================================================================
+
+        /// <summary>
+        /// 加载日志查看器数据
+        /// </summary>
+        private void LoadLogViewerData()
+        {
+            try
+            {
+                var levelFilter = comboBoxLogLevelFilter.SelectedItem?.ToString();
+                if (string.IsNullOrEmpty(levelFilter) ||
+                    levelFilter == Properties.Strings.TextLogLevelAll)
+                {
+                    levelFilter = null;
+                }
+
+                var table = AppContainer.Logger().QueryLogs(levelFilter, 1000);
+
+                // 设置 DataGridView 数据源
+                dataGridViewLogs.DataSource = table;
+
+                // 配置列样式
+                if (dataGridViewLogs.Columns.Count >= 5)
+                {
+                    if (dataGridViewLogs.Columns["timestamp"] != null)
+                    {
+                        dataGridViewLogs.Columns["timestamp"].HeaderText =
+                            Properties.Strings.TextLogColumnTime;
+                        dataGridViewLogs.Columns["timestamp"].Width = 160;
+                        dataGridViewLogs.Columns["timestamp"].ReadOnly = true;
+                    }
+
+                    if (dataGridViewLogs.Columns["level"] != null)
+                    {
+                        dataGridViewLogs.Columns["level"].HeaderText =
+                            Properties.Strings.TextLogColumnLevel;
+                        dataGridViewLogs.Columns["level"].Width = 70;
+                        dataGridViewLogs.Columns["level"].ReadOnly = true;
+                    }
+
+                    if (dataGridViewLogs.Columns["action"] != null)
+                    {
+                        dataGridViewLogs.Columns["action"].HeaderText =
+                            Properties.Strings.TextLogColumnAction;
+                        dataGridViewLogs.Columns["action"].Width = 120;
+                        dataGridViewLogs.Columns["action"].ReadOnly = true;
+                    }
+
+                    if (dataGridViewLogs.Columns["details"] != null)
+                    {
+                        dataGridViewLogs.Columns["details"].HeaderText =
+                            Properties.Strings.TextLogColumnDetails;
+                        dataGridViewLogs.Columns["details"].AutoSizeMode =
+                            DataGridViewAutoSizeColumnMode.Fill;
+                        dataGridViewLogs.Columns["details"].ReadOnly = true;
+                    }
+
+                    if (dataGridViewLogs.Columns["elapsed_ms"] != null)
+                    {
+                        dataGridViewLogs.Columns["elapsed_ms"].HeaderText =
+                            Properties.Strings.TextLogColumnElapsed;
+                        dataGridViewLogs.Columns["elapsed_ms"].Width = 80;
+                        dataGridViewLogs.Columns["elapsed_ms"].ReadOnly = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Warning($"加载日志数据失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 打开日志查看页（从设置页跳转）
+        /// </summary>
+        private void ButtonOpenLogViewer_Click(object? sender, EventArgs e)
+        {
+            SwitchPage("log");
+        }
+
+        /// <summary>
+        /// 日志级别筛选变更
+        /// </summary>
+        private void ComboBoxLogLevelFilter_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            LoadLogViewerData();
+        }
+
+        /// <summary>
+        /// 刷新日志
+        /// </summary>
+        private void ButtonRefreshLogs_Click(object? sender, EventArgs e)
+        {
+            LoadLogViewerData();
+        }
+
+        /// <summary>
+        /// 删除旧日志
+        /// </summary>
+        private void ButtonDeleteOldLogs_Click(object? sender, EventArgs e)
+        {
+            var result = MessageBox.Show(
+                Properties.Strings.TextLogDeleteConfirm,
+                Properties.Strings.TextLogDeleteOld,
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+                return;
+
+            try
+            {
+                AppContainer.Logger().Cleanup(Settings.Default.LogRetentionDays);
+                LoadLogViewerData();
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Warning($"删除旧日志失败: {ex.Message}");
+                MessageBox.Show(
+                    $"删除旧日志失败: {ex.Message}",
+                    Properties.Strings.TextExceptionTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
     }
 }

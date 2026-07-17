@@ -30,7 +30,7 @@ namespace RyzenTuner.Common.Container
 
             Container.Register(() =>
                 {
-                    var logger = new SimpleLogger();
+                    var logger = new SqliteLogger();
                     logger.DefaultLogLevel = logger.ToLogLevel(Properties.Settings.Default.LogLevel);
                     return logger;
                 })
@@ -57,9 +57,9 @@ namespace RyzenTuner.Common.Container
             return Container.Resolve<EnergyManager>();
         }
 
-        public static SimpleLogger Logger()
+        public static SqliteLogger Logger()
         {
-            return Container.Resolve<SimpleLogger>();
+            return Container.Resolve<SqliteLogger>();
         }
 
         public static void Dispose()

@@ -352,4 +352,55 @@
     <data name="TextHotkeyConflictTitle" xml:space="preserve">
         <value>快捷键冲突</value>
     </data>
+    <data name="TextLogSettings" xml:space="preserve">
+        <value>日志设置</value>
+    </data>
+    <data name="TextLogLevel" xml:space="preserve">
+        <value>日志等级</value>
+    </data>
+    <data name="TextLogSaveDays" xml:space="preserve">
+        <value>日志保存天数</value>
+    </data>
+    <data name="TextLogDay" xml:space="preserve">
+        <value>天</value>
+    </data>
+    <data name="TextNavLogs" xml:space="preserve">
+        <value>  日志</value>
+    </data>
+    <data name="TextLogViewerTitle" xml:space="preserve">
+        <value>搜索日志</value>
+    </data>
+    <data name="TextLogLevelAll" xml:space="preserve">
+        <value>所有级别</value>
+    </data>
+    <data name="TextLogColumnTime" xml:space="preserve">
+        <value>时间</value>
+    </data>
+    <data name="TextLogColumnLevel" xml:space="preserve">
+        <value>级别</value>
+    </data>
+    <data name="TextLogColumnAction" xml:space="preserve">
+        <value>操作</value>
+    </data>
+    <data name="TextLogColumnDetails" xml:space="preserve">
+        <value>参数 / 详情</value>
+    </data>
+    <data name="TextLogColumnElapsed" xml:space="preserve">
+        <value>耗时</value>
+    </data>
+    <data name="TextLogRefresh" xml:space="preserve">
+        <value>刷新</value>
+    </data>
+    <data name="TextLogDeleteOld" xml:space="preserve">
+        <value>删除旧日志</value>
+    </data>
+    <data name="TextLogDeleteConfirm" xml:space="preserve">
+        <value>确认删除所有超过保存天数的日志？</value>
+    </data>
+    <data name="TextLogOpenDb" xml:space="preserve">
+        <value>打开日志数据库</value>
+    </data>
+    <data name="TextLogViewLogs" xml:space="preserve">
+        <value>查看日志</value>
+    </data>
 </root>

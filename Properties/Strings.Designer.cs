@@ -712,5 +712,73 @@ namespace RyzenTuner.Properties {
         internal static string TextHotkeyConflictTitle {
             get { return ResourceManager.GetString("TextHotkeyConflictTitle", resourceCulture); }
         }
+
+        internal static string TextLogSettings {
+            get { return ResourceManager.GetString("TextLogSettings", resourceCulture); }
+        }
+
+        internal static string TextLogLevel {
+            get { return ResourceManager.GetString("TextLogLevel", resourceCulture); }
+        }
+
+        internal static string TextLogSaveDays {
+            get { return ResourceManager.GetString("TextLogSaveDays", resourceCulture); }
+        }
+
+        internal static string TextLogDay {
+            get { return ResourceManager.GetString("TextLogDay", resourceCulture); }
+        }
+
+        internal static string TextNavLogs {
+            get { return ResourceManager.GetString("TextNavLogs", resourceCulture); }
+        }
+
+        internal static string TextLogViewerTitle {
+            get { return ResourceManager.GetString("TextLogViewerTitle", resourceCulture); }
+        }
+
+        internal static string TextLogLevelAll {
+            get { return ResourceManager.GetString("TextLogLevelAll", resourceCulture); }
+        }
+
+        internal static string TextLogColumnTime {
+            get { return ResourceManager.GetString("TextLogColumnTime", resourceCulture); }
+        }
+
+        internal static string TextLogColumnLevel {
+            get { return ResourceManager.GetString("TextLogColumnLevel", resourceCulture); }
+        }
+
+        internal static string TextLogColumnAction {
+            get { return ResourceManager.GetString("TextLogColumnAction", resourceCulture); }
+        }
+
+        internal static string TextLogColumnDetails {
+            get { return ResourceManager.GetString("TextLogColumnDetails", resourceCulture); }
+        }
+
+        internal static string TextLogColumnElapsed {
+            get { return ResourceManager.GetString("TextLogColumnElapsed", resourceCulture); }
+        }
+
+        internal static string TextLogRefresh {
+            get { return ResourceManager.GetString("TextLogRefresh", resourceCulture); }
+        }
+
+        internal static string TextLogDeleteOld {
+            get { return ResourceManager.GetString("TextLogDeleteOld", resourceCulture); }
+        }
+
+        internal static string TextLogDeleteConfirm {
+            get { return ResourceManager.GetString("TextLogDeleteConfirm", resourceCulture); }
+        }
+
+        internal static string TextLogOpenDb {
+            get { return ResourceManager.GetString("TextLogOpenDb", resourceCulture); }
+        }
+
+        internal static string TextLogViewLogs {
+            get { return ResourceManager.GetString("TextLogViewLogs", resourceCulture); }
+        }
     }
 }

@@ -92,6 +92,9 @@
     <Reference Include="Vanara.PInvoke.Shared, Version=3.4.6.0, Culture=neutral, PublicKeyToken=c37e4080322237fa, processorArchitecture=MSIL">
       <HintPath>packages\Vanara.PInvoke.Shared.3.4.6\lib\net48\Vanara.PInvoke.Shared.dll</HintPath>
     </Reference>
+    <Reference Include="System.Data.SQLite, Version=1.0.119.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.119\lib\net46\System.Data.SQLite.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Awake.cs" />
@@ -105,6 +108,8 @@
     <Compile Include="Common\Hardware\HardwareMonitor.cs" />
     <Compile Include="Common\Hardware\UpdateVisitor.cs" />
     <Compile Include="Common\Logger\SimpleLogger.cs" />
+    <Compile Include="Common\Logger\LogModels.cs" />
+    <Compile Include="Common\Logger\SqliteLogger.cs" />
     <Compile Include="Common\PowerConfig.cs" />
     <Compile Include="Common\Processor\AMDProcessor.cs" />
     <Compile Include="Common\Processor\RyzenAdj.cs" />
