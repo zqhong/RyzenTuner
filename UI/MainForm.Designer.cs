@@ -1,5 +1,6 @@
 ﻿#nullable disable
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using RyzenTuner.Utils;
@@ -74,6 +75,9 @@ namespace RyzenTuner.UI
     this.keepAwakeCheckBox = new CheckBox();
     this.launchAtLogonCheckBox = new CheckBox();
     this.cpuBoostCheckBox = new CheckBox();
+    this.groupBoxLanguage = new GroupBox();
+    this.labelLanguage = new Label();
+    this.comboBoxLanguage = new ComboBox();
     this.pageSettings = new Panel();
     this.groupBoxSettingsPowerSave = new GroupBox();
     this.labelPowerSaveMode = new Label();
@@ -144,6 +148,7 @@ namespace RyzenTuner.UI
     this.groupBoxSettingsBalanced.SuspendLayout();
     this.groupBoxSettingsPerformance.SuspendLayout();
     this.groupBoxAdvanced.SuspendLayout();
+    this.groupBoxLanguage.SuspendLayout();
     this.pageBenchmark.SuspendLayout();
     this.groupBoxBenchmarkConfig.SuspendLayout();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPowerSaveMode)).BeginInit();
@@ -196,7 +201,7 @@ namespace RyzenTuner.UI
     int navBtnHeight = 36;
     int[] navBtnY = { 72, 72 + navBtnHeight + 4, 72 + (navBtnHeight + 4) * 2, 72 + (navBtnHeight + 4) * 3 };
     string[] navBtnNames = { "navHome", "navSettings", "navBenchmark", "navAbout" };
-    string[] navBtnTexts = { "  首页", "  设置", "  能效分析", "  关于" };
+    string[] navBtnTexts = { Properties.Strings.TextNavHome, Properties.Strings.TextNavSettings, Properties.Strings.TextNavBenchmark, Properties.Strings.TextNavAbout };
     Button[] navBtns = { this.navHome, this.navSettings, this.navBenchmark, this.navAbout };
 
     for (int i = 0; i < 4; i++)
@@ -252,7 +257,7 @@ namespace RyzenTuner.UI
     this.groupBoxMode.Location = new Point(16, 16);
     this.groupBoxMode.Name = "groupBoxMode";
     this.groupBoxMode.Size = new Size(628, 64);
-    this.groupBoxMode.Text = "能耗模式";
+    this.groupBoxMode.Text = Properties.Strings.TextGroupMode;
 
     this.radioButton3.AutoSize = true;
     this.radioButton3.Location = new Point(24, 28);
@@ -286,12 +291,12 @@ namespace RyzenTuner.UI
     this.groupBoxStatus.Location = new Point(16, 92);
     this.groupBoxStatus.Name = "groupBoxStatus";
     this.groupBoxStatus.Size = new Size(628, 88);
-    this.groupBoxStatus.Text = "当前状态";
+    this.groupBoxStatus.Text = Properties.Strings.TextGroupStatus;
 
     this.labelCpuFreqTitle.AutoSize = true;
     this.labelCpuFreqTitle.ForeColor = Color.Gray;
     this.labelCpuFreqTitle.Location = new Point(16, 24);
-    this.labelCpuFreqTitle.Text = "CPU 频率";
+    this.labelCpuFreqTitle.Text = Properties.Strings.TextCpuFreqTitle;
 
     this.currentFreqLabel.AutoSize = true;
     this.currentFreqLabel.Font = new Font(this.Font.FontFamily, 18F, FontStyle.Bold);
@@ -301,7 +306,7 @@ namespace RyzenTuner.UI
     this.labelCpuPowerTitle.AutoSize = true;
     this.labelCpuPowerTitle.ForeColor = Color.Gray;
     this.labelCpuPowerTitle.Location = new Point(240, 24);
-    this.labelCpuPowerTitle.Text = "整机功耗";
+    this.labelCpuPowerTitle.Text = Properties.Strings.TextCpuPowerTitle;
 
     this.currentPowerLabel.AutoSize = true;
     this.currentPowerLabel.Font = new Font(this.Font.FontFamily, 18F, FontStyle.Bold);
@@ -311,7 +316,7 @@ namespace RyzenTuner.UI
     this.labelCpuTempTitle.AutoSize = true;
     this.labelCpuTempTitle.ForeColor = Color.Gray;
     this.labelCpuTempTitle.Location = new Point(440, 24);
-    this.labelCpuTempTitle.Text = "CPU 温度";
+    this.labelCpuTempTitle.Text = Properties.Strings.TextCpuTempTitle;
 
     this.currentTempLabel.AutoSize = true;
     this.currentTempLabel.Font = new Font(this.Font.FontFamily, 18F, FontStyle.Bold);
@@ -332,7 +337,7 @@ namespace RyzenTuner.UI
     this.groupBoxParams.Location = new Point(16, 192);
     this.groupBoxParams.Name = "groupBoxParams";
     this.groupBoxParams.Size = new Size(628, 140); // 调大以防被裁断
-    this.groupBoxParams.Text = "生效参数";
+    this.groupBoxParams.Text = Properties.Strings.TextGroupParams;
 
     this.labelFastLimitTitle.AutoSize = true;
     this.labelFastLimitTitle.ForeColor = Color.Gray;
@@ -357,7 +362,7 @@ namespace RyzenTuner.UI
     this.labelTctlLimitTitle.AutoSize = true;
     this.labelTctlLimitTitle.ForeColor = Color.Gray;
     this.labelTctlLimitTitle.Location = new Point(440, 24);
-    this.labelTctlLimitTitle.Text = "Tctl 温度";
+    this.labelTctlLimitTitle.Text = Properties.Strings.TextGroupParams_TctlLimit;
 
     this.tctlTempLabel.AutoSize = true;
     this.tctlTempLabel.Font = new Font(this.Font.FontFamily, 18F, FontStyle.Bold);
@@ -392,7 +397,7 @@ namespace RyzenTuner.UI
     this.groupBoxOptions.Location = new Point(16, 345); // 向下推一点
     this.groupBoxOptions.Name = "groupBoxOptions";
     this.groupBoxOptions.Size = new Size(628, 100); // 调大高度以防截断
-    this.groupBoxOptions.Text = "选项";
+    this.groupBoxOptions.Text = Properties.Strings.TextGroupOptions;
 
     this.checkBoxEnergyStar.AutoSize = true;
     this.checkBoxEnergyStar.Location = new Point(16, 28);
@@ -424,6 +429,7 @@ namespace RyzenTuner.UI
     this.pageSettings.Controls.Add(this.groupBoxSettingsPowerSave);
     this.pageSettings.Controls.Add(this.groupBoxSettingsBalanced);
     this.pageSettings.Controls.Add(this.groupBoxSettingsPerformance);
+    this.pageSettings.Controls.Add(this.groupBoxLanguage);
     this.pageSettings.Controls.Add(this.groupBoxAdvanced);
     this.pageSettings.Controls.Add(this.buttonSave);
     this.pageSettings.Controls.Add(this.buttonCancel);
@@ -443,7 +449,7 @@ namespace RyzenTuner.UI
 
     this.labelPowerSaveMode.AutoSize = true;
     this.labelPowerSaveMode.Location = new Point(12, 24);
-    this.labelPowerSaveMode.Text = "功率限制";
+    this.labelPowerSaveMode.Text = Properties.Strings.TextPowerLimit;
 
     this.numericUpDownPowerSaveMode.Location = new Point(90, 22);
     this.numericUpDownPowerSaveMode.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
@@ -464,7 +470,7 @@ namespace RyzenTuner.UI
 
     this.labelBalancedMode.AutoSize = true;
     this.labelBalancedMode.Location = new Point(12, 24);
-    this.labelBalancedMode.Text = "功率限制";
+    this.labelBalancedMode.Text = Properties.Strings.TextPowerLimit;
 
     this.numericUpDownBalancedMode.Location = new Point(90, 22);
     this.numericUpDownBalancedMode.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
@@ -485,7 +491,7 @@ namespace RyzenTuner.UI
 
     this.labelPerformanceMode.AutoSize = true;
     this.labelPerformanceMode.Location = new Point(12, 24);
-    this.labelPerformanceMode.Text = "功率限制";
+    this.labelPerformanceMode.Text = Properties.Strings.TextPowerLimit;
 
     this.numericUpDownPerformanceMode.Location = new Point(90, 22);
     this.numericUpDownPerformanceMode.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
@@ -535,6 +541,30 @@ namespace RyzenTuner.UI
     this.labelApuSkinTempUnit.AutoSize = true;
     this.labelApuSkinTempUnit.Location = new Point(436, 60);
     this.labelApuSkinTempUnit.Text = Properties.Strings.TextDegreeCelsius;
+
+    // ============================================================
+    // 语言设置
+    // ============================================================
+    this.groupBoxLanguage.Controls.Add(this.labelLanguage);
+    this.groupBoxLanguage.Controls.Add(this.comboBoxLanguage);
+    this.groupBoxLanguage.Location = new Point(16, 280);
+    this.groupBoxLanguage.Size = new Size(300, 60);
+    this.groupBoxLanguage.Text = Properties.Strings.TextLanguage;
+
+    this.labelLanguage.AutoSize = true;
+    this.labelLanguage.Location = new Point(12, 24);
+    this.labelLanguage.Text = Properties.Strings.TextLanguage;
+
+    this.comboBoxLanguage.DropDownStyle = ComboBoxStyle.DropDownList;
+    this.comboBoxLanguage.Items.AddRange(new object[] {
+        new KeyValuePair<string, string>("zh-CN", Properties.Strings.TextLanguageChinese),
+        new KeyValuePair<string, string>("en-US", Properties.Strings.TextLanguageEnglish),
+    });
+    this.comboBoxLanguage.DisplayMember = "Value";
+    this.comboBoxLanguage.Location = new Point(90, 22);
+    this.comboBoxLanguage.Size = new Size(140, 26);
+    // SelectedIndex 由 MainForm.InitLanguageSelection() 运行时设置
+    this.comboBoxLanguage.SelectedIndexChanged += new EventHandler(this.ComboBoxLanguage_SelectedIndexChanged);
 
     this.buttonSave.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
     this.buttonSave.Location = new Point(436, 520);
@@ -806,6 +836,8 @@ namespace RyzenTuner.UI
     this.groupBoxSettingsPerformance.PerformLayout();
     this.groupBoxAdvanced.ResumeLayout(false);
     this.groupBoxAdvanced.PerformLayout();
+    this.groupBoxLanguage.ResumeLayout(false);
+    this.groupBoxLanguage.PerformLayout();
     this.pageBenchmark.ResumeLayout(false);
     this.pageBenchmark.PerformLayout();
     this.groupBoxBenchmarkConfig.ResumeLayout(false);
@@ -895,6 +927,11 @@ namespace RyzenTuner.UI
         private Label labelApuSkinTempUnit;
         private Button buttonSave;
         private Button buttonCancel;
+
+        // ---- 语言设置 ----
+        private GroupBox groupBoxLanguage;
+        private Label labelLanguage;
+        private ComboBox comboBoxLanguage;
 
         // ---- 跑分页 ----
         private GroupBox groupBoxBenchmarkConfig;

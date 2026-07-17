@@ -589,5 +589,69 @@ namespace RyzenTuner.Properties {
         internal static string TextAboutRyzenAdj {
             get { return ResourceManager.GetString("TextAboutRyzenAdj", resourceCulture); }
         }
+
+        internal static string TextLanguage {
+            get { return ResourceManager.GetString("TextLanguage", resourceCulture); }
+        }
+
+        internal static string TextGroupMode {
+            get { return ResourceManager.GetString("TextGroupMode", resourceCulture); }
+        }
+
+        internal static string TextGroupStatus {
+            get { return ResourceManager.GetString("TextGroupStatus", resourceCulture); }
+        }
+
+        internal static string TextGroupParams {
+            get { return ResourceManager.GetString("TextGroupParams", resourceCulture); }
+        }
+
+        internal static string TextGroupOptions {
+            get { return ResourceManager.GetString("TextGroupOptions", resourceCulture); }
+        }
+
+        internal static string TextNavHome {
+            get { return ResourceManager.GetString("TextNavHome", resourceCulture); }
+        }
+
+        internal static string TextNavSettings {
+            get { return ResourceManager.GetString("TextNavSettings", resourceCulture); }
+        }
+
+        internal static string TextNavBenchmark {
+            get { return ResourceManager.GetString("TextNavBenchmark", resourceCulture); }
+        }
+
+        internal static string TextNavAbout {
+            get { return ResourceManager.GetString("TextNavAbout", resourceCulture); }
+        }
+
+        internal static string TextCpuFreqTitle {
+            get { return ResourceManager.GetString("TextCpuFreqTitle", resourceCulture); }
+        }
+
+        internal static string TextCpuPowerTitle {
+            get { return ResourceManager.GetString("TextCpuPowerTitle", resourceCulture); }
+        }
+
+        internal static string TextCpuTempTitle {
+            get { return ResourceManager.GetString("TextCpuTempTitle", resourceCulture); }
+        }
+
+        internal static string TextGroupParams_TctlLimit {
+            get { return ResourceManager.GetString("TextGroupParams_TctlLimit", resourceCulture); }
+        }
+
+        internal static string TextLanguageRestartHint {
+            get { return ResourceManager.GetString("TextLanguageRestartHint", resourceCulture); }
+        }
+
+        internal static string TextLanguageChinese {
+            get { return ResourceManager.GetString("TextLanguageChinese", resourceCulture); }
+        }
+
+        internal static string TextLanguageEnglish {
+            get { return ResourceManager.GetString("TextLanguageEnglish", resourceCulture); }
+        }
     }
 }

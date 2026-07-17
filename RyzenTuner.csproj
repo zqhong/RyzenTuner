@@ -14,7 +14,17 @@
     <Deterministic>true</Deterministic>
     <LangVersion>9</LangVersion>
     <Nullable>enable</Nullable>
+    <!-- 只保留 en 语言卫星程序集，移除其他语言目录（来自第三方依赖） -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
+  <!-- Build 后移除第三方依赖生成的多余语言目录（如 fr），只保留 en -->
+  <!-- 条件只匹配文化名称模式（如 fr、zh-CN），避免误删 runtimes/、x64/ 等 -->
+  <Target Name="RemoveExtraCultures" AfterTargets="Build">
+    <ItemGroup>
+      <_TargetSubDir Include="$([System.IO.Directory]::GetDirectories('$(TargetDir)'))" />
+    </ItemGroup>
+    <RemoveDir Directories="@(_TargetSubDir)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(_TargetSubDir.Filename)', '^[a-z]{2}(-[A-Za-z]{2,4})?$')) And '%(_TargetSubDir.Filename)' != 'en'" />
+  </Target>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>none</DebugType>

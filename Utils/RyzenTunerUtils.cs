@@ -82,5 +82,15 @@ namespace RyzenTuner.Utils
         {
             return Properties.Strings.ResourceManager.GetString(mode) ?? mode;
         }
+
+        /// <summary>
+        /// 返回默认语言代码：zh-* 系统 → "zh-CN"，其他系统 → "en-US"
+        /// </summary>
+        public static string DetectDefaultLanguageCode()
+        {
+            return CultureInfo.CurrentUICulture.ToString().StartsWith("zh-")
+                ? "zh-CN"
+                : "en-US";
+        }
     }
 }

@@ -271,4 +271,52 @@
     <data name="TextAboutRyzenAdj" xml:space="preserve">
         <value>ryzenadj build date: {ryzenadj_date}</value>
     </data>
+    <data name="TextLanguage" xml:space="preserve">
+        <value>语言</value>
+    </data>
+    <data name="TextGroupMode" xml:space="preserve">
+        <value>能耗模式</value>
+    </data>
+    <data name="TextGroupStatus" xml:space="preserve">
+        <value>当前状态</value>
+    </data>
+    <data name="TextGroupParams" xml:space="preserve">
+        <value>生效参数</value>
+    </data>
+    <data name="TextGroupOptions" xml:space="preserve">
+        <value>选项</value>
+    </data>
+    <data name="TextNavHome" xml:space="preserve">
+        <value>  首页</value>
+    </data>
+    <data name="TextNavSettings" xml:space="preserve">
+        <value>  设置</value>
+    </data>
+    <data name="TextNavBenchmark" xml:space="preserve">
+        <value>  能效分析</value>
+    </data>
+    <data name="TextNavAbout" xml:space="preserve">
+        <value>  关于</value>
+    </data>
+    <data name="TextCpuFreqTitle" xml:space="preserve">
+        <value>CPU 频率</value>
+    </data>
+    <data name="TextCpuPowerTitle" xml:space="preserve">
+        <value>整机功耗</value>
+    </data>
+    <data name="TextCpuTempTitle" xml:space="preserve">
+        <value>CPU 温度</value>
+    </data>
+    <data name="TextGroupParams_TctlLimit" xml:space="preserve">
+        <value>Tctl 温度</value>
+    </data>
+    <data name="TextLanguageRestartHint" xml:space="preserve">
+        <value>语言设置将在重启后生效。是否立即重启应用程序？</value>
+    </data>
+    <data name="TextLanguageChinese" xml:space="preserve">
+        <value>简体中文</value>
+    </data>
+    <data name="TextLanguageEnglish" xml:space="preserve">
+        <value>English</value>
+    </data>
 </root>

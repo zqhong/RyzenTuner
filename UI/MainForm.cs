@@ -101,6 +101,10 @@ namespace RyzenTuner.UI
             SyncLaunchAtLogonSetting();
             SyncCpuBoostSetting();
             SyncEnergyModeSelection();
+
+            // 初始化语言选择（在 _isInitializingOptions 保护内，避免 SelectedIndexChanged 误触发）
+            InitLanguageSelection();
+
             _isInitializingOptions = false;
 
             // 设置系统唤醒状态
@@ -306,6 +310,107 @@ namespace RyzenTuner.UI
         {
             SettingsLoadValues();
             SwitchPage("home");
+        }
+
+        // ================================================================
+        // 语言设置
+        // ================================================================
+
+        private void InitLanguageSelection()
+        {
+            try
+            {
+                var currentLang = Properties.Settings.Default.Language;
+                if (string.IsNullOrEmpty(currentLang))
+                {
+                    currentLang = RyzenTunerUtils.DetectDefaultLanguageCode();
+                }
+
+                // 通过 Key 查找匹配项，避免魔数索引
+                foreach (KeyValuePair<string, string> item in comboBoxLanguage.Items)
+                {
+                    if (item.Key == currentLang)
+                    {
+                        comboBoxLanguage.SelectedItem = item;
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Warning($"初始化语言选择失败: {ex.Message}");
+
+                // Fix #10: 设置一个安全的 fallback，保持 UI 一致
+                try
+                {
+                    var fallback = RyzenTunerUtils.DetectDefaultLanguageCode();
+                    foreach (KeyValuePair<string, string> item in comboBoxLanguage.Items)
+                    {
+                        if (item.Key == fallback)
+                        {
+                            comboBoxLanguage.SelectedItem = item;
+                            return;
+                        }
+                    }
+                }
+                catch { /* 静默 — combo box 无选中项也可接受 */ }
+            }
+        }
+
+        private void ComboBoxLanguage_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            // 初始化阶段不保存语言设置（由 AutoSelectLang 处理）
+            if (_isInitializingOptions)
+                return;
+
+            if (comboBoxLanguage.SelectedItem is not KeyValuePair<string, string> selected)
+                return;
+
+            var newLang = selected.Key;
+            if (newLang == Properties.Settings.Default.Language)
+                return;
+
+            // Fix #7: 先询问用户是否重启，再保存
+            var result = MessageBox.Show(
+                Properties.Strings.TextLanguageRestartHint,
+                Properties.Strings.TextSettingsTitle,
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                // 用户取消 — 恢复 combo box 到当前保存的语言
+                InitLanguageSelection();
+                return;
+            }
+
+            // 用户确认重启后保存语言设置
+            Properties.Settings.Default.Language = newLang;
+            Properties.Settings.Default.Save();
+
+            // Fix #6: 先释放 Mutex 再启动新进程，异常时恢复
+            Program.ReleaseInstanceMutex();
+            try
+            {
+                System.Diagnostics.Process.Start(Application.ExecutablePath);
+                Application.Exit();
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Error($"重启失败: {ex.Message}");
+
+                // Process.Start 失败 — 尝试重新获取 Mutex 恢复单例保护
+                if (!Program.TryReacquireInstanceMutex())
+                {
+                    AppContainer.Logger().Error("重新获取单例 Mutex 失败");
+                }
+
+                MessageBox.Show(
+                    $"{Properties.Strings.TextLanguageRestartHint}\n\n启动新进程失败: {ex.Message}",
+                    Properties.Strings.TextSettingsTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
 
         // ================================================================
@@ -1142,9 +1247,11 @@ namespace RyzenTuner.UI
                 if (_lastCpuBoostEnabled != shouldEnableCpuBoost)
                 {
                     var boostChanged = false;
-                    var boostApplied = shouldEnableCpuBoost
-                        ? TryApplyCpuBoost(true, () => AppContainer.PowerConfig().EnableCpuBoost(), out boostChanged)
-                        : TryApplyCpuBoost(false, () => AppContainer.PowerConfig().DisableCpuBoost(), out boostChanged);
+                    var boostApplied = TryApplyCpuBoost(() =>
+                        shouldEnableCpuBoost
+                            ? AppContainer.PowerConfig().EnableCpuBoost()
+                            : AppContainer.PowerConfig().DisableCpuBoost(),
+                        out boostChanged);
 
                     if (!boostApplied)
                     {
@@ -1248,15 +1355,11 @@ namespace RyzenTuner.UI
             return result;
         }
 
-        private bool TryApplyCpuBoost(bool targetValue, Func<bool> applyAction, out bool changed)
+        private static bool TryApplyCpuBoost(Func<bool> applyAction, out bool changed)
         {
-            changed = !_lastCpuBoostEnabled.HasValue || _lastCpuBoostEnabled.Value != targetValue;
-            if (!changed)
-            {
-                return true;
-            }
-
-            return applyAction();
+            var result = applyAction();
+            changed = result;
+            return result;
         }
 
         private void ReportPowerLimitApplyError(string errorText)

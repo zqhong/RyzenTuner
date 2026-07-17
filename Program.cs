@@ -10,6 +10,39 @@ namespace RyzenTuner
 {
     internal static class Program
     {
+        // 用于单例检测的 Mutex（替代 Process.GetProcessesByName，支持 Application.Restart）
+        private static Mutex? _instanceMutex;
+
+        /// <summary>
+        /// 释放单例 Mutex，供重启时调用（新进程启动前释放，避免冲突）
+        /// </summary>
+        public static void ReleaseInstanceMutex()
+        {
+            if (_instanceMutex != null)
+            {
+                _instanceMutex.ReleaseMutex();
+                _instanceMutex.Close();
+                _instanceMutex = null;
+            }
+        }
+
+        /// <summary>
+        /// 重新获取 Mutex（Process.Start 失败后恢复单例保护）
+        /// </summary>
+        public static bool TryReacquireInstanceMutex()
+        {
+            try
+            {
+                bool isFirst;
+                _instanceMutex = new Mutex(true, "RyzenTuner-InstanceMutex", out isFirst);
+                return isFirst;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         [STAThread]
         private static void Main()
         {
@@ -25,25 +58,18 @@ namespace RyzenTuner
 
                 AutoSelectLang();
 
-                var runningProcesses = Process.GetProcessesByName("RyzenTuner");
-                try
+                // 使用 Mutex 进行单例检测，支持重启场景
+                bool isFirstInstance;
+                _instanceMutex = new Mutex(true, "RyzenTuner-InstanceMutex", out isFirstInstance);
+                if (!isFirstInstance)
                 {
-                    if (runningProcesses.Length > 1)
-                    {
-                        throw new Exception(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
-                    }
-                }
-                finally
-                {
-                    foreach (var process in runningProcesses)
-                    {
-                        process.Dispose();
-                    }
+                    throw new Exception(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
                 }
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new MainForm());
+                ReleaseInstanceMutex();
                 AppContainer.Dispose();
             }
             catch (Exception ex)
@@ -71,26 +97,38 @@ namespace RyzenTuner
         // 显示错误并退出的辅助方法
         static void ShowErrorAndExit(string title, string message)
         {
-            MessageBox.Show(message, title, 
+            ReleaseInstanceMutex();
+            MessageBox.Show(message, title,
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             AppContainer.Dispose();
             Environment.Exit(1);
         }
 
         /// <summary>
-        /// 根据用户系统语言，自动选择合适的语言
+        /// 选择 UI 语言：优先使用用户设置，否则根据系统语言自动选择
         /// </summary>
         private static void AutoSelectLang()
         {
-            var currentCulture = Thread.CurrentThread.CurrentCulture;
-            
-            // 非中文环境全部切换为英文
-            if (!currentCulture.ToString().StartsWith("zh-"))
+            string langCode;
+
+            // 优先使用用户设置的语言
+            var userLang = Properties.Settings.Default.Language;
+            if (!string.IsNullOrEmpty(userLang))
             {
-                var culture = new CultureInfo("en-US");
-                CultureInfo.DefaultThreadCurrentCulture = culture;
-                CultureInfo.DefaultThreadCurrentUICulture = culture;
+                langCode = userLang;
             }
+            else
+            {
+                langCode = RyzenTuner.Utils.RyzenTunerUtils.DetectDefaultLanguageCode();
+            }
+
+            var culture = new CultureInfo(langCode);
+            // 设置默认语言（新线程生效）
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+            // 设置当前线程语言（立即生效，确保 ResourceManager 使用正确语言）
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
         }
 
         private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
@@ -106,6 +144,7 @@ namespace RyzenTuner
 
         private static void _handleUnhandledException(Exception ex)
         {
+            ReleaseInstanceMutex();
             MessageBox.Show(ex.Message, Properties.Strings.TextExceptionTitle,
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
 

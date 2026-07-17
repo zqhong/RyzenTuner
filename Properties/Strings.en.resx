@@ -267,4 +267,52 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextAboutRyzenAdj" xml:space="preserve">
         <value>ryzenadj build date: {ryzenadj_date}</value>
     </data>
+    <data name="TextLanguage" xml:space="preserve">
+        <value>Language</value>
+    </data>
+    <data name="TextGroupMode" xml:space="preserve">
+        <value>Power Mode</value>
+    </data>
+    <data name="TextGroupStatus" xml:space="preserve">
+        <value>Current Status</value>
+    </data>
+    <data name="TextGroupParams" xml:space="preserve">
+        <value>Active Parameters</value>
+    </data>
+    <data name="TextGroupOptions" xml:space="preserve">
+        <value>Options</value>
+    </data>
+    <data name="TextNavHome" xml:space="preserve">
+        <value>  Home</value>
+    </data>
+    <data name="TextNavSettings" xml:space="preserve">
+        <value>  Settings</value>
+    </data>
+    <data name="TextNavBenchmark" xml:space="preserve">
+        <value>  Efficiency Analysis</value>
+    </data>
+    <data name="TextNavAbout" xml:space="preserve">
+        <value>  About</value>
+    </data>
+    <data name="TextCpuFreqTitle" xml:space="preserve">
+        <value>CPU Frequency</value>
+    </data>
+    <data name="TextCpuPowerTitle" xml:space="preserve">
+        <value>Package Power</value>
+    </data>
+    <data name="TextCpuTempTitle" xml:space="preserve">
+        <value>CPU Temperature</value>
+    </data>
+    <data name="TextGroupParams_TctlLimit" xml:space="preserve">
+        <value>Tctl Temp</value>
+    </data>
+    <data name="TextLanguageRestartHint" xml:space="preserve">
+        <value>Language setting will take effect after restart. Restart now?</value>
+    </data>
+    <data name="TextLanguageChinese" xml:space="preserve">
+        <value>Simplified Chinese</value>
+    </data>
+    <data name="TextLanguageEnglish" xml:space="preserve">
+        <value>English</value>
+    </data>
 </root>
