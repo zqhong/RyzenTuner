@@ -130,6 +130,12 @@
     <data name="TextApuSkinTemp" xml:space="preserve">
         <value>ApuSkinTemp（APU 表面温度限制）</value>
     </data>
+    <data name="TextPowerLimitUpdateInterval" xml:space="preserve">
+        <value>功率限制更新间隔</value>
+    </data>
+    <data name="TextSecond" xml:space="preserve">
+        <value>秒</value>
+    </data>
     <data name="TextSettingsSaved" xml:space="preserve">
         <value>设置已保存</value>
     </data>

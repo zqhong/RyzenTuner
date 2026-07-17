@@ -192,6 +192,18 @@ namespace RyzenTuner.Properties {
 
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("4")]
+        public int PowerLimitUpdateInterval {
+            get {
+                return ((int)(this["PowerLimitUpdateInterval"]));
+            }
+            set {
+                this["PowerLimitUpdateInterval"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("100")]
         public int TctlTemp {
             get {

@@ -98,6 +98,9 @@ namespace RyzenTuner.UI
     this.labelApuSkinTemp = new Label();
     this.numericUpDownApuSkinTemp = new NumericUpDown();
     this.labelApuSkinTempUnit = new Label();
+    this.labelPowerLimitUpdateInterval = new Label();
+    this.numericUpDownPowerLimitUpdateInterval = new NumericUpDown();
+    this.labelPowerLimitUpdateIntervalUnit = new Label();
     this.buttonSave = new Button();
     this.buttonCancel = new Button();
     this.pageBenchmark = new Panel();
@@ -164,6 +167,7 @@ namespace RyzenTuner.UI
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPerformanceMode)).BeginInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTctlTemp)).BeginInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownApuSkinTemp)).BeginInit();
+    ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPowerLimitUpdateInterval)).BeginInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownDuration)).BeginInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownRestTime)).BeginInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownStartPower)).BeginInit();
@@ -519,8 +523,11 @@ namespace RyzenTuner.UI
     this.groupBoxAdvanced.Controls.Add(this.labelApuSkinTemp);
     this.groupBoxAdvanced.Controls.Add(this.numericUpDownApuSkinTemp);
     this.groupBoxAdvanced.Controls.Add(this.labelApuSkinTempUnit);
+    this.groupBoxAdvanced.Controls.Add(this.labelPowerLimitUpdateInterval);
+    this.groupBoxAdvanced.Controls.Add(this.numericUpDownPowerLimitUpdateInterval);
+    this.groupBoxAdvanced.Controls.Add(this.labelPowerLimitUpdateIntervalUnit);
     this.groupBoxAdvanced.Location = new Point(16, 164);
-    this.groupBoxAdvanced.Size = new Size(624, 100);
+    this.groupBoxAdvanced.Size = new Size(624, 130);
     this.groupBoxAdvanced.Text = Properties.Strings.TextAdvancedSettings;
 
     this.labelTctlTemp.AutoSize = true;
@@ -551,12 +558,29 @@ namespace RyzenTuner.UI
     this.labelApuSkinTempUnit.Location = new Point(436, 60);
     this.labelApuSkinTempUnit.Text = Properties.Strings.TextDegreeCelsius;
 
+    // labelPowerLimitUpdateInterval
+    this.labelPowerLimitUpdateInterval.AutoSize = true;
+    this.labelPowerLimitUpdateInterval.Location = new Point(16, 92);
+    this.labelPowerLimitUpdateInterval.Text = Properties.Strings.TextPowerLimitUpdateInterval;
+
+    // numericUpDownPowerLimitUpdateInterval
+    this.numericUpDownPowerLimitUpdateInterval.Location = new Point(350, 90);
+    this.numericUpDownPowerLimitUpdateInterval.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+    this.numericUpDownPowerLimitUpdateInterval.Maximum = new decimal(new int[] { 60, 0, 0, 0 });
+    this.numericUpDownPowerLimitUpdateInterval.Size = new Size(80, 26);
+    this.numericUpDownPowerLimitUpdateInterval.Value = new decimal(new int[] { 4, 0, 0, 0 });
+
+    // labelPowerLimitUpdateIntervalUnit
+    this.labelPowerLimitUpdateIntervalUnit.AutoSize = true;
+    this.labelPowerLimitUpdateIntervalUnit.Location = new Point(436, 92);
+    this.labelPowerLimitUpdateIntervalUnit.Text = Properties.Strings.TextSecond;
+
     // ============================================================
     // 语言设置
     // ============================================================
     this.groupBoxLanguage.Controls.Add(this.labelLanguage);
     this.groupBoxLanguage.Controls.Add(this.comboBoxLanguage);
-    this.groupBoxLanguage.Location = new Point(16, 280);
+    this.groupBoxLanguage.Location = new Point(16, 310);
     this.groupBoxLanguage.Size = new Size(300, 60);
     this.groupBoxLanguage.Text = Properties.Strings.TextLanguage;
 
@@ -583,7 +607,7 @@ namespace RyzenTuner.UI
     this.groupBoxHotkey.Controls.Add(this.textBoxHotkeyBalanced);
     this.groupBoxHotkey.Controls.Add(this.labelHotkeyPerformance);
     this.groupBoxHotkey.Controls.Add(this.textBoxHotkeyPerformance);
-    this.groupBoxHotkey.Location = new Point(16, 356);
+    this.groupBoxHotkey.Location = new Point(16, 386);
     this.groupBoxHotkey.Size = new Size(624, 130);
     this.groupBoxHotkey.Text = Properties.Strings.TextHotkeySettings;
 
@@ -909,6 +933,7 @@ namespace RyzenTuner.UI
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPerformanceMode)).EndInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTctlTemp)).EndInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownApuSkinTemp)).EndInit();
+    ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPowerLimitUpdateInterval)).EndInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownDuration)).EndInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownRestTime)).EndInit();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownStartPower)).EndInit();
@@ -987,6 +1012,9 @@ namespace RyzenTuner.UI
         private Label labelApuSkinTemp;
         private NumericUpDown numericUpDownApuSkinTemp;
         private Label labelApuSkinTempUnit;
+        private Label labelPowerLimitUpdateInterval;
+        private NumericUpDown numericUpDownPowerLimitUpdateInterval;
+        private Label labelPowerLimitUpdateIntervalUnit;
         private Button buttonSave;
         private Button buttonCancel;
 

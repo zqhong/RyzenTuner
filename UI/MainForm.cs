@@ -34,6 +34,7 @@ namespace RyzenTuner.UI
         private bool _isApplyingPowerLimit;
         private bool _isChangingMode;
         private bool _isInitializingOptions;
+        private DateTime _lastPowerLimitRunTime = DateTime.MinValue;
         private bool _isBenchmarkRunning;
         private bool _aboutInfoLoaded;
 
@@ -322,6 +323,7 @@ namespace RyzenTuner.UI
 
             numericUpDownTctlTemp.Value = ClampNumeric(Settings.Default.TctlTemp, numericUpDownTctlTemp);
             numericUpDownApuSkinTemp.Value = ClampNumeric(Settings.Default.ApuSkinTemp, numericUpDownApuSkinTemp);
+            numericUpDownPowerLimitUpdateInterval.Value = ClampNumeric(Settings.Default.PowerLimitUpdateInterval, numericUpDownPowerLimitUpdateInterval);
 
             // 加载快捷键设置
             LoadHotkeySettings();
@@ -462,6 +464,7 @@ namespace RyzenTuner.UI
 
             Settings.Default.TctlTemp = (int)numericUpDownTctlTemp.Value;
             Settings.Default.ApuSkinTemp = (int)numericUpDownApuSkinTemp.Value;
+            Settings.Default.PowerLimitUpdateInterval = (int)numericUpDownPowerLimitUpdateInterval.Value;
 
             // 保存快捷键设置（快捷键已经注册成功，只需保存值）
             Settings.Default.HotkeyPowerSaveMode = newHotkeyPowerSave;
@@ -1113,7 +1116,15 @@ namespace RyzenTuner.UI
 
             _tickCount++;
 
-            DoPowerLimit();
+            // 根据用户配置的间隔控制 DoPowerLimit 的更新频率（默认 4 秒）
+            var interval = Settings.Default.PowerLimitUpdateInterval;
+            if (interval < 1) interval = 4; // 防御：确保最小值为 1 秒
+            if (DateTime.UtcNow - _lastPowerLimitRunTime >= TimeSpan.FromSeconds(interval))
+            {
+                _lastPowerLimitRunTime = DateTime.UtcNow;
+                DoPowerLimit();
+            }
+
             DoProcessManage();
             UpdateMonitoringInfo();
         }

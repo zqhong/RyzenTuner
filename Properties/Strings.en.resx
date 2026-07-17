@@ -126,6 +126,12 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextApuSkinTemp" xml:space="preserve">
         <value>ApuSkinTemp (APU Surface Temperature Limit)</value>
     </data>
+    <data name="TextPowerLimitUpdateInterval" xml:space="preserve">
+        <value>Power Limit Update Interval</value>
+    </data>
+    <data name="TextSecond" xml:space="preserve">
+        <value>s</value>
+    </data>
     <data name="TextSettingsSaved" xml:space="preserve">
         <value>Settings saved</value>
     </data>

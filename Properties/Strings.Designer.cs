@@ -388,6 +388,24 @@ namespace RyzenTuner.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to 功率限制更新间隔.
+        /// </summary>
+        internal static string TextPowerLimitUpdateInterval {
+            get {
+                return ResourceManager.GetString("TextPowerLimitUpdateInterval", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 秒.
+        /// </summary>
+        internal static string TextSecond {
+            get {
+                return ResourceManager.GetString("TextSecond", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to 设置已保存.
         /// </summary>
         internal static string TextSettingsSaved {
