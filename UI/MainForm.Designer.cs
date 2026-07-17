@@ -560,17 +560,6 @@ namespace RyzenTuner.UI
     this.groupBoxLanguage.Size = new Size(300, 60);
     this.groupBoxLanguage.Text = Properties.Strings.TextLanguage;
 
-    // ============================================================
-    // 快捷键设置
-    // ============================================================
-    this.groupBoxHotkey = new GroupBox();
-    this.labelHotkeyPowerSave = new Label();
-    this.textBoxHotkeyPowerSave = new TextBox();
-    this.labelHotkeyBalanced = new Label();
-    this.textBoxHotkeyBalanced = new TextBox();
-    this.labelHotkeyPerformance = new Label();
-    this.textBoxHotkeyPerformance = new TextBox();
-
     this.labelLanguage.AutoSize = true;
     this.labelLanguage.Location = new Point(12, 24);
     this.labelLanguage.Text = Properties.Strings.TextLanguage;
