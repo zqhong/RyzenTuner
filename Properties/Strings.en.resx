@@ -93,9 +93,6 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextRyzenAdjApplyError" xml:space="preserve">
         <value>Failed to apply some RyzenAdj settings: {errors}</value>
     </data>
-    <data name="TextCustomPowerLimitInvalid" xml:space="preserve">
-        <value>Custom power limit must be a valid number greater than 0.</value>
-    </data>
     <data name="TextSettings" xml:space="preserve">
         <value>Settings</value>
     </data>

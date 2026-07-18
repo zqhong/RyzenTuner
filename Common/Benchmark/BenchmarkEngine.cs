@@ -57,13 +57,13 @@ namespace RyzenTuner.Common.Benchmark
             var totalPoints = config.GetTestPointCount();
             var keepAwakeWas = AppSettings.GetBool("KeepAwake");
             var currentModeWas = AppSettings.Get("CurrentMode", "BalancedMode");
-            var originalTctlTemp = AppSettings.Get<int>("TctlTemp", 100);
-            var originalApuSkinTemp = AppSettings.Get<int>("ApuSkinTemp", 43);
+            var originalTctlTemp = AppSettings.Get("TctlTemp", 100);
+            var originalApuSkinTemp = AppSettings.Get("ApuSkinTemp", 43);
 
             // 测试期间阻止系统休眠
             if (!keepAwakeWas)
             {
-                Common.Awake.KeepingSysAwake(true);
+                Awake.KeepingSysAwake(true);
             }
 
             try
@@ -95,7 +95,7 @@ namespace RyzenTuner.Common.Benchmark
                     await WaitStableAsync(config.RestSeconds * 1000, _cts.Token);
 
                     // 3. 启动跑分
-                    var point = await RunSingleTestPointAsync(config, tdp, processor, hwMonitor);
+                    var point = await RunSingleTestPointAsync(config, tdp, hwMonitor);
 
                     // 4. 记录结果
                     results.Add(point);
@@ -159,7 +159,7 @@ namespace RyzenTuner.Common.Benchmark
                 // 始终恢复系统休眠状态（如果之前强制唤醒过）
                 if (!keepAwakeWas)
                 {
-                    Common.Awake.AllowSysSleep();
+                    Awake.AllowSysSleep();
                 }
 
                 _isRunning = false;
@@ -182,7 +182,6 @@ namespace RyzenTuner.Common.Benchmark
         /// </summary>
         private async Task<BenchmarkTestPoint> RunSingleTestPointAsync(
             BenchmarkConfig config, float tdp,
-            Processor.AmdProcessor processor,
             Hardware.HardwareMonitor hwMonitor)
         {
             var threadCount = config.TestType == BenchmarkTestType.MultiCore
@@ -298,9 +297,9 @@ namespace RyzenTuner.Common.Benchmark
         private static bool ApplyTdpLimit(Processor.AmdProcessor processor, float tdp)
         {
             var ok = true;
-            ok &= processor.SetFastPPT(tdp);
-            ok &= processor.SetSlowPPT(tdp);
-            ok &= processor.SetStampPPT(tdp);
+            ok &= processor.SetFastPpt(tdp);
+            ok &= processor.SetSlowPpt(tdp);
+            ok &= processor.SetStampPpt(tdp);
             return ok;
         }
 
@@ -308,6 +307,7 @@ namespace RyzenTuner.Common.Benchmark
         /// 等待稳定时间
         /// </summary>
         /// <param name="delayMs">延迟毫秒数</param>
+        /// <param name="ct">取消令牌</param>
         private async Task WaitStableAsync(int delayMs, CancellationToken ct)
         {
             try
@@ -354,8 +354,8 @@ namespace RyzenTuner.Common.Benchmark
             if (_disposed)
                 return;
             _disposed = true;
-            _cts?.Cancel();
-            _cts?.Dispose();
+            _cts.Cancel();
+            _cts.Dispose();
         }
     }
 }

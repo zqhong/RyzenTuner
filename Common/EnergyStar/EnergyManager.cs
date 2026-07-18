@@ -153,7 +153,7 @@ namespace RyzenTuner.Common.EnergyStar
 
         ~EnergyManager()
         {
-            Dispose(false);
+            Dispose();
         }
 
         /// <summary>
@@ -254,7 +254,7 @@ namespace RyzenTuner.Common.EnergyStar
                 if (appName == UwpFrameHostApp)
                 {
                     var found = false;
-                    Win32Api.EnumChildWindows(hwnd, (innerHwnd, lParam) =>
+                    Win32Api.EnumChildWindows(hwnd, (innerHwnd, _) =>
                     {
                         if (found) return true;
                         if (Win32Api.GetWindowThreadProcessId(innerHwnd, out var innerProcId) <= 0) return true;
@@ -379,12 +379,6 @@ namespace RyzenTuner.Common.EnergyStar
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
             if (_disposed)
             {
                 return;
@@ -401,6 +395,7 @@ namespace RyzenTuner.Common.EnergyStar
             }
 
             _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 }

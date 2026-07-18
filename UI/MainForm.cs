@@ -7,7 +7,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using RyzenTuner.Common;
 using RyzenTuner.Common.Benchmark;
@@ -23,11 +25,6 @@ namespace RyzenTuner.UI
         private Int64 _tickCount;
         private DateTime _lastLogCleanupTime = DateTime.MinValue;
         private string _lastPowerLimitApplyError = string.Empty;
-        private float? _lastAppliedFastPpt;
-        private float? _lastAppliedSlowPpt;
-        private float? _lastAppliedStampLimit;
-        private int? _lastAppliedTctlTemp;
-        private int? _lastAppliedApuSkinTemp;
         private bool? _lastCpuBoostEnabled;
         private DateTime _lastPowerLimitErrorShownAt = DateTime.MinValue;
         private DateTime _lastPowerLimitErrorTime = DateTime.MinValue;
@@ -116,8 +113,8 @@ namespace RyzenTuner.UI
         {
             try
             {
-                var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-                var buildTime = System.IO.File.GetLastWriteTime(assembly.Location);
+                var assembly = Assembly.GetExecutingAssembly();
+                var buildTime = File.GetLastWriteTime(assembly.Location);
                 return $" [Debug Build: {buildTime:yyyy-MM-dd HH:mm}]";
             }
             catch
@@ -130,25 +127,24 @@ namespace RyzenTuner.UI
         public MainForm()
         {
             InitializeComponent();
-
-#if DEBUG
-            Text += GetDebugBuildSuffix();
-#endif
         }
 
         /// <summary>
         /// 返回图标（在 Designer.cs 外部实现，避免 Rider CodeDom 解析器卡死）
         /// </summary>
-        private static System.Drawing.Icon getIcon()
+        private static Icon getIcon()
         {
             if (_cachedIcon != null)
                 return _cachedIcon;
             try
             {
-                _cachedIcon = System.Drawing.Icon.ExtractAssociatedIcon(
-                    System.Reflection.Assembly.GetExecutingAssembly().Location);
+                _cachedIcon = Icon.ExtractAssociatedIcon(
+                    Assembly.GetExecutingAssembly().Location);
             }
-            catch { }
+            catch
+            {
+                // 忽略图标提取失败
+            }
 
             _cachedIcon ??= SystemIcons.Application;
             return _cachedIcon;
@@ -161,19 +157,23 @@ namespace RyzenTuner.UI
                 return;
             }
 
+#if DEBUG
+            Text += GetDebugBuildSuffix();
+#endif
+
             // 修复设计器遗漏：pageLog.SuspendLayout() 后从未调用 ResumeLayout，
             // 导致其内部控件的 Anchor/Dock 布局从未计算，表格始终为固定宽度。
             // 必须在 Load 阶段立即恢复，延迟到 Resize 或页切换后再做已来不及。
             pageLog.ResumeLayout(true);
 
             // 同样修复：dataGridViewLogs.BeginInit() 后缺少对应的 EndInit()
-            ((System.ComponentModel.ISupportInitialize)dataGridViewLogs).EndInit();
+            ((ISupportInitialize)dataGridViewLogs).EndInit();
 
             // 修复设计器遗漏：groupBoxLogSettings.SuspendLayout() 后缺少 ResumeLayout()
             groupBoxLogSettings.ResumeLayout(false);
 
             // 修复设计器遗漏：numericUpDownLogSaveDays.BeginInit() 后缺少 EndInit()
-            ((System.ComponentModel.ISupportInitialize)numericUpDownLogSaveDays).EndInit();
+            ((ISupportInitialize)numericUpDownLogSaveDays).EndInit();
 
             // 运行时启动定时器
             mainFormTimer.Enabled = true;
@@ -211,7 +211,7 @@ namespace RyzenTuner.UI
             // 日志：清理过期日志
             try
             {
-                AppContainer.Logger().Cleanup(AppSettings.Get<int>("LogRetentionDays", 3));
+                AppContainer.Logger().Cleanup(AppSettings.Get("LogRetentionDays", 3));
                 _lastLogCleanupTime = DateTime.UtcNow;
             }
             catch (Exception cleanupEx)
@@ -248,8 +248,8 @@ namespace RyzenTuner.UI
             if (_isBenchmarkRunning && pageId != "benchmark")
             {
                 MessageBox.Show(
-                    Properties.Strings.TextBenchmarkRunning,
-                    Properties.Strings.TextBenchmarkTitle,
+                    Strings.TextBenchmarkRunning,
+                    Strings.TextBenchmarkTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 return;
@@ -308,17 +308,17 @@ namespace RyzenTuner.UI
 
         private void LoadAboutInfo()
         {
-            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
-            version = System.Text.RegularExpressions.Regex.Replace(version, @"(\d+\.\d+\.\d+)\.\d+", "$1");
+            var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+            version = Regex.Replace(version, @"(\d+\.\d+\.\d+)\.\d+", "$1");
 
             var year = DateTime.Now.Year.ToString();
             var ryzenadjDate = LoadRyzenAdjDate();
             var buildTime = LoadBuildTime();
 
-            labelAboutVersion.Text = Properties.Strings.TextAboutVersion.Replace("{version}", version);
-            labelAboutCopyright.Text = Properties.Strings.TextAboutCopyright.Replace("{year}", year);
-            labelAboutBuildTime.Text = Properties.Strings.TextAboutBuildTime.Replace("{build_time}", buildTime);
-            labelAboutRyzenAdj.Text = Properties.Strings.TextAboutRyzenAdj.Replace("{ryzenadj_date}", ryzenadjDate);
+            labelAboutVersion.Text = Strings.TextAboutVersion.Replace("{version}", version);
+            labelAboutCopyright.Text = Strings.TextAboutCopyright.Replace("{year}", year);
+            labelAboutBuildTime.Text = Strings.TextAboutBuildTime.Replace("{build_time}", buildTime);
+            labelAboutRyzenAdj.Text = Strings.TextAboutRyzenAdj.Replace("{ryzenadj_date}", ryzenadjDate);
         }
 
         private static string LoadRyzenAdjDate()
@@ -356,7 +356,7 @@ namespace RyzenTuner.UI
         {
             try
             {
-                var assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                var assemblyPath = Assembly.GetExecutingAssembly().Location;
                 if (string.IsNullOrEmpty(assemblyPath) || !File.Exists(assemblyPath))
                     return "N/A";
 
@@ -378,13 +378,13 @@ namespace RyzenTuner.UI
 
         private void SettingsLoadValues()
         {
-            TrySetNumericValue(numericUpDownPowerSaveMode, AppSettings.Get("PowerSaveMode", "16")!);
-            TrySetNumericValue(numericUpDownBalancedMode, AppSettings.Get("BalancedMode", "26")!);
-            TrySetNumericValue(numericUpDownPerformanceMode, AppSettings.Get("PerformanceMode", "45")!);
+            TrySetNumericValue(numericUpDownPowerSaveMode, AppSettings.Get("PowerSaveMode", "16"));
+            TrySetNumericValue(numericUpDownBalancedMode, AppSettings.Get("BalancedMode", "26"));
+            TrySetNumericValue(numericUpDownPerformanceMode, AppSettings.Get("PerformanceMode", "45"));
 
-            numericUpDownTctlTemp.Value = ClampNumeric(AppSettings.Get<int>("TctlTemp", 100), numericUpDownTctlTemp);
-            numericUpDownApuSkinTemp.Value = ClampNumeric(AppSettings.Get<int>("ApuSkinTemp", 43), numericUpDownApuSkinTemp);
-            numericUpDownPowerLimitUpdateInterval.Value = ClampNumeric(AppSettings.Get<int>("PowerLimitUpdateInterval", 4), numericUpDownPowerLimitUpdateInterval);
+            numericUpDownTctlTemp.Value = ClampNumeric(AppSettings.Get("TctlTemp", 100), numericUpDownTctlTemp);
+            numericUpDownApuSkinTemp.Value = ClampNumeric(AppSettings.Get("ApuSkinTemp", 43), numericUpDownApuSkinTemp);
+            numericUpDownPowerLimitUpdateInterval.Value = ClampNumeric(AppSettings.Get("PowerLimitUpdateInterval", 4), numericUpDownPowerLimitUpdateInterval);
 
             // 加载快捷键设置
             LoadHotkeySettings();
@@ -411,7 +411,7 @@ namespace RyzenTuner.UI
                 // 忽略日志级别解析失败
             }
 
-            numericUpDownLogSaveDays.Value = ClampNumeric(AppSettings.Get<int>("LogRetentionDays", 3), numericUpDownLogSaveDays);
+            numericUpDownLogSaveDays.Value = ClampNumeric(AppSettings.Get("LogRetentionDays", 3), numericUpDownLogSaveDays);
         }
 
         private static void TrySetNumericValue(NumericUpDown control, string mode)
@@ -469,10 +469,10 @@ namespace RyzenTuner.UI
             {
                 var conflictMsg = string.Join("\r\n", duplicateKeys);
                 MessageBox.Show(
-                    Properties.Strings.TextHotkeyConflict
+                    Strings.TextHotkeyConflict
                         .Replace("{hotkey}", conflictMsg)
                         .Replace("\n", "\r\n"),
-                    Properties.Strings.TextHotkeyConflictTitle,
+                    Strings.TextHotkeyConflictTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 return;
@@ -524,19 +524,19 @@ namespace RyzenTuner.UI
                     SetHotkeyTextBox(textBoxHotkeyPerformance, oldHotkeyPerformance);
 
                     var conflictMsg = string.Join("\r\n", conflictList);
-                    var fullMsg = Properties.Strings.TextHotkeyConflict
+                    var fullMsg = Strings.TextHotkeyConflict
                         .Replace("{hotkey}", conflictMsg)
                         .Replace("\n", "\r\n");
 
                     if (recoveryFailed)
                     {
-                        fullMsg += "\r\n\r\n" + Properties.Strings.TextHotkeyConflictTitle +
+                        fullMsg += "\r\n\r\n" + Strings.TextHotkeyConflictTitle +
                                    ": 恢复旧快捷键也失败，请重新设置。";
                     }
 
                     MessageBox.Show(
                         fullMsg,
-                        Properties.Strings.TextHotkeyConflictTitle,
+                        Strings.TextHotkeyConflictTitle,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
                     return;
@@ -575,7 +575,7 @@ namespace RyzenTuner.UI
             // 保存后立即执行日志清理
             try
             {
-                AppContainer.Logger().Cleanup(AppSettings.Get<int>("LogRetentionDays", 3));
+                AppContainer.Logger().Cleanup(AppSettings.Get("LogRetentionDays", 3));
             }
             catch (Exception cleanupEx)
             {
@@ -663,8 +663,8 @@ namespace RyzenTuner.UI
 
             // Fix #7: 先询问用户是否重启，再保存
             var result = MessageBox.Show(
-                Properties.Strings.TextLanguageRestartHint,
-                Properties.Strings.TextSettingsTitle,
+                Strings.TextLanguageRestartHint,
+                Strings.TextSettingsTitle,
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
@@ -682,7 +682,7 @@ namespace RyzenTuner.UI
             Program.ReleaseInstanceMutex();
             try
             {
-                System.Diagnostics.Process.Start(Application.ExecutablePath);
+                Process.Start(Application.ExecutablePath);
                 Application.Exit();
             }
             catch (Exception ex)
@@ -696,8 +696,8 @@ namespace RyzenTuner.UI
                 }
 
                 MessageBox.Show(
-                    $"{Properties.Strings.TextLanguageRestartHint}\n\n启动新进程失败: {ex.Message}",
-                    Properties.Strings.TextSettingsTitle,
+                    $"{Strings.TextLanguageRestartHint}\n\n启动新进程失败: {ex.Message}",
+                    Strings.TextSettingsTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -713,19 +713,19 @@ namespace RyzenTuner.UI
 
             var columns = new[]
             {
-                Properties.Strings.TextBenchmarkSetPower,
-                Properties.Strings.TextBenchmarkScore,
-                Properties.Strings.TextBenchmarkPowerMin,
-                Properties.Strings.TextBenchmarkPowerMax,
-                Properties.Strings.TextBenchmarkPowerAvg,
-                Properties.Strings.TextBenchmarkPowerMid,
-                Properties.Strings.TextBenchmarkTempMin,
-                Properties.Strings.TextBenchmarkTempMax,
-                Properties.Strings.TextBenchmarkTempAvg,
-                Properties.Strings.TextBenchmarkTempMid,
-                Properties.Strings.TextBenchmarkFreq,
-                Properties.Strings.TextBenchmarkEfficiency,
-                Properties.Strings.TextBenchmarkCapability,
+                Strings.TextBenchmarkSetPower,
+                Strings.TextBenchmarkScore,
+                Strings.TextBenchmarkPowerMin,
+                Strings.TextBenchmarkPowerMax,
+                Strings.TextBenchmarkPowerAvg,
+                Strings.TextBenchmarkPowerMid,
+                Strings.TextBenchmarkTempMin,
+                Strings.TextBenchmarkTempMax,
+                Strings.TextBenchmarkTempAvg,
+                Strings.TextBenchmarkTempMid,
+                Strings.TextBenchmarkFreq,
+                Strings.TextBenchmarkEfficiency,
+                Strings.TextBenchmarkCapability,
             };
 
             foreach (var header in columns)
@@ -767,8 +767,8 @@ namespace RyzenTuner.UI
             if (_isBenchmarkRunning)
             {
                 MessageBox.Show(
-                    Properties.Strings.TextBenchmarkRunning,
-                    Properties.Strings.TextBenchmarkTitle,
+                    Strings.TextBenchmarkRunning,
+                    Strings.TextBenchmarkTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 return;
@@ -789,8 +789,8 @@ namespace RyzenTuner.UI
             if (config.StartTdp > config.EndTdp)
             {
                 MessageBox.Show(
-                    Properties.Strings.TextBenchmarkErrorNoData,
-                    Properties.Strings.TextBenchmarkTitle,
+                    Strings.TextBenchmarkErrorNoData,
+                    Strings.TextBenchmarkTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 return;
@@ -799,12 +799,12 @@ namespace RyzenTuner.UI
             var pointCount = config.GetTestPointCount();
             var totalMinutes = pointCount * (int)numericUpDownDuration.Value;
 
-            var confirmMsg = Properties.Strings.TextBenchmarkConfirmStart
+            var confirmMsg = Strings.TextBenchmarkConfirmStart
                 .Replace("{count}", pointCount.ToString())
                 .Replace("{time}", totalMinutes.ToString());
 
             if (MessageBox.Show(confirmMsg,
-                    Properties.Strings.TextBenchmarkTitle,
+                    Strings.TextBenchmarkTitle,
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question) != DialogResult.Yes)
             {
@@ -821,7 +821,7 @@ namespace RyzenTuner.UI
             progressBar.Value = 0;
 
             EnableBenchmarkConfig(false);
-            labelStatus.Text = Properties.Strings.TextBenchmarkRunning;
+            labelStatus.Text = Strings.TextBenchmarkRunning;
 
             try
             {
@@ -855,17 +855,17 @@ namespace RyzenTuner.UI
                         }));
                     };
 
-                    _engine.OnCompleted += (results) =>
+                    _engine.OnCompleted += (_) =>
                     {
                         if (IsDisposed) return;
                         BeginInvoke(new Action(() =>
                         {
-                            if (results.Count > 0)
+                            if (_allResults.Count > 0)
                             {
-                                RefreshAllResults(results);
+                                RefreshAllResults();
                             }
 
-                            buttonExportCsv.Enabled = results.Count > 0;
+                            buttonExportCsv.Enabled = _allResults.Count > 0;
                             EnableBenchmarkConfig(true);
                             progressBar.Visible = false;
                             // _isBenchmarkRunning 和 _engine 由 finally 块统一清理
@@ -909,8 +909,8 @@ namespace RyzenTuner.UI
                 return;
 
             var result = MessageBox.Show(
-                Properties.Strings.TextBenchmarkCancel,
-                Properties.Strings.TextBenchmarkTitle,
+                Strings.TextBenchmarkCancel,
+                Strings.TextBenchmarkTitle,
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
@@ -922,7 +922,7 @@ namespace RyzenTuner.UI
                 // 注意：不清除 _isBenchmarkRunning，避免 DoPowerLimit 在引擎 cleanup
                 // （RestoreOriginalSettings → ApplyTdpLimit）完成前进入并发写 SMU 寄存器。
                 // OnCompleted/OnError 的 BeginInvoke 回调会在 cleanup 后清除此标志。
-                labelStatus.Text = Properties.Strings.TextBenchmarkStopped;
+                labelStatus.Text = Strings.TextBenchmarkStopped;
             }
         }
 
@@ -931,21 +931,19 @@ namespace RyzenTuner.UI
             if (_allResults.Count == 0)
             {
                 MessageBox.Show(
-                    Properties.Strings.TextBenchmarkExportNoData,
-                    Properties.Strings.TextBenchmarkTitle,
+                    Strings.TextBenchmarkExportNoData,
+                    Strings.TextBenchmarkTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
                 return;
             }
 
-            using var sfd = new SaveFileDialog
-            {
-                Filter = Properties.Strings.TextBenchmarkExportSaveFilter,
-                FilterIndex = 1,
-                RestoreDirectory = true,
-                FileName =
-                    $"{Properties.Strings.TextBenchmarkExportFileName}-{DateTime.Now:yyyyMMdd-HHmmss}.csv",
-            };
+            using var sfd = new SaveFileDialog();
+            sfd.Filter = Strings.TextBenchmarkExportSaveFilter;
+            sfd.FilterIndex = 1;
+            sfd.RestoreDirectory = true;
+            sfd.FileName =
+                $"{Strings.TextBenchmarkExportFileName}-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
 
             if (sfd.ShowDialog() != DialogResult.OK)
                 return;
@@ -954,8 +952,8 @@ namespace RyzenTuner.UI
             {
                 ExportResultsToCsv(sfd.FileName);
                 MessageBox.Show(
-                    Properties.Strings.TextBenchmarkExportSuccess.Replace("{path}", sfd.FileName),
-                    Properties.Strings.TextBenchmarkTitle,
+                    Strings.TextBenchmarkExportSuccess.Replace("{path}", sfd.FileName),
+                    Strings.TextBenchmarkTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
@@ -963,8 +961,8 @@ namespace RyzenTuner.UI
             {
                 AppContainer.Logger().Error("Benchmark", $"导出 CSV 失败: {ex}");
                 MessageBox.Show(
-                    $"{Properties.Strings.TextBenchmarkExportFailed}: {ex.Message}",
-                    Properties.Strings.TextBenchmarkTitle,
+                    $"{Strings.TextBenchmarkExportFailed}: {ex.Message}",
+                    Strings.TextBenchmarkTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -974,10 +972,10 @@ namespace RyzenTuner.UI
         {
             var sb = new StringBuilder();
             var testType = _benchmarkTestType == BenchmarkTestType.SingleCore
-                ? Properties.Strings.TextBenchmarkSingleCore
-                : Properties.Strings.TextBenchmarkMultiCore;
-            sb.AppendLine($"# {Properties.Strings.TextBenchmarkTitle}");
-            sb.AppendLine($"# {Properties.Strings.TextBenchmarkTestType}: {testType}");
+                ? Strings.TextBenchmarkSingleCore
+                : Strings.TextBenchmarkMultiCore;
+            sb.AppendLine($"# {Strings.TextBenchmarkTitle}");
+            sb.AppendLine($"# {Strings.TextBenchmarkTestType}: {testType}");
             sb.AppendLine($"# {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             sb.AppendLine();
 
@@ -1047,9 +1045,8 @@ namespace RyzenTuner.UI
             HighlightBestRow();
         }
 
-        private void RefreshAllResults(List<BenchmarkTestPoint> results)
+        private void RefreshAllResults()
         {
-            // results 参数与 _allResults 字段持有相同的对象引用
             for (var i = 0; i < _allResults.Count && i < dataGridViewResults.Rows.Count; i++)
             {
                 var r = _allResults[i];
@@ -1096,12 +1093,12 @@ namespace RyzenTuner.UI
         {
             try
             {
-                var psi = new System.Diagnostics.ProcessStartInfo
+                var psi = new ProcessStartInfo
                 {
                     FileName = "https://github.com/zqhong/RyzenTuner",
                     UseShellExecute = true,
                 };
-                System.Diagnostics.Process.Start(psi);
+                Process.Start(psi);
             }
             catch (Exception ex)
             {
@@ -1250,7 +1247,7 @@ namespace RyzenTuner.UI
             _tickCount++;
 
             // 根据用户配置的间隔控制 DoPowerLimit 的更新频率（默认 4 秒）
-            var interval = AppSettings.Get<int>("PowerLimitUpdateInterval", 4);
+            var interval = AppSettings.Get("PowerLimitUpdateInterval", 4);
             if (interval < 1) interval = 1; // 防御：确保最小值为 1 秒
             if (DateTime.UtcNow - _lastPowerLimitRunTime >= TimeSpan.FromSeconds(interval))
             {
@@ -1267,7 +1264,7 @@ namespace RyzenTuner.UI
                 _lastLogCleanupTime = DateTime.UtcNow;
                 try
                 {
-                    AppContainer.Logger().Cleanup(AppSettings.Get<int>("LogRetentionDays", 3));
+                    AppContainer.Logger().Cleanup(AppSettings.Get("LogRetentionDays", 3));
                 }
                 catch
                 {
@@ -1354,8 +1351,8 @@ namespace RyzenTuner.UI
                 _isInitializingOptions = false;
 
                 AppSettings.Set("LaunchAtLogon", !isEnabled);
-                MessageBox.Show($"{Properties.Strings.TextFailedToUpdateLaunchAtLogon}\n\n{ex.Message}",
-                    Properties.Strings.TextExceptionTitle,
+                MessageBox.Show($"{Strings.TextFailedToUpdateLaunchAtLogon}\n\n{ex.Message}",
+                    Strings.TextExceptionTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -1537,59 +1534,38 @@ namespace RyzenTuner.UI
 
                 var applyErrors = new List<string>();
 
-                if (!TryApplyPowerLimit(_lastAppliedFastPpt, stampLimit, () => processor.SetFastPPT(stampLimit), out var fastPptChanged))
+                if (!TryApplyPowerLimit(() => processor.SetFastPpt(stampLimit), out _))
                 {
-                    applyErrors.Add($"SetFastPPT({stampLimit:0.##}W)");
-                }
-                else if (fastPptChanged)
-                {
-                    _lastAppliedFastPpt = stampLimit;
+                    applyErrors.Add($"SetFastPpt({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyPowerLimit(_lastAppliedSlowPpt, stampLimit, () => processor.SetSlowPPT(stampLimit), out var slowPptChanged))
+                if (!TryApplyPowerLimit(() => processor.SetSlowPpt(stampLimit), out _))
                 {
-                    applyErrors.Add($"SetSlowPPT({stampLimit:0.##}W)");
-                }
-                else if (slowPptChanged)
-                {
-                    _lastAppliedSlowPpt = stampLimit;
+                    applyErrors.Add($"SetSlowPpt({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyPowerLimit(_lastAppliedStampLimit, stampLimit, () => processor.SetStampPPT(stampLimit), out var stampPptChanged))
+                if (!TryApplyPowerLimit(() => processor.SetStampPpt(stampLimit), out _))
                 {
-                    applyErrors.Add($"SetStampPPT({stampLimit:0.##}W)");
-                }
-                else if (stampPptChanged)
-                {
-                    _lastAppliedStampLimit = stampLimit;
+                    applyErrors.Add($"SetStampPpt({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyTctlTemp(tctlTemp, () => processor.SetTctlTemp((uint)tctlTemp), out var tctlTempChanged))
+                if (!TryApplyTctlTemp(() => processor.SetTctlTemp((uint)tctlTemp), out _))
                 {
                     applyErrors.Add($"SetTctlTemp({tctlTemp}C)");
                 }
-                else if (tctlTempChanged)
-                {
-                    _lastAppliedTctlTemp = tctlTemp;
-                }
 
-                if (!TryApplyIntSetting(_lastAppliedApuSkinTemp, apuSkinTemp, () => processor.SetApuSkinTemp((uint)apuSkinTemp), out var apuSkinTempChanged))
+                if (!TryApplyIntSetting(() => processor.SetApuSkinTemp((uint)apuSkinTemp), out _))
                 {
                     applyErrors.Add($"SetApuSkinTemp({apuSkinTemp}C)");
-                }
-                else if (apuSkinTempChanged)
-                {
-                    _lastAppliedApuSkinTemp = apuSkinTemp;
                 }
 
                 if (_lastCpuBoostEnabled != shouldEnableCpuBoost)
                 {
-                    var boostChanged = false;
                     var boostApplied = TryApplyCpuBoost(() =>
                         shouldEnableCpuBoost
                             ? AppContainer.PowerConfig().EnableCpuBoost()
                             : AppContainer.PowerConfig().DisableCpuBoost(),
-                        out boostChanged);
+                        out var boostChanged);
 
                     if (!boostApplied)
                     {
@@ -1642,7 +1618,7 @@ namespace RyzenTuner.UI
                     _lastPowerLimitErrorShownAt = now;
                     AppContainer.Logger().Error("Call ryzenadj", e.ToString(), sw.ElapsedMilliseconds);
                     MessageBox.Show(e.Message,
-                        Properties.Strings.TextExceptionTitle,
+                        Strings.TextExceptionTitle,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                 }
@@ -1665,10 +1641,8 @@ namespace RyzenTuner.UI
         /// 应用功率限制。
         /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
         /// </summary>
-        private static bool TryApplyPowerLimit(float? lastAppliedValue, float targetValue, Func<bool> applyAction, out bool changed)
+        private static bool TryApplyPowerLimit(Func<bool> applyAction, out bool changed)
         {
-            // ReSharper disable once UnusedParameter.Local
-            _ = lastAppliedValue;
             var result = applyAction();
             changed = result;
             return result;
@@ -1678,10 +1652,8 @@ namespace RyzenTuner.UI
         /// 应用 Tctl 温度限制。
         /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
         /// </summary>
-        private bool TryApplyTctlTemp(int targetValue, Func<bool> applyAction, out bool changed)
+        private bool TryApplyTctlTemp(Func<bool> applyAction, out bool changed)
         {
-            // ReSharper disable once UnusedParameter.Local
-            _ = _lastAppliedTctlTemp;
             var result = applyAction();
             changed = result;
             return result;
@@ -1691,10 +1663,8 @@ namespace RyzenTuner.UI
         /// 应用整数型 SMU 设置（如 ApuSkinTemp）。
         /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
         /// </summary>
-        private static bool TryApplyIntSetting(int? lastAppliedValue, int targetValue, Func<bool> applyAction, out bool changed)
+        private static bool TryApplyIntSetting(Func<bool> applyAction, out bool changed)
         {
-            // ReSharper disable once UnusedParameter.Local
-            _ = lastAppliedValue;
             var result = applyAction();
             changed = result;
             return result;
@@ -1709,7 +1679,7 @@ namespace RyzenTuner.UI
 
         private void ReportPowerLimitApplyError(string errorText)
         {
-            var message = Properties.Strings.TextRyzenAdjApplyError.Replace("{errors}", errorText);
+            var message = Strings.TextRyzenAdjApplyError.Replace("{errors}", errorText);
             AppContainer.Logger().Warning("Call ryzenadj", message);
 
             if (_lastPowerLimitApplyError == message)
@@ -1822,9 +1792,9 @@ namespace RyzenTuner.UI
         }
 
         /// <summary>
-        /// 注册所有已配置的快捷键，返回是否全部注册成功
+        /// 注册所有已配置的快捷键
         /// </summary>
-        private bool RegisterAllHotkeys()
+        private void RegisterAllHotkeys()
         {
             UnregisterAllHotkeys();
 
@@ -1836,15 +1806,12 @@ namespace RyzenTuner.UI
 
             if (!allOk)
             {
-                var msg = Properties.Strings.TextHotkeyConflictTitle;
                 AppContainer.Logger().Warning("HotkeyReg", "部分快捷键注册失败，请检查是否与其他程序冲突");
-                notifyIcon1.BalloonTipTitle = Properties.Strings.TextHotkeyConflictTitle;
-                notifyIcon1.BalloonTipText = Properties.Strings.TextHotkeyConflict
-                    .Replace("{hotkey}", Properties.Strings.TextHotkeyConflictTitle);
+                notifyIcon1.BalloonTipTitle = Strings.TextHotkeyConflictTitle;
+                notifyIcon1.BalloonTipText = Strings.TextHotkeyConflict
+                    .Replace("{hotkey}", Strings.TextHotkeyConflictTitle);
                 notifyIcon1.ShowBalloonTip(3000);
             }
-
-            return allOk;
         }
 
         /// <summary>
@@ -1960,7 +1927,7 @@ namespace RyzenTuner.UI
                 return false;
 
             // 最后一个部分是键
-            if (!Enum.TryParse<Keys>(parts[parts.Length - 1], true, out key) || key == Keys.None)
+            if (!Enum.TryParse(parts[parts.Length - 1], true, out key) || key == Keys.None)
                 return false;
 
             // 前面的部分是修饰键
@@ -1996,7 +1963,7 @@ namespace RyzenTuner.UI
         private static string GetHotkeyDisplayText(string hotkeyStr)
         {
             return string.IsNullOrEmpty(hotkeyStr)
-                ? Properties.Strings.TextHotkeyNone
+                ? Strings.TextHotkeyNone
                 : hotkeyStr;
         }
 
@@ -2008,7 +1975,7 @@ namespace RyzenTuner.UI
         {
             if (sender is TextBox tb)
             {
-                tb.Text = Properties.Strings.TextHotkeyPressKeys;
+                tb.Text = Strings.TextHotkeyPressKeys;
             }
         }
 
@@ -2031,7 +1998,7 @@ namespace RyzenTuner.UI
             if (e.KeyCode == Keys.Back || e.KeyCode == Keys.Escape)
             {
                 tb.Tag = "";
-                tb.Text = Properties.Strings.TextHotkeyPressKeys;
+                tb.Text = Strings.TextHotkeyPressKeys;
                 e.SuppressKeyPress = true;
                 return;
             }
@@ -2088,9 +2055,8 @@ namespace RyzenTuner.UI
 
         private static void SetHotkeyTextBox(TextBox tb, string hotkeyStr)
         {
-            var str = hotkeyStr ?? "";
-            tb.Tag = str;
-            tb.Text = GetHotkeyDisplayText(str);
+            tb.Tag = hotkeyStr;
+            tb.Text = GetHotkeyDisplayText(hotkeyStr);
         }
 
         private static string GetHotkeyFromTextBox(TextBox tb)
@@ -2111,19 +2077,19 @@ namespace RyzenTuner.UI
             {
                 var levelFilter = comboBoxLogLevelFilter.SelectedItem?.ToString();
                 if (string.IsNullOrEmpty(levelFilter) ||
-                    levelFilter == Properties.Strings.TextLogLevelAll)
+                    levelFilter == Strings.TextLogLevelAll)
                 {
                     levelFilter = null;
                 }
 
                 var searchText = textBoxLogSearch.Text;
                 if (string.IsNullOrEmpty(searchText) ||
-                    searchText == Properties.Strings.TextLogSearchPlaceholder)
+                    searchText == Strings.TextLogSearchPlaceholder)
                 {
                     searchText = null;
                 }
 
-                var table = AppContainer.Logger().QueryLogs(levelFilter, searchText, 1000);
+                var table = AppContainer.Logger().QueryLogs(levelFilter, searchText);
 
                 // 设置 DataGridView 数据源
                 dataGridViewLogs.DataSource = table;
@@ -2137,7 +2103,7 @@ namespace RyzenTuner.UI
                     if (dataGridViewLogs.Columns["timestamp"] != null)
                     {
                         dataGridViewLogs.Columns["timestamp"].HeaderText =
-                            Properties.Strings.TextLogColumnTime;
+                            Strings.TextLogColumnTime;
                         dataGridViewLogs.Columns["timestamp"].ReadOnly = true;
                         dataGridViewLogs.Columns["timestamp"].AutoSizeMode =
                             DataGridViewAutoSizeColumnMode.DisplayedCells;
@@ -2147,7 +2113,7 @@ namespace RyzenTuner.UI
                     if (dataGridViewLogs.Columns["level"] != null)
                     {
                         dataGridViewLogs.Columns["level"].HeaderText =
-                            Properties.Strings.TextLogColumnLevel;
+                            Strings.TextLogColumnLevel;
                         dataGridViewLogs.Columns["level"].ReadOnly = true;
                         dataGridViewLogs.Columns["level"].AutoSizeMode =
                             DataGridViewAutoSizeColumnMode.DisplayedCells;
@@ -2157,7 +2123,7 @@ namespace RyzenTuner.UI
                     if (dataGridViewLogs.Columns["action"] != null)
                     {
                         dataGridViewLogs.Columns["action"].HeaderText =
-                            Properties.Strings.TextLogColumnAction;
+                            Strings.TextLogColumnAction;
                         dataGridViewLogs.Columns["action"].ReadOnly = true;
                         dataGridViewLogs.Columns["action"].AutoSizeMode =
                             DataGridViewAutoSizeColumnMode.None;
@@ -2166,7 +2132,7 @@ namespace RyzenTuner.UI
                     if (dataGridViewLogs.Columns["details"] != null)
                     {
                         dataGridViewLogs.Columns["details"].HeaderText =
-                            Properties.Strings.TextLogColumnDetails;
+                            Strings.TextLogColumnDetails;
                         dataGridViewLogs.Columns["details"].AutoSizeMode =
                             DataGridViewAutoSizeColumnMode.Fill;
                         dataGridViewLogs.Columns["details"].ReadOnly = true;
@@ -2175,7 +2141,7 @@ namespace RyzenTuner.UI
                     if (dataGridViewLogs.Columns["elapsed_ms"] != null)
                     {
                         dataGridViewLogs.Columns["elapsed_ms"].HeaderText =
-                            Properties.Strings.TextLogColumnElapsed;
+                            Strings.TextLogColumnElapsed;
                         dataGridViewLogs.Columns["elapsed_ms"].ReadOnly = true;
                         dataGridViewLogs.Columns["elapsed_ms"].AutoSizeMode =
                             DataGridViewAutoSizeColumnMode.DisplayedCells;
@@ -2195,7 +2161,7 @@ namespace RyzenTuner.UI
         /// </summary>
         private void TextBoxLogSearch_Enter(object? sender, EventArgs e)
         {
-            if (textBoxLogSearch.Text == Properties.Strings.TextLogSearchPlaceholder)
+            if (textBoxLogSearch.Text == Strings.TextLogSearchPlaceholder)
             {
                 textBoxLogSearch.Text = "";
             }
@@ -2208,7 +2174,7 @@ namespace RyzenTuner.UI
         {
             if (string.IsNullOrEmpty(textBoxLogSearch.Text))
             {
-                textBoxLogSearch.Text = Properties.Strings.TextLogSearchPlaceholder;
+                textBoxLogSearch.Text = Strings.TextLogSearchPlaceholder;
             }
         }
 
@@ -2262,8 +2228,8 @@ namespace RyzenTuner.UI
         private void ButtonClearLogs_Click(object? sender, EventArgs e)
         {
             var result = MessageBox.Show(
-                Properties.Strings.TextLogClearConfirm,
-                Properties.Strings.TextLogClear,
+                Strings.TextLogClearConfirm,
+                Strings.TextLogClear,
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
@@ -2280,7 +2246,7 @@ namespace RyzenTuner.UI
                 AppContainer.Logger().Warning("LogCleanup", $"清空日志失败: {ex.Message}");
                 MessageBox.Show(
                     $"清空日志失败: {ex.Message}",
-                    Properties.Strings.TextExceptionTitle,
+                    Strings.TextExceptionTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }

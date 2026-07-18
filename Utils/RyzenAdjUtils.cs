@@ -19,12 +19,12 @@ namespace RyzenTuner.Utils
 
         public static int GetTctlTemp()
         {
-            return AppSettings.Get<int>("TctlTemp", 100);
+            return AppSettings.Get("TctlTemp", 100);
         }
 
         public static int GetApuSkinTemp()
         {
-            return AppSettings.Get<int>("ApuSkinTemp", 43);
+            return AppSettings.Get("ApuSkinTemp", 43);
         }
     }
 }

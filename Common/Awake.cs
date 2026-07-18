@@ -14,9 +14,6 @@ namespace RyzenTuner.Common
         [Flags]
         private enum ExecutionState : uint
         {
-            // 启用离开模式。这个值必须和ES_CONTINUOUS一起指定
-            ES_AWAYMODE_REQUIRED = 0x00000040,
-
             // 通知系统，被设置的状态应该保持有效，直到下一次使用ES_CONTINUOUS的调用和其他状态标志之一被清除
             ES_CONTINUOUS = 0x80000000,
 

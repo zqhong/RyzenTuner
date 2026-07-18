@@ -2,8 +2,8 @@ using System;
 using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
-using System.IO;
-using RyzenTuner.Common.SettingsStore;
+
+using RyzenTuner.Common.Settings;
 
 namespace RyzenTuner.Common.Logger
 {
@@ -164,9 +164,6 @@ namespace RyzenTuner.Common.Logger
 
         public void LogException(Exception e)
         {
-            if (e == null)
-                return;
-
             var st = new StackTrace(e, true);
             var frame = st.GetFrame(0);
             var line = frame?.GetFileLineNumber() ?? 0;
@@ -262,7 +259,7 @@ namespace RyzenTuner.Common.Logger
                     row["action"] = reader["action"]?.ToString() ?? "";
                     row["details"] = reader["details"]?.ToString() ?? "";
                     var elapsedMs = reader["elapsed_ms"];
-                    row["elapsed_ms"] = elapsedMs == DBNull.Value ? "-" : elapsedMs.ToString() + " ms";
+                    row["elapsed_ms"] = elapsedMs == DBNull.Value ? "-" : elapsedMs + " ms";
                     table.Rows.Add(row);
                 }
 
@@ -347,6 +344,7 @@ namespace RyzenTuner.Common.Logger
             }
             catch
             {
+                // 删除失败时静默忽略
             }
         }
 
@@ -372,6 +370,7 @@ namespace RyzenTuner.Common.Logger
             }
             catch
             {
+                // 删除失败时静默忽略
             }
         }
 
@@ -423,8 +422,8 @@ namespace RyzenTuner.Common.Logger
                     cmd.Parameters.AddWithValue("@timestamp",
                         entry.Timestamp.ToString(_datetimeFormat));
                     cmd.Parameters.AddWithValue("@level", entry.Level);
-                    cmd.Parameters.AddWithValue("@action", entry.Action ?? "");
-                    cmd.Parameters.AddWithValue("@details", entry.Details ?? "");
+                    cmd.Parameters.AddWithValue("@action", entry.Action);
+                    cmd.Parameters.AddWithValue("@details", entry.Details);
                     cmd.Parameters.AddWithValue("@elapsed_ms",
                         (object?)entry.ElapsedMs ?? DBNull.Value);
                     cmd.ExecuteNonQuery();

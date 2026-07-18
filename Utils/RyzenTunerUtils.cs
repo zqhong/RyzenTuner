@@ -15,8 +15,6 @@ namespace RyzenTuner.Utils
         [StructLayout(LayoutKind.Sequential)]
         struct LASTINPUTINFO
         {
-            public static readonly int SizeOf = Marshal.SizeOf(typeof(LASTINPUTINFO));
-
             [MarshalAs(UnmanagedType.U4)] public int cbSize;
             [MarshalAs(UnmanagedType.U4)] public UInt32 dwTime;
         }

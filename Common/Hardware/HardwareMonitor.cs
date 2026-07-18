@@ -38,16 +38,16 @@ namespace RyzenTuner.Common.Hardware
         // Finalizers / destructor
         ~HardwareMonitor()
         {
-            Dispose(false);
+            DisposeCore();
         }
 
         public void Dispose()
         {
-            Dispose(true);
+            DisposeCore();
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        private void DisposeCore()
         {
             if (_disposed)
             {
@@ -208,15 +208,17 @@ namespace RyzenTuner.Common.Hardware
         private float FetchCpuFreq(IEnumerable<ISensor> cpuEnumerable)
         {
             var cpuCount = Environment.ProcessorCount;
+            var sensorList = cpuEnumerable.ToList();
 
             float tmpTotal = 0;
             var tmpCount = 0;
 
             for (var i = 1; i <= cpuCount; i++)
             {
-                var linqCpuFreq = cpuEnumerable
+                var index = i;
+                var linqCpuFreq = sensorList
                     .Where(s => s.SensorType == SensorType.Clock)
-                    .Where(s => s.Name == $"Core #{i}")
+                    .Where(s => s.Name == $"Core #{index}")
                     .Where(s => s.Value != null)
                     .Select(s => s.Value)
                     .FirstOrDefault();

@@ -209,7 +209,7 @@ namespace RyzenTuner.Common
 
         private static string SecurityElementEscape(string value)
         {
-            return System.Security.SecurityElement.Escape(value) ?? string.Empty;
+            return System.Security.SecurityElement.Escape(value) ?? string.Empty; // 可 null（未标注 nullable）
         }
 
         private readonly struct SchtasksResult
@@ -217,8 +217,8 @@ namespace RyzenTuner.Common
             public SchtasksResult(int exitCode, string standardOutput, string standardError)
             {
                 ExitCode = exitCode;
-                StandardOutput = standardOutput ?? string.Empty;
-                StandardError = standardError ?? string.Empty;
+                StandardOutput = standardOutput;
+                StandardError = standardError;
             }
 
             public int ExitCode { get; }

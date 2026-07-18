@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.Globalization;
-using RyzenTuner.Common.SettingsStore;
 
 namespace RyzenTuner.Common.Settings
 {

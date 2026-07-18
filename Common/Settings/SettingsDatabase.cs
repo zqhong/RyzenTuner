@@ -3,7 +3,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 
-namespace RyzenTuner.Common.SettingsStore
+namespace RyzenTuner.Common.Settings
 {
     /// <summary>
     /// 共享的数据库路径和连接字符串管理。

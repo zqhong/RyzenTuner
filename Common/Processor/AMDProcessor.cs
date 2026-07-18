@@ -245,17 +245,17 @@ namespace RyzenTuner.Common.Processor
             return result == (int)ErrCode.AdjErrNone;
         }
 
-        public bool SetFastPPT(double limit)
+        public bool SetFastPpt(double limit)
         {
             return SetTdpLimit(PowerType.Fast, limit);
         }
         
-        public bool SetSlowPPT(double limit)
+        public bool SetSlowPpt(double limit)
         {
             return SetTdpLimit(PowerType.Slow, limit);
         }
         
-        public bool SetStampPPT(double limit)
+        public bool SetStampPpt(double limit)
         {
             return SetTdpLimit(PowerType.Stapm, limit);
         }

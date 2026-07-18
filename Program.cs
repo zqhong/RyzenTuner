@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
@@ -122,7 +121,7 @@ namespace RyzenTuner
             }
             else
             {
-                langCode = RyzenTuner.Utils.RyzenTunerUtils.DetectDefaultLanguageCode();
+                langCode = Utils.RyzenTunerUtils.DetectDefaultLanguageCode();
             }
 
             var culture = new CultureInfo(langCode);

@@ -30,9 +30,9 @@ namespace RyzenTuner.Utils
 
             for (var i = 1; i <= maxPowerLimit; i++)
             {
-                AppContainer.AmdProcessor().SetFastPPT(i);
-                AppContainer.AmdProcessor().SetSlowPPT(i);
-                AppContainer.AmdProcessor().SetStampPPT(i);
+                AppContainer.AmdProcessor().SetFastPpt(i);
+                AppContainer.AmdProcessor().SetSlowPpt(i);
+                AppContainer.AmdProcessor().SetStampPpt(i);
 
                 System.Threading.Thread.Sleep(2048);
                 AppContainer.HardwareMonitor().Monitor();
