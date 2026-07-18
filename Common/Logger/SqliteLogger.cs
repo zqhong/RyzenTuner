@@ -1,15 +1,13 @@
 using System;
 using System.Data;
+using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
-using System.Data.SQLite;
 
 namespace RyzenTuner.Common.Logger
 {
     /// <summary>
-    /// SQLite 日志记录器 — 替代 SimpleLogger 作为主日志。
-    /// 同时写入 SQLite 数据库和 .log 纯文本文件。
+    /// SQLite 日志记录器 — 所有日志写入 SQLite 数据库。
     /// </summary>
     public class SqliteLogger : IDisposable
     {
@@ -23,7 +21,6 @@ namespace RyzenTuner.Common.Logger
             Fatal
         }
 
-        private const string FileExt = ".log";
         private const string DbDirName = "logs";
         private const string DbFileName = "RyzenTuner.db";
 
@@ -31,11 +28,8 @@ namespace RyzenTuner.Common.Logger
         // Cleanup() 中的 DELETE 查询使用字符串字典序比较 timestamp 列，
         // 任何格式变更（如省略前导零、12 小时制）都会导致时间比较失效。
         private readonly string _datetimeFormat;
-        private readonly string _logFilename;
         private readonly string _dbPath;
-        private readonly object _fileLock = new();
         private readonly object _dbLock = new();
-        private StreamWriter? _writer;
         private bool _disposed;
         private bool _dbInitialized;
 
@@ -46,10 +40,6 @@ namespace RyzenTuner.Common.Logger
             _datetimeFormat = "yyyy-MM-dd HH:mm:ss";
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            // .log file path (same as SimpleLogger)
-            _logFilename = Path.Combine(baseDir,
-                System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + FileExt);
-
             // SQLite database path in logs/ subdirectory
             var dbDir = Path.Combine(baseDir, DbDirName);
             if (!Directory.Exists(dbDir))
@@ -59,12 +49,6 @@ namespace RyzenTuner.Common.Logger
             _dbPath = Path.Combine(dbDir, DbFileName);
 
             DefaultLogLevel = LogLevel.Warning;
-
-            // Open log file for appending (same as SimpleLogger)
-            _writer = new StreamWriter(_logFilename, true, Encoding.UTF8)
-            {
-                AutoFlush = true,
-            };
 
             // Initialize SQLite
             InitializeDatabase();
@@ -110,13 +94,10 @@ namespace RyzenTuner.Common.Logger
 
                 testConn.Close();
                 _dbInitialized = true;
-
-                WriteLine("[SQLite] 数据库初始化完成: " + _dbPath);
             }
-            catch (Exception ex)
+            catch
             {
                 _dbInitialized = false;
-                WriteLine($"[SQLite] 数据库初始化失败: {ex.Message}");
             }
         }
 
@@ -135,12 +116,6 @@ namespace RyzenTuner.Common.Logger
             if (_disposed)
                 return;
             _disposed = true;
-
-            lock (_fileLock)
-            {
-                _writer?.Dispose();
-                _writer = null;
-            }
         }
 
         public LogLevel ToLogLevel(string logLevel)
@@ -245,8 +220,9 @@ namespace RyzenTuner.Common.Logger
         /// 查询日志记录
         /// </summary>
         /// <param name="levelFilter">日志级别筛选（null 表示所有级别）</param>
+        /// <param name="searchText">搜索关键字（匹配 action 或 details）</param>
         /// <param name="limit">返回条数上限</param>
-        public DataTable QueryLogs(string? levelFilter = null, int limit = 1000)
+        public DataTable QueryLogs(string? levelFilter = null, string? searchText = null, int limit = 1000)
         {
             var table = new DataTable();
             table.Columns.Add("timestamp", typeof(string));
@@ -271,6 +247,12 @@ namespace RyzenTuner.Common.Logger
                     cmd.Parameters.AddWithValue("@level", levelFilter);
                 }
 
+                if (!string.IsNullOrEmpty(searchText))
+                {
+                    sql += " AND (action LIKE @search OR details LIKE @search)";
+                    cmd.Parameters.AddWithValue("@search", $"%{searchText}%");
+                }
+
                 sql += " ORDER BY id DESC LIMIT @limit";
                 cmd.Parameters.AddWithValue("@limit", limit);
                 cmd.CommandText = sql;
@@ -290,9 +272,8 @@ namespace RyzenTuner.Common.Logger
 
                 return table;
             }
-            catch (Exception ex)
+            catch
             {
-                WriteLine($"[SQLite] 查询日志失败: {ex.Message}");
                 return table;
             }
         }
@@ -365,13 +346,10 @@ namespace RyzenTuner.Common.Logger
                 cmd.CommandText = "DELETE FROM logs WHERE timestamp < @cutoff";
                 cmd.Parameters.AddWithValue("@cutoff",
                     DateTime.UtcNow.AddDays(-retentionDays).ToString(_datetimeFormat));
-                var deleted = cmd.ExecuteNonQuery();
-
-                WriteLine($"[SQLite] 已清理 {deleted} 条过期日志（保留 {retentionDays} 天）");
+                cmd.ExecuteNonQuery();
             }
-            catch (Exception ex)
+            catch
             {
-                WriteLine($"[SQLite] 日志清理失败: {ex.Message}");
             }
         }
 
@@ -380,7 +358,7 @@ namespace RyzenTuner.Common.Logger
         // ================================================================
 
         /// <summary>
-        /// 写入格式化日志
+        /// 写入格式化日志（仅 SQLite）
         /// </summary>
         private void WriteFormattedLog(LogLevel level, string action, string text, long? elapsedMs)
         {
@@ -389,56 +367,15 @@ namespace RyzenTuner.Common.Logger
                 return;
             }
 
-            var now = DateTime.UtcNow;
-            // 注意：.log 文件使用本地时间显示，方便 tail -f 查看；SQLite 使用 UTC 确保时区不变性
-            var localNow = now.ToLocalTime();
-            var pretext = level switch
-            {
-                LogLevel.Trace => localNow.ToString(_datetimeFormat) + " [TRACE]   ",
-                LogLevel.Info => localNow.ToString(_datetimeFormat) + " [INFO]    ",
-                LogLevel.Debug => localNow.ToString(_datetimeFormat) + " [DEBUG]   ",
-                LogLevel.Warning => localNow.ToString(_datetimeFormat) + " [WARNING] ",
-                LogLevel.Error => localNow.ToString(_datetimeFormat) + " [ERROR]   ",
-                LogLevel.Fatal => localNow.ToString(_datetimeFormat) + " [FATAL]   ",
-                _ => ""
-            };
-
-            // Write to .log file (local time for readability)
-            var logLine = pretext + text;
-            if (elapsedMs.HasValue)
-            {
-                logLine += $" (耗时: {elapsedMs.Value}ms)";
-            }
-            WriteLine(logLine);
-
             // Write to SQLite (UTC for timezone-invariant comparison)
             WriteToDatabase(new LogEntry
             {
-                Timestamp = now,
+                Timestamp = DateTime.UtcNow,
                 Level = level.ToString(),
                 Action = action,
                 Details = text,
                 ElapsedMs = elapsedMs,
             });
-        }
-
-        /// <summary>
-        /// 写入纯文本 .log 文件
-        /// </summary>
-        private void WriteLine(string text, bool append = false)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return;
-            }
-
-            lock (_fileLock)
-            {
-                if (_writer == null)
-                    return;
-
-                _writer.WriteLine(text);
-            }
         }
 
         /// <summary>
@@ -469,14 +406,9 @@ namespace RyzenTuner.Common.Logger
                     cmd.ExecuteNonQuery();
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                // Fallback to file-only logging if SQLite fails
-                lock (_fileLock)
-                {
-                    _writer?.WriteLine(
-                        $"{entry.Timestamp:yyyy-MM-dd HH:mm:ss} [SQLITE-ERR] 写入数据库失败: {ex.Message}");
-                }
+                // SQLite 写入失败时静默忽略（不走文件回退）
             }
         }
     }

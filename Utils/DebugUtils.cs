@@ -15,11 +15,11 @@ namespace RyzenTuner.Utils
             AppContainer.AmdProcessor().SetTctlTemp(90);
 
             AppContainer.PowerConfig().DisableCpuBoost();
-            AppContainer.Logger().Debug("关闭睿频");
+            AppContainer.Logger().Debug("CpuBoost", "关闭睿频");
             _logCpuInfo();
 
             AppContainer.PowerConfig().EnableCpuBoost();
-            AppContainer.Logger().Debug("开启睿频");
+            AppContainer.Logger().Debug("CpuBoost", "开启睿频");
             _logCpuInfo();
         }
 
@@ -33,12 +33,12 @@ namespace RyzenTuner.Utils
                 AppContainer.AmdProcessor().SetFastPPT(i);
                 AppContainer.AmdProcessor().SetSlowPPT(i);
                 AppContainer.AmdProcessor().SetStampPPT(i);
-                
+
                 System.Threading.Thread.Sleep(2048);
                 AppContainer.HardwareMonitor().Monitor();
 
                 AppContainer.Logger()
-                    .Debug(
+                    .Debug("Call ryzenadj",
                         $"功率：限制{i}瓦、实际{hardware.CpuPackagePower:F}瓦，CPU：{hardware.CpuUsage:F}%、{hardware.CpuTemperature:F}℃、{hardware.CpuFreq:F}MHz，GPU：{hardware.VideoCard3DUsage:F}%");
             }
         }

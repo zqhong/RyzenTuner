@@ -403,4 +403,10 @@
     <data name="TextLogViewLogs" xml:space="preserve">
         <value>查看日志</value>
     </data>
+    <data name="TextLogSearchPlaceholder" xml:space="preserve">
+        <value>搜索日志（操作 / 详情）</value>
+    </data>
+    <data name="TextLogSearchButton" xml:space="preserve">
+        <value>搜索</value>
+    </data>
 </root>

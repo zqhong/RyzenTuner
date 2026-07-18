@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -198,7 +199,7 @@ namespace RyzenTuner.UI
             }
             catch (Exception cleanupEx)
             {
-                AppContainer.Logger().Warning($"启动时日志清理失败: {cleanupEx.Message}");
+                AppContainer.Logger().Warning("System", $"启动时日志清理失败: {cleanupEx.Message}");
             }
 
             // 初始化布局（关于页延迟到首次访问时加载）
@@ -520,7 +521,7 @@ namespace RyzenTuner.UI
             }
             catch (Exception logEx)
             {
-                AppContainer.Logger().Warning($"应用日志级别失败: {logEx.Message}");
+                AppContainer.Logger().Warning("System", $"应用日志级别失败: {logEx.Message}");
             }
 
             // 保存后立即执行日志清理
@@ -530,7 +531,7 @@ namespace RyzenTuner.UI
             }
             catch (Exception cleanupEx)
             {
-                AppContainer.Logger().Warning($"日志清理失败: {cleanupEx.Message}");
+                AppContainer.Logger().Warning("LogCleanup", $"日志清理失败: {cleanupEx.Message}");
             }
 
             // 刷新首页模式标签
@@ -540,7 +541,7 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning($"刷新模式标签失败: {ex.Message}");
+                AppContainer.Logger().Warning("UI", $"刷新模式标签失败: {ex.Message}");
             }
 
             // 立即重新应用功率限制
@@ -580,7 +581,7 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning($"初始化语言选择失败: {ex.Message}");
+                AppContainer.Logger().Warning("UI", $"初始化语言选择失败: {ex.Message}");
 
                 // Fix #10: 设置一个安全的 fallback，保持 UI 一致
                 try
@@ -639,12 +640,12 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Error($"重启失败: {ex.Message}");
+                AppContainer.Logger().Error("System", $"重启失败: {ex.Message}");
 
                 // Process.Start 失败 — 尝试重新获取 Mutex 恢复单例保护
                 if (!Program.TryReacquireInstanceMutex())
                 {
-                    AppContainer.Logger().Error("重新获取单例 Mutex 失败");
+                    AppContainer.Logger().Error("System", "重新获取单例 Mutex 失败");
                 }
 
                 MessageBox.Show(
@@ -834,7 +835,7 @@ namespace RyzenTuner.UI
                             EnableBenchmarkConfig(true);
                             progressBar.Visible = false;
                             // _isBenchmarkRunning 和 _engine 由 finally 块统一清理
-                            AppContainer.Logger().Error($"能效分析错误: {error}");
+                            AppContainer.Logger().Error("Benchmark", $"能效分析错误: {error}");
                         }));
                     };
 
@@ -913,7 +914,7 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Error($"导出 CSV 失败: {ex}");
+                AppContainer.Logger().Error("Benchmark", $"导出 CSV 失败: {ex}");
                 MessageBox.Show(
                     $"{Properties.Strings.TextBenchmarkExportFailed}: {ex.Message}",
                     Properties.Strings.TextBenchmarkTitle,
@@ -1057,7 +1058,7 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning($"打开 GitHub 链接失败: {ex.Message}");
+                AppContainer.Logger().Warning("UI", $"打开 GitHub 链接失败: {ex.Message}");
             }
         }
 
@@ -1120,6 +1121,19 @@ namespace RyzenTuner.UI
             _lastResizeTime = now;
 
             RecalcCardColumns();
+            RecalcLogLayout();
+        }
+
+        /// <summary>
+        /// 重新计算日志查看页布局
+        /// </summary>
+        private void RecalcLogLayout()
+        {
+            if (pageLog == null || !pageLog.Visible || dataGridViewLogs == null)
+                return;
+
+            // 强制 DataGridView 刷新列布局以适配当前宽度
+            dataGridViewLogs.Invalidate();
         }
 
         private void RecalcCardColumns()
@@ -1325,7 +1339,7 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning($"Failed to query launch at logon status: {ex.Message}");
+                AppContainer.Logger().Warning("System", $"Failed to query launch at logon status: {ex.Message}");
             }
         }
 
@@ -1345,7 +1359,7 @@ namespace RyzenTuner.UI
             catch (Exception ex)
             {
                 _lastCpuBoostEnabled = Properties.Settings.Default.CpuBoostEnabled;
-                AppContainer.Logger().Warning($"Failed to query cpu boost status: {ex.Message}");
+                AppContainer.Logger().Warning("System", $"Failed to query cpu boost status: {ex.Message}");
             }
         }
 
@@ -1410,12 +1424,12 @@ namespace RyzenTuner.UI
                 catch (Exception apuEx)
                 {
                     apuSkinTempLabel.Text = "N/A";
-                    AppContainer.Logger().Warning($"读取 APU SkinTemp 失败: {apuEx.Message}");
+                    AppContainer.Logger().Warning("HardwareMonitor", $"读取 APU SkinTemp 失败: {apuEx.Message}");
                 }
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning($"更新监控信息失败: {ex.Message}");
+                AppContainer.Logger().Warning("HardwareMonitor", $"更新监控信息失败: {ex.Message}");
             }
         }
 
@@ -1437,6 +1451,7 @@ namespace RyzenTuner.UI
                 return;
             }
 
+            var sw = Stopwatch.StartNew();
             _isApplyingPowerLimit = true;
 
             if (!_isErrorRecoveryPending)
@@ -1550,11 +1565,12 @@ namespace RyzenTuner.UI
             catch (Exception e)
             {
                 _lastPowerLimitErrorTime = DateTime.UtcNow;
+                sw.Stop();
 
                 if (now - _lastPowerLimitErrorShownAt > TimeSpan.FromSeconds(30))
                 {
                     _lastPowerLimitErrorShownAt = now;
-                    AppContainer.Logger().Error(e.ToString());
+                    AppContainer.Logger().Error("Call ryzenadj", e.ToString(), sw.ElapsedMilliseconds);
                     MessageBox.Show(e.Message,
                         Properties.Strings.TextExceptionTitle,
                         MessageBoxButtons.OK,
@@ -1562,7 +1578,7 @@ namespace RyzenTuner.UI
                 }
                 else
                 {
-                    AppContainer.Logger().Warning(e.ToString());
+                    AppContainer.Logger().Warning("Call ryzenadj", e.ToString(), sw.ElapsedMilliseconds);
                 }
 
                 _isErrorRecoveryPending = true;
@@ -1571,6 +1587,7 @@ namespace RyzenTuner.UI
             finally
             {
                 _isApplyingPowerLimit = false;
+                sw.Stop();
             }
         }
 
@@ -1623,7 +1640,7 @@ namespace RyzenTuner.UI
         private void ReportPowerLimitApplyError(string errorText)
         {
             var message = Properties.Strings.TextRyzenAdjApplyError.Replace("{errors}", errorText);
-            AppContainer.Logger().Warning(message);
+            AppContainer.Logger().Warning("Call ryzenadj", message);
 
             if (_lastPowerLimitApplyError == message)
             {
@@ -1752,7 +1769,7 @@ namespace RyzenTuner.UI
             if (!allOk)
             {
                 var msg = Properties.Strings.TextHotkeyConflictTitle;
-                AppContainer.Logger().Warning("部分快捷键注册失败，请检查是否与其他程序冲突");
+                AppContainer.Logger().Warning("HotkeyReg", "部分快捷键注册失败，请检查是否与其他程序冲突");
                 notifyIcon1.BalloonTipTitle = Properties.Strings.TextHotkeyConflictTitle;
                 notifyIcon1.BalloonTipText = Properties.Strings.TextHotkeyConflict
                     .Replace("{hotkey}", Properties.Strings.TextHotkeyConflictTitle);
@@ -1779,7 +1796,7 @@ namespace RyzenTuner.UI
             if (!result)
             {
                 var errorCode = Marshal.GetLastWin32Error();
-                AppContainer.Logger().Warning(
+                AppContainer.Logger().Warning("HotkeyReg",
                     $"注册快捷键失败 (id={id}, hotkey=\"{hotkeyStr}\", errorCode={errorCode})");
             }
 
@@ -2031,10 +2048,20 @@ namespace RyzenTuner.UI
                     levelFilter = null;
                 }
 
-                var table = AppContainer.Logger().QueryLogs(levelFilter, 1000);
+                var searchText = textBoxLogSearch.Text;
+                if (string.IsNullOrEmpty(searchText) ||
+                    searchText == Properties.Strings.TextLogSearchPlaceholder)
+                {
+                    searchText = null;
+                }
+
+                var table = AppContainer.Logger().QueryLogs(levelFilter, searchText, 1000);
 
                 // 设置 DataGridView 数据源
                 dataGridViewLogs.DataSource = table;
+
+                // 强制刷新列布局以适配当前窗体尺寸
+                dataGridViewLogs.PerformLayout();
 
                 // 配置列样式
                 if (dataGridViewLogs.Columns.Count >= 5)
@@ -2083,8 +2110,50 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning($"加载日志数据失败: {ex.Message}");
+                AppContainer.Logger().Warning("LogViewer", $"加载日志数据失败: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 搜索栏获得焦点时，若为占位符文字则清空
+        /// </summary>
+        private void TextBoxLogSearch_Enter(object? sender, EventArgs e)
+        {
+            if (textBoxLogSearch.Text == Properties.Strings.TextLogSearchPlaceholder)
+            {
+                textBoxLogSearch.Text = "";
+            }
+        }
+
+        /// <summary>
+        /// 搜索栏失去焦点时，若为空则恢复占位符文字
+        /// </summary>
+        private void TextBoxLogSearch_Leave(object? sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(textBoxLogSearch.Text))
+            {
+                textBoxLogSearch.Text = Properties.Strings.TextLogSearchPlaceholder;
+            }
+        }
+
+        /// <summary>
+        /// 搜索栏按下回车键时触发搜索
+        /// </summary>
+        private void TextBoxLogSearch_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Return)
+            {
+                e.Handled = true;
+                LoadLogViewerData();
+            }
+        }
+
+        /// <summary>
+        /// 搜索按钮点击时触发搜索
+        /// </summary>
+        private void ButtonLogSearch_Click(object? sender, EventArgs e)
+        {
+            LoadLogViewerData();
         }
 
         /// <summary>
@@ -2132,7 +2201,7 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning($"删除旧日志失败: {ex.Message}");
+                AppContainer.Logger().Warning("LogCleanup", $"删除旧日志失败: {ex.Message}");
                 MessageBox.Show(
                     $"删除旧日志失败: {ex.Message}",
                     Properties.Strings.TextExceptionTitle,

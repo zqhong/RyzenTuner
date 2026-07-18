@@ -266,7 +266,7 @@ namespace RyzenTuner.Common.Processor
                 return false;
 
             var result = RyzenAdj.set_apu_skin_temp_limit(_ry, temp);
-            AppContainer.Logger().Debug($"AMDProcessor.SetApuSkinTemp: {temp}, result: {result}");
+            AppContainer.Logger().Debug("Call ryzenadj", $"AMDProcessor.SetApuSkinTemp: {temp}, result: {result}");
             return result == (int)ErrCode.AdjErrNone;
         }
     }

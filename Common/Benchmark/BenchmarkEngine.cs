@@ -148,7 +148,7 @@ namespace RyzenTuner.Common.Benchmark
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Error($"能效分析跑分异常: {ex}");
+                AppContainer.Logger().Error("Benchmark", $"能效分析跑分异常: {ex}");
                 OnError?.Invoke($"跑分异常: {ex.Message}");
             }
             finally
@@ -346,7 +346,7 @@ namespace RyzenTuner.Common.Benchmark
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning($"恢复原始设置失败: {ex.Message}");
+                AppContainer.Logger().Warning("Benchmark", $"恢复原始设置失败: {ex.Message}");
             }
         }
 

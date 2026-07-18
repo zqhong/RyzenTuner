@@ -322,7 +322,7 @@ namespace RyzenTuner.Common.EnergyStar
         /// </summary>
         public void ThrottleAllUserBackgroundProcesses()
         {
-            AppContainer.Logger().Debug("Throttle All User Background Processes");
+            AppContainer.Logger().Debug("EnergyStar", "Throttle All User Background Processes");
             _toggleAllBgProcessesMode(true);
         }
 
@@ -331,7 +331,7 @@ namespace RyzenTuner.Common.EnergyStar
         /// </summary>
         public void BoostAllUserBackgroundProcesses()
         {
-            AppContainer.Logger().Debug("Boost All User Background Processes");
+            AppContainer.Logger().Debug("EnergyStar", "Boost All User Background Processes");
             _toggleAllBgProcessesMode(false);
         }
 

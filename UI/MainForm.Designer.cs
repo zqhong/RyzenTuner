@@ -131,7 +131,8 @@ namespace RyzenTuner.UI
     this.dataGridViewResults = new DataGridView();
     this.pageAbout = new Panel();
     this.pageLog = new Panel();
-    this.labelLogViewerTitle = new Label();
+    this.textBoxLogSearch = new TextBox();
+    this.buttonLogSearch = new Button();
     this.comboBoxLogLevelFilter = new ComboBox();
     this.dataGridViewLogs = new DataGridView();
     this.buttonRefreshLogs = new Button();
@@ -605,7 +606,7 @@ namespace RyzenTuner.UI
     // ============================================================
     this.groupBoxLanguage.Controls.Add(this.labelLanguage);
     this.groupBoxLanguage.Controls.Add(this.comboBoxLanguage);
-    this.groupBoxLanguage.Location = new Point(16, 310);
+    this.groupBoxLanguage.Location = new Point(16, 386);
     this.groupBoxLanguage.Size = new Size(300, 60);
     this.groupBoxLanguage.Text = Properties.Strings.TextLanguage;
 
@@ -632,7 +633,7 @@ namespace RyzenTuner.UI
     this.groupBoxHotkey.Controls.Add(this.textBoxHotkeyBalanced);
     this.groupBoxHotkey.Controls.Add(this.labelHotkeyPerformance);
     this.groupBoxHotkey.Controls.Add(this.textBoxHotkeyPerformance);
-    this.groupBoxHotkey.Location = new Point(16, 386);
+    this.groupBoxHotkey.Location = new Point(16, 462);
     this.groupBoxHotkey.Size = new Size(624, 130);
     this.groupBoxHotkey.Text = Properties.Strings.TextHotkeySettings;
 
@@ -683,7 +684,7 @@ namespace RyzenTuner.UI
     this.groupBoxLogSettings.Controls.Add(this.numericUpDownLogSaveDays);
     this.groupBoxLogSettings.Controls.Add(this.labelLogSaveDaysUnit);
     this.groupBoxLogSettings.Controls.Add(this.buttonOpenLogViewer);
-    this.groupBoxLogSettings.Location = new Point(16, 530);
+    this.groupBoxLogSettings.Location = new Point(16, 310);
     this.groupBoxLogSettings.Size = new Size(624, 60);
     this.groupBoxLogSettings.Text = Properties.Strings.TextLogSettings;
 
@@ -725,7 +726,7 @@ namespace RyzenTuner.UI
     this.buttonSave.Click += new EventHandler(this.SettingsSave_Click);
 
     this.buttonCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-    this.buttonCancel.Location = new Point(544, 520);
+    this.buttonCancel.Location = new Point(544, 600);
     this.buttonCancel.Size = new Size(100, 35);
     this.buttonCancel.Text = Properties.Strings.TextCancel;
     this.buttonCancel.Click += new EventHandler(this.SettingsCancel_Click);
@@ -927,7 +928,8 @@ namespace RyzenTuner.UI
     // ============================================================
     // 日志查看页 pageLog
     // ============================================================
-    this.pageLog.Controls.Add(this.labelLogViewerTitle);
+    this.pageLog.Controls.Add(this.textBoxLogSearch);
+    this.pageLog.Controls.Add(this.buttonLogSearch);
     this.pageLog.Controls.Add(this.comboBoxLogLevelFilter);
     this.pageLog.Controls.Add(this.dataGridViewLogs);
     this.pageLog.Controls.Add(this.buttonRefreshLogs);
@@ -939,28 +941,35 @@ namespace RyzenTuner.UI
     this.pageLog.Size = new Size(660, 580);
     this.pageLog.Visible = false;
 
-    this.labelLogViewerTitle.AutoSize = true;
-    this.labelLogViewerTitle.Font = new Font(this.Font.FontFamily, 14F, FontStyle.Bold);
-    this.labelLogViewerTitle.Location = new Point(16, 16);
-    this.labelLogViewerTitle.Size = new Size(0, 24);
-    this.labelLogViewerTitle.Text = Properties.Strings.TextLogViewerTitle;
+    // 搜索栏
+    this.textBoxLogSearch.Location = new Point(16, 16);
+    this.textBoxLogSearch.Size = new Size(420, 26);
+    this.textBoxLogSearch.Text = Properties.Strings.TextLogSearchPlaceholder;
+    this.textBoxLogSearch.Enter += new EventHandler(this.TextBoxLogSearch_Enter);
+    this.textBoxLogSearch.Leave += new EventHandler(this.TextBoxLogSearch_Leave);
+    this.textBoxLogSearch.KeyPress += new KeyPressEventHandler(this.TextBoxLogSearch_KeyPress);
+
+    this.buttonLogSearch.Location = new Point(442, 16);
+    this.buttonLogSearch.Size = new Size(80, 26);
+    this.buttonLogSearch.Text = Properties.Strings.TextLogSearchButton;
+    this.buttonLogSearch.Click += new EventHandler(this.ButtonLogSearch_Click);
 
     this.comboBoxLogLevelFilter.DropDownStyle = ComboBoxStyle.DropDownList;
     this.comboBoxLogLevelFilter.Items.AddRange(new object[] {
         Properties.Strings.TextLogLevelAll,
         "Trace", "Debug", "Info", "Warning", "Error", "Fatal"
     });
-    this.comboBoxLogLevelFilter.Location = new Point(16, 48);
+    this.comboBoxLogLevelFilter.Location = new Point(16, 52);
     this.comboBoxLogLevelFilter.Size = new Size(120, 26);
     this.comboBoxLogLevelFilter.SelectedIndex = 0;
     this.comboBoxLogLevelFilter.SelectedIndexChanged += new EventHandler(this.ComboBoxLogLevelFilter_SelectedIndexChanged);
 
-    this.buttonRefreshLogs.Location = new Point(150, 48);
+    this.buttonRefreshLogs.Location = new Point(150, 52);
     this.buttonRefreshLogs.Size = new Size(80, 26);
     this.buttonRefreshLogs.Text = Properties.Strings.TextLogRefresh;
     this.buttonRefreshLogs.Click += new EventHandler(this.ButtonRefreshLogs_Click);
 
-    this.buttonDeleteOldLogs.Location = new Point(240, 48);
+    this.buttonDeleteOldLogs.Location = new Point(240, 52);
     this.buttonDeleteOldLogs.Size = new Size(120, 26);
     this.buttonDeleteOldLogs.Text = Properties.Strings.TextLogDeleteOld;
     this.buttonDeleteOldLogs.Click += new EventHandler(this.ButtonDeleteOldLogs_Click);
@@ -971,11 +980,11 @@ namespace RyzenTuner.UI
     this.dataGridViewLogs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
     this.dataGridViewLogs.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
     this.dataGridViewLogs.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-    this.dataGridViewLogs.Location = new Point(16, 88);
+    this.dataGridViewLogs.Location = new Point(16, 92);
     this.dataGridViewLogs.Name = "dataGridViewLogs";
     this.dataGridViewLogs.ReadOnly = true;
     this.dataGridViewLogs.RowHeadersVisible = false;
-    this.dataGridViewLogs.Size = new Size(628, 472);
+    this.dataGridViewLogs.Size = new Size(628, 468);
 
     // ============================================================
     // 系统托盘及计时器
@@ -1199,11 +1208,12 @@ namespace RyzenTuner.UI
         private Button buttonOpenLogViewer;
 
         // ---- 日志查看页 ----
-        private Label labelLogViewerTitle;
         private ComboBox comboBoxLogLevelFilter;
         private DataGridView dataGridViewLogs;
         private Button buttonRefreshLogs;
         private Button buttonDeleteOldLogs;
+        private TextBox textBoxLogSearch;
+        private Button buttonLogSearch;
 
         // ---- 基础组件 ----
         private NotifyIcon notifyIcon1;

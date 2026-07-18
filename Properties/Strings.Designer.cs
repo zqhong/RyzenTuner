@@ -780,5 +780,13 @@ namespace RyzenTuner.Properties {
         internal static string TextLogViewLogs {
             get { return ResourceManager.GetString("TextLogViewLogs", resourceCulture); }
         }
+
+        internal static string TextLogSearchPlaceholder {
+            get { return ResourceManager.GetString("TextLogSearchPlaceholder", resourceCulture); }
+        }
+
+        internal static string TextLogSearchButton {
+            get { return ResourceManager.GetString("TextLogSearchButton", resourceCulture); }
+        }
     }
 }
