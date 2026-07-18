@@ -145,10 +145,10 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
         <value>Monitor Info</value>
     </data>
     <data name="TextBenchmark" xml:space="preserve">
-        <value>Efficiency Analysis</value>
+        <value>Efficiency</value>
     </data>
     <data name="TextBenchmarkTitle" xml:space="preserve">
-        <value>Efficiency Analysis</value>
+        <value>Efficiency</value>
     </data>
     <data name="TextBenchmarkStart" xml:space="preserve">
         <value>Start Test</value>
@@ -265,13 +265,16 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
         <value>CSV Files (*.csv)|*.csv|All Files (*.*)|*.*</value>
     </data>
     <data name="TextBenchmarkExportFileName" xml:space="preserve">
-        <value>RyzenTuner-EfficiencyAnalysis</value>
+        <value>RyzenTuner-Efficiency</value>
     </data>
     <data name="TextAboutVersion" xml:space="preserve">
         <value>V{version}</value>
     </data>
     <data name="TextAboutCopyright" xml:space="preserve">
         <value>© 2022-{year} By zqhong</value>
+    </data>
+    <data name="TextAboutBuildTime" xml:space="preserve">
+        <value>Build time: {build_time}</value>
     </data>
     <data name="TextAboutRyzenAdj" xml:space="preserve">
         <value>ryzenadj build date: {ryzenadj_date}</value>
@@ -298,7 +301,7 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
         <value>  Settings</value>
     </data>
     <data name="TextNavBenchmark" xml:space="preserve">
-        <value>  Efficiency Analysis</value>
+        <value>  Efficiency</value>
     </data>
     <data name="TextNavAbout" xml:space="preserve">
         <value>  About</value>

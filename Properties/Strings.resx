@@ -149,10 +149,10 @@
         <value>监控信息</value>
     </data>
     <data name="TextBenchmark" xml:space="preserve">
-        <value>能效分析</value>
+        <value>能效</value>
     </data>
     <data name="TextBenchmarkTitle" xml:space="preserve">
-        <value>能效分析</value>
+        <value>能效</value>
     </data>
     <data name="TextBenchmarkStart" xml:space="preserve">
         <value>开始测试</value>
@@ -269,13 +269,16 @@
         <value>CSV 文件 (*.csv)|*.csv|所有文件 (*.*)|*.*</value>
     </data>
     <data name="TextBenchmarkExportFileName" xml:space="preserve">
-        <value>RyzenTuner-能效分析</value>
+        <value>RyzenTuner-能效</value>
     </data>
     <data name="TextAboutVersion" xml:space="preserve">
         <value>V{version}</value>
     </data>
     <data name="TextAboutCopyright" xml:space="preserve">
         <value>© 2022-{year} By zqhong</value>
+    </data>
+    <data name="TextAboutBuildTime" xml:space="preserve">
+        <value>编译时间：{build_time}</value>
     </data>
     <data name="TextAboutRyzenAdj" xml:space="preserve">
         <value>ryzenadj build date: {ryzenadj_date}</value>
@@ -302,7 +305,7 @@
         <value>  设置</value>
     </data>
     <data name="TextNavBenchmark" xml:space="preserve">
-        <value>  能效分析</value>
+        <value>  能效</value>
     </data>
     <data name="TextNavAbout" xml:space="preserve">
         <value>  关于</value>

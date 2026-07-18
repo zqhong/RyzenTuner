@@ -613,6 +613,10 @@ namespace RyzenTuner.Properties {
             get { return ResourceManager.GetString("TextAboutCopyright", resourceCulture); }
         }
 
+        internal static string TextAboutBuildTime {
+            get { return ResourceManager.GetString("TextAboutBuildTime", resourceCulture); }
+        }
+
         internal static string TextAboutRyzenAdj {
             get { return ResourceManager.GetString("TextAboutRyzenAdj", resourceCulture); }
         }

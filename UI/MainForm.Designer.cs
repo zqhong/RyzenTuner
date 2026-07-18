@@ -140,6 +140,7 @@ namespace RyzenTuner.UI
     this.labelAboutTitle = new Label();
     this.labelAboutVersion = new Label();
     this.labelAboutCopyright = new Label();
+    this.labelAboutBuildTime = new Label();
     this.labelAboutRyzenAdj = new Label();
     this.labelAboutLink = new Label();
     this.notifyIcon1 = new NotifyIcon(this.components);
@@ -892,6 +893,7 @@ namespace RyzenTuner.UI
     this.pageAbout.Controls.Add(this.labelAboutTitle);
     this.pageAbout.Controls.Add(this.labelAboutVersion);
     this.pageAbout.Controls.Add(this.labelAboutCopyright);
+    this.pageAbout.Controls.Add(this.labelAboutBuildTime);
     this.pageAbout.Controls.Add(this.labelAboutRyzenAdj);
     this.pageAbout.Controls.Add(this.labelAboutLink);
     this.pageAbout.Dock = DockStyle.Fill;
@@ -915,14 +917,19 @@ namespace RyzenTuner.UI
     this.labelAboutCopyright.Location = new Point(40, 124);
     this.labelAboutCopyright.Text = "Copyright ...";
 
+    this.labelAboutBuildTime.AutoSize = true;
+    this.labelAboutBuildTime.ForeColor = Color.Gray;
+    this.labelAboutBuildTime.Location = new Point(40, 160);
+    this.labelAboutBuildTime.Text = "Build time ...";
+
     this.labelAboutRyzenAdj.AutoSize = true;
-    this.labelAboutRyzenAdj.Location = new Point(40, 160);
+    this.labelAboutRyzenAdj.Location = new Point(40, 196);
     this.labelAboutRyzenAdj.Text = "ryzenadj ...";
 
     this.labelAboutLink.AutoSize = true;
     this.labelAboutLink.Cursor = Cursors.Hand;
     this.labelAboutLink.ForeColor = Color.FromArgb(0, 95, 184);
-    this.labelAboutLink.Location = new Point(40, 200);
+    this.labelAboutLink.Location = new Point(40, 232);
     this.labelAboutLink.Text = "https://github.com/zqhong/RyzenTuner";
     this.labelAboutLink.Click += new EventHandler(this.LabelAboutLink_Click);
 
@@ -1196,6 +1203,7 @@ namespace RyzenTuner.UI
         private Label labelAboutTitle;
         private Label labelAboutVersion;
         private Label labelAboutCopyright;
+        private Label labelAboutBuildTime;
         private Label labelAboutRyzenAdj;
         private Label labelAboutLink;
 

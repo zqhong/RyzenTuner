@@ -313,9 +313,11 @@ namespace RyzenTuner.UI
 
             var year = DateTime.Now.Year.ToString();
             var ryzenadjDate = LoadRyzenAdjDate();
+            var buildTime = LoadBuildTime();
 
             labelAboutVersion.Text = Properties.Strings.TextAboutVersion.Replace("{version}", version);
             labelAboutCopyright.Text = Properties.Strings.TextAboutCopyright.Replace("{year}", year);
+            labelAboutBuildTime.Text = Properties.Strings.TextAboutBuildTime.Replace("{build_time}", buildTime);
             labelAboutRyzenAdj.Text = Properties.Strings.TextAboutRyzenAdj.Replace("{ryzenadj_date}", ryzenadjDate);
         }
 
@@ -343,6 +345,26 @@ namespace RyzenTuner.UI
                     .ToLocalTime();
 
                 return date.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            catch
+            {
+                return "N/A";
+            }
+        }
+
+        private static string LoadBuildTime()
+        {
+            try
+            {
+                var assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                if (string.IsNullOrEmpty(assemblyPath) || !File.Exists(assemblyPath))
+                    return "N/A";
+
+                var lastWriteTimeUtc = File.GetLastWriteTimeUtc(assemblyPath);
+                var chinaTz = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time");
+                var chinaTime = TimeZoneInfo.ConvertTimeFromUtc(lastWriteTimeUtc, chinaTz);
+
+                return chinaTime.ToString("yyyy-MM-dd HH:mm:ss") + " +08:00";
             }
             catch
             {
