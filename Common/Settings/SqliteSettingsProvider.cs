@@ -15,8 +15,6 @@ namespace RyzenTuner.Common.SettingsStore
     public class SqliteSettingsProvider : SettingsProvider
     {
         private string _connectionString = string.Empty;
-        private static Dictionary<string, string?>? _appConfigDefaults;
-        private static bool _appConfigDefaultsLoaded;
 
         public override string ApplicationName
         {
@@ -58,58 +56,6 @@ namespace RyzenTuner.Common.SettingsStore
             using var cmd = conn.CreateCommand();
             cmd.CommandText = SettingsDatabase.CreateSettingsTableSql;
             cmd.ExecuteNonQuery();
-        }
-
-        /// <summary>
-        /// 从 App.config 的 &lt;userSettings&gt; 节回退读取默认值（结果缓存，避免重复解析）。
-        /// </summary>
-        private static string? GetAppConfigDefault(string propertyName)
-        {
-            try
-            {
-                // 首次调用时加载所有默认值到缓存字典
-                if (!_appConfigDefaultsLoaded)
-                {
-                    _appConfigDefaultsLoaded = true;
-                    _appConfigDefaults = new Dictionary<string, string?>(StringComparer.Ordinal);
-                    var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                    var section = config.GetSection("userSettings/RyzenTuner.Properties.Settings")
-                        as ClientSettingsSection;
-
-                    if (section != null)
-                    {
-                        // ClientSettingsSection 预定义的 setting 名称
-                        _appConfigDefaults["LogLevel"] = section.Settings.Get("LogLevel")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["LogRetentionDays"] = section.Settings.Get("LogRetentionDays")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["CurrentMode"] = section.Settings.Get("CurrentMode")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["EnergyStar"] = section.Settings.Get("EnergyStar")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["KeepAwake"] = section.Settings.Get("KeepAwake")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["LaunchAtLogon"] = section.Settings.Get("LaunchAtLogon")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["CpuBoostEnabled"] = section.Settings.Get("CpuBoostEnabled")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["TctlTemp"] = section.Settings.Get("TctlTemp")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["ApuSkinTemp"] = section.Settings.Get("ApuSkinTemp")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["SleepMode"] = section.Settings.Get("SleepMode")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["PowerSaveMode"] = section.Settings.Get("PowerSaveMode")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["BalancedMode"] = section.Settings.Get("BalancedMode")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["PerformanceMode"] = section.Settings.Get("PerformanceMode")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["AutoMode"] = section.Settings.Get("AutoMode")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["CustomMode"] = section.Settings.Get("CustomMode")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["Language"] = section.Settings.Get("Language")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["HotkeyPowerSaveMode"] = section.Settings.Get("HotkeyPowerSaveMode")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["HotkeyBalancedMode"] = section.Settings.Get("HotkeyBalancedMode")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["HotkeyPerformanceMode"] = section.Settings.Get("HotkeyPerformanceMode")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["PowerLimitUpdateInterval"] = section.Settings.Get("PowerLimitUpdateInterval")?.Value?.ValueXml?.InnerText;
-                        _appConfigDefaults["EnergyStarBypassProcessList"] = section.Settings.Get("EnergyStarBypassProcessList")?.Value?.ValueXml?.InnerText;
-                    }
-                }
-
-                return _appConfigDefaults!.TryGetValue(propertyName, out var value) ? value : null;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[SqliteSettingsProvider] App.config fallback failed for '{propertyName}': {ex.Message}");
-                return null;
-            }
         }
 
         /// <summary>
@@ -183,8 +129,8 @@ namespace RyzenTuner.Common.SettingsStore
                     }
                     else
                     {
-                        // SQLite 中无值或值无效，回退到 App.config
-                        serializedValue = GetAppConfigDefault(property.Name);
+                        // SQLite 中无值或值无效，由框架回退到 DefaultSettingValueAttribute
+                        serializedValue = null;
                     }
 
                     if (serializedValue != null)

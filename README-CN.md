@@ -44,27 +44,7 @@ RyzenTuner 提供一个 GUI 界面，可以方便调节 Ryzen 移动处理器的
 
 ### 如何修改待机模式等其他模式的功率限制
 
-关闭 `RyzenTuner`，然后打开 `RyzenTuner.exe.config` 文件并修改对应的参数。例如，`SleepMode` 对应待机模式，你可以直接修改它的值。
-
-示例：将待机模式从 1 W 改为 2 W
-
-修改前
-
-```xml
-
-<setting name="SleepMode" serializeAs="String">
-    <value>1</value>
-</setting>
-```
-
-修改后
-
-```xml
-
-<setting name="SleepMode" serializeAs="String">
-    <value>2</value>
-</setting>
-```
+设置现在保存在应用内置数据库中，直接在 RyzenTuner 的 **设置** 页面修改各模式的功率即可，无需手动编辑任何配置文件。
 
 ## 计划
 

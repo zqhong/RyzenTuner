@@ -44,27 +44,7 @@ This is usually caused by one of the following:
 
 ### How do I change the power limit for other modes, such as Standby Mode?
 
-Close `RyzenTuner`, then open `RyzenTuner.exe.config` and edit the corresponding setting. For example, `SleepMode` controls Standby Mode, so you can change its value directly.
-
-Example: change Standby Mode from 1 W to 2 W
-
-Before
-
-```xml
-
-<setting name="SleepMode" serializeAs="String">
-    <value>1</value>
-</setting>
-```
-
-After
-
-```xml
-
-<setting name="SleepMode" serializeAs="String">
-    <value>2</value>
-</setting>
-```
+Settings are now saved to the app's built-in database. You can change power limits directly from the **Settings** page in RyzenTuner's GUI — no need to edit any configuration file manually.
 
 ## Give It a Star! ⭐
 
