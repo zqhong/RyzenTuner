@@ -104,13 +104,13 @@
     <Compile Include="Common\Benchmark\BenchmarkEngine.cs" />
     <Compile Include="Common\Container\AppContainer.cs" />
     <Compile Include="Common\Container\Container.cs" />
+    <Compile Include="Common\Settings\SettingsDatabase.cs" />
     <Compile Include="Common\Settings\SettingsMigration.cs" />
     <Compile Include="Common\Settings\SqliteSettingsProvider.cs" />
     <Compile Include="Common\EnergyStar\EnergyManager.cs" />
     <Compile Include="Common\EnergyStar\Interop\Win32Api.cs" />
     <Compile Include="Common\Hardware\HardwareMonitor.cs" />
     <Compile Include="Common\Hardware\UpdateVisitor.cs" />
-    <Compile Include="Common\Logger\SimpleLogger.cs" />
     <Compile Include="Common\Logger\LogModels.cs" />
     <Compile Include="Common\Logger\SqliteLogger.cs" />
     <Compile Include="Common\PowerConfig.cs" />

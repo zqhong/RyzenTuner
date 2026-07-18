@@ -50,7 +50,8 @@ RyzenTuner/
 │   ├── EnergyStar/            # Windows 进程 QoS/优先级管理
 │   │   └── Interop/           # Win32 P/Invoke 声明
 │   ├── Hardware/              # 硬件传感器监控（LibreHardwareMonitorLib 封装）
-│   ├── Logger/                # 简易文件日志
+│   ├── Logger/                # SQLite 日志（SqliteLogger）
+│   │   └── LogModels.cs       # 日志条目模型（LogEntry）
 │   ├── Processor/             # RyzenAdj P/Invoke 绑定 + AMDProcessor 封装
 │   ├── Awake.cs               # 阻止系统睡眠（SetThreadExecutionState）
 │   ├── PowerConfig.cs         # Windows 电源计划管理（CPU Boost 开关）
@@ -113,7 +114,7 @@ RyzenTuner/
 - `PowerConfig` — Windows 电源方案管理（CPU Boost 开关）
 - `AmdProcessor` — ryzenadj 调用封装，含 CPU 家族检测和 TDP 设置
 - `EnergyManager` — 进程 QoS/优先级管理（EcoQoS + BelowNormal）
-- `SimpleLogger` — 文件日志
+- `SqliteLogger` — SQLite 日志（替代了 SimpleLogger 文件日志）
 
 容器基于 Microsoft MinIoC，支持单例和 per-scope 注册。
 

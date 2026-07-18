@@ -57,11 +57,6 @@ namespace RyzenTuner
                     SetProcessDPIAware();
                 }
 
-                // 将旧版 user.config 设置迁移到 SQLite（首次运行时）
-                SettingsMigration.Migrate();
-
-                AutoSelectLang();
-
                 // 使用 Mutex 进行单例检测，支持重启场景
                 bool isFirstInstance;
                 _instanceMutex = new Mutex(true, "RyzenTuner-InstanceMutex", out isFirstInstance);
@@ -69,6 +64,10 @@ namespace RyzenTuner
                 {
                     throw new Exception(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
                 }
+
+                // 在 Mutex 保护下初始化数据库和设置（确保不会与并发实例冲突）
+                SettingsMigration.Migrate();
+                AutoSelectLang();
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);

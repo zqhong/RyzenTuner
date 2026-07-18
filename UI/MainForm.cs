@@ -211,6 +211,7 @@ namespace RyzenTuner.UI
             try
             {
                 AppContainer.Logger().Cleanup(Settings.Default.LogRetentionDays);
+                _lastLogCleanupTime = DateTime.UtcNow;
             }
             catch (Exception cleanupEx)
             {
@@ -1130,6 +1131,8 @@ namespace RyzenTuner.UI
             Application.Exit();
         }
 
+        private DateTime _lastResizeTime = DateTime.MinValue;
+
         private void Form1_Resize(object sender, EventArgs e)
         {
             if (WindowState == FormWindowState.Minimized)
@@ -1137,6 +1140,12 @@ namespace RyzenTuner.UI
                 Hide();
                 return;
             }
+
+            // 防抖：拖拽窗口时 Resize 高频触发，限制重算频率
+            var now = DateTime.UtcNow;
+            if ((now - _lastResizeTime).TotalMilliseconds < 50)
+                return;
+            _lastResizeTime = now;
 
             RecalcCardColumns();
             try

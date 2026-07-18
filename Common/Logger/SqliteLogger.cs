@@ -3,11 +3,13 @@ using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
+using RyzenTuner.Common.SettingsStore;
 
 namespace RyzenTuner.Common.Logger
 {
     /// <summary>
     /// SQLite 日志记录器 — 所有日志写入 SQLite 数据库。
+    /// 数据库路径和连接字符串通过 SettingsDatabase 共享。
     /// </summary>
     public class SqliteLogger : IDisposable
     {
@@ -20,9 +22,6 @@ namespace RyzenTuner.Common.Logger
             Error,
             Fatal
         }
-
-        private const string DbDirName = "";
-        private const string DbFileName = "RyzenTuner.db";
 
         // 注意：_datetimeFormat 必须保持 "yyyy-MM-dd HH:mm:ss" 格式不变，
         // Cleanup() 中的 DELETE 查询使用字符串字典序比较 timestamp 列，
@@ -38,10 +37,9 @@ namespace RyzenTuner.Common.Logger
         public SqliteLogger()
         {
             _datetimeFormat = "yyyy-MM-dd HH:mm:ss";
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            // SQLite database path in application base directory
-            _dbPath = Path.Combine(baseDir, DbFileName);
+            // #4, #14: 使用 SettingsDatabase 共享的路径和连接字符串
+            _dbPath = SettingsDatabase.GetDbPath();
 
             DefaultLogLevel = LogLevel.Warning;
 
@@ -55,10 +53,10 @@ namespace RyzenTuner.Common.Logger
         public string DbPath => _dbPath;
 
         /// <summary>
-        /// 获取数据库连接字符串
+        /// 获取数据库连接字符串（含 Busy Timeout）
         /// </summary>
         private string ConnectionString =>
-            $"Data Source={_dbPath};Version=3;Journal Mode=WAL;";
+            SettingsDatabase.GetConnectionString();
 
         /// <summary>
         /// 初始化数据库和表结构
@@ -111,6 +109,9 @@ namespace RyzenTuner.Common.Logger
             if (_disposed)
                 return;
             _disposed = true;
+
+            // 释放 SQLite 连接池中的句柄，防止反复重启时句柄残留导致 SQLITE_BUSY
+            SQLiteConnection.ClearAllPools();
         }
 
         public LogLevel ToLogLevel(string logLevel)
@@ -337,9 +338,12 @@ namespace RyzenTuner.Common.Logger
             try
             {
                 using var conn = CreateConnection();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "DELETE FROM logs";
-                cmd.ExecuteNonQuery();
+                lock (_dbLock)
+                {
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "DELETE FROM logs";
+                    cmd.ExecuteNonQuery();
+                }
             }
             catch
             {
@@ -357,11 +361,14 @@ namespace RyzenTuner.Common.Logger
             try
             {
                 using var conn = CreateConnection();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "DELETE FROM logs WHERE timestamp < @cutoff";
-                cmd.Parameters.AddWithValue("@cutoff",
-                    DateTime.UtcNow.AddDays(-retentionDays).ToString(_datetimeFormat));
-                cmd.ExecuteNonQuery();
+                lock (_dbLock)
+                {
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "DELETE FROM logs WHERE timestamp < @cutoff";
+                    cmd.Parameters.AddWithValue("@cutoff",
+                        DateTime.UtcNow.AddDays(-retentionDays).ToString(_datetimeFormat));
+                    cmd.ExecuteNonQuery();
+                }
             }
             catch
             {
@@ -378,9 +385,11 @@ namespace RyzenTuner.Common.Logger
         private void WriteFormattedLog(LogLevel level, string action, string text, long? elapsedMs)
         {
             if (level < DefaultLogLevel)
-            {
                 return;
-            }
+
+            // 数据库未初始化时不分配 LogEntry，避免无谓的 GC 压力
+            if (!_dbInitialized)
+                return;
 
             // Write to SQLite (UTC for timezone-invariant comparison)
             WriteToDatabase(new LogEntry
