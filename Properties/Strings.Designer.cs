@@ -773,6 +773,14 @@ namespace RyzenTuner.Properties {
             get { return ResourceManager.GetString("TextLogDeleteConfirm", resourceCulture); }
         }
 
+        internal static string TextLogClear {
+            get { return ResourceManager.GetString("TextLogClear", resourceCulture); }
+        }
+
+        internal static string TextLogClearConfirm {
+            get { return ResourceManager.GetString("TextLogClearConfirm", resourceCulture); }
+        }
+
         internal static string TextLogOpenDb {
             get { return ResourceManager.GetString("TextLogOpenDb", resourceCulture); }
         }

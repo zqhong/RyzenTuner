@@ -397,6 +397,12 @@
     <data name="TextLogDeleteConfirm" xml:space="preserve">
         <value>确认删除所有超过保存天数的日志？</value>
     </data>
+    <data name="TextLogClear" xml:space="preserve">
+        <value>清空日志</value>
+    </data>
+    <data name="TextLogClearConfirm" xml:space="preserve">
+        <value>确认清空所有日志？此操作不可恢复。</value>
+    </data>
     <data name="TextLogOpenDb" xml:space="preserve">
         <value>打开日志数据库</value>
     </data>

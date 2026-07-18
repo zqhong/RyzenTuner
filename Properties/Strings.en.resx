@@ -393,6 +393,12 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextLogDeleteConfirm" xml:space="preserve">
         <value>Delete all logs older than retention days?</value>
     </data>
+    <data name="TextLogClear" xml:space="preserve">
+        <value>Clear All Logs</value>
+    </data>
+    <data name="TextLogClearConfirm" xml:space="preserve">
+        <value>Clear all logs? This action cannot be undone.</value>
+    </data>
     <data name="TextLogOpenDb" xml:space="preserve">
         <value>Open Log Database</value>
     </data>

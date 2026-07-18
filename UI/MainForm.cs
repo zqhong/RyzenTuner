@@ -20,6 +20,7 @@ namespace RyzenTuner.UI
     public partial class MainForm : Form
     {
         private Int64 _tickCount;
+        private DateTime _lastLogCleanupTime = DateTime.MinValue;
         private string _lastPowerLimitApplyError = string.Empty;
         private float? _lastAppliedFastPpt;
         private float? _lastAppliedSlowPpt;
@@ -1213,6 +1214,20 @@ namespace RyzenTuner.UI
 
             DoProcessManage();
             UpdateMonitoringInfo();
+
+            // 每天自动清理过期日志（后台自动处理）
+            if (DateTime.UtcNow - _lastLogCleanupTime >= TimeSpan.FromHours(24))
+            {
+                _lastLogCleanupTime = DateTime.UtcNow;
+                try
+                {
+                    AppContainer.Logger().Cleanup(Settings.Default.LogRetentionDays);
+                }
+                catch
+                {
+                    // 静默忽略后台清理失败
+                }
+            }
         }
 
         private void ChangeEnergyMode(object sender, EventArgs e)
@@ -2206,13 +2221,13 @@ namespace RyzenTuner.UI
         }
 
         /// <summary>
-        /// 删除旧日志
+        /// 清空所有日志
         /// </summary>
-        private void ButtonDeleteOldLogs_Click(object? sender, EventArgs e)
+        private void ButtonClearLogs_Click(object? sender, EventArgs e)
         {
             var result = MessageBox.Show(
-                Properties.Strings.TextLogDeleteConfirm,
-                Properties.Strings.TextLogDeleteOld,
+                Properties.Strings.TextLogClearConfirm,
+                Properties.Strings.TextLogClear,
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
@@ -2221,14 +2236,14 @@ namespace RyzenTuner.UI
 
             try
             {
-                AppContainer.Logger().Cleanup(Settings.Default.LogRetentionDays);
+                AppContainer.Logger().DeleteAll();
                 LoadLogViewerData();
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning("LogCleanup", $"删除旧日志失败: {ex.Message}");
+                AppContainer.Logger().Warning("LogCleanup", $"清空日志失败: {ex.Message}");
                 MessageBox.Show(
-                    $"删除旧日志失败: {ex.Message}",
+                    $"清空日志失败: {ex.Message}",
                     Properties.Strings.TextExceptionTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);

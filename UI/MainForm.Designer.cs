@@ -136,7 +136,7 @@ namespace RyzenTuner.UI
     this.comboBoxLogLevelFilter = new ComboBox();
     this.dataGridViewLogs = new DataGridView();
     this.buttonRefreshLogs = new Button();
-    this.buttonDeleteOldLogs = new Button();
+    this.buttonClearLogs = new Button();
     this.labelAboutTitle = new Label();
     this.labelAboutVersion = new Label();
     this.labelAboutCopyright = new Label();
@@ -933,7 +933,7 @@ namespace RyzenTuner.UI
     this.pageLog.Controls.Add(this.comboBoxLogLevelFilter);
     this.pageLog.Controls.Add(this.dataGridViewLogs);
     this.pageLog.Controls.Add(this.buttonRefreshLogs);
-    this.pageLog.Controls.Add(this.buttonDeleteOldLogs);
+    this.pageLog.Controls.Add(this.buttonClearLogs);
     this.pageLog.Dock = DockStyle.Fill;
     this.pageLog.Location = new Point(0, 0);
     this.pageLog.Name = "pageLog";
@@ -969,10 +969,10 @@ namespace RyzenTuner.UI
     this.buttonRefreshLogs.Text = Properties.Strings.TextLogRefresh;
     this.buttonRefreshLogs.Click += new EventHandler(this.ButtonRefreshLogs_Click);
 
-    this.buttonDeleteOldLogs.Location = new Point(240, 52);
-    this.buttonDeleteOldLogs.Size = new Size(120, 26);
-    this.buttonDeleteOldLogs.Text = Properties.Strings.TextLogDeleteOld;
-    this.buttonDeleteOldLogs.Click += new EventHandler(this.ButtonDeleteOldLogs_Click);
+    this.buttonClearLogs.Location = new Point(240, 52);
+    this.buttonClearLogs.Size = new Size(120, 26);
+    this.buttonClearLogs.Text = Properties.Strings.TextLogClear;
+    this.buttonClearLogs.Click += new EventHandler(this.ButtonClearLogs_Click);
 
     this.dataGridViewLogs.AllowUserToAddRows = false;
     this.dataGridViewLogs.AllowUserToDeleteRows = false;
@@ -1211,7 +1211,7 @@ namespace RyzenTuner.UI
         private ComboBox comboBoxLogLevelFilter;
         private DataGridView dataGridViewLogs;
         private Button buttonRefreshLogs;
-        private Button buttonDeleteOldLogs;
+        private Button buttonClearLogs;
         private TextBox textBoxLogSearch;
         private Button buttonLogSearch;
 

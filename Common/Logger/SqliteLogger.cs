@@ -332,6 +332,26 @@ namespace RyzenTuner.Common.Logger
         // ================================================================
 
         /// <summary>
+        /// 清空所有日志
+        /// </summary>
+        public void DeleteAll()
+        {
+            if (!_dbInitialized)
+                return;
+
+            try
+            {
+                using var conn = CreateConnection();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "DELETE FROM logs";
+                cmd.ExecuteNonQuery();
+            }
+            catch
+            {
+            }
+        }
+
+        /// <summary>
         /// 删除超过指定天数的日志
         /// </summary>
         public void Cleanup(int retentionDays)
