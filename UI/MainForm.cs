@@ -1164,7 +1164,10 @@ namespace RyzenTuner.UI
             if (pageLog == null || !pageLog.Visible || dataGridViewLogs == null)
                 return;
 
-            // 强制 DataGridView 重算列宽，使详情列（Fill 模式）填满剩余宽度
+            // 触发 DisplayedCells 列根据内容自适应宽度
+            dataGridViewLogs.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
+
+            // 强制 Fill 列（details）重算以填满剩余宽度
             // 注：PerformLayout() 不会触发 Fill 列重算，需要切换 AutoSizeColumnsMode 来强制重算
             dataGridViewLogs.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
             dataGridViewLogs.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -2113,27 +2116,26 @@ namespace RyzenTuner.UI
                     {
                         dataGridViewLogs.Columns["timestamp"].HeaderText =
                             Properties.Strings.TextLogColumnTime;
-                        dataGridViewLogs.Columns["timestamp"].Width = 160;
                         dataGridViewLogs.Columns["timestamp"].ReadOnly = true;
                         dataGridViewLogs.Columns["timestamp"].AutoSizeMode =
-                            DataGridViewAutoSizeColumnMode.None;
+                            DataGridViewAutoSizeColumnMode.DisplayedCells;
+                        dataGridViewLogs.Columns["timestamp"].MinimumWidth = 140;
                     }
 
                     if (dataGridViewLogs.Columns["level"] != null)
                     {
                         dataGridViewLogs.Columns["level"].HeaderText =
                             Properties.Strings.TextLogColumnLevel;
-                        dataGridViewLogs.Columns["level"].Width = 70;
                         dataGridViewLogs.Columns["level"].ReadOnly = true;
                         dataGridViewLogs.Columns["level"].AutoSizeMode =
-                            DataGridViewAutoSizeColumnMode.None;
+                            DataGridViewAutoSizeColumnMode.DisplayedCells;
+                        dataGridViewLogs.Columns["level"].MinimumWidth = 60;
                     }
 
                     if (dataGridViewLogs.Columns["action"] != null)
                     {
                         dataGridViewLogs.Columns["action"].HeaderText =
                             Properties.Strings.TextLogColumnAction;
-                        dataGridViewLogs.Columns["action"].Width = 120;
                         dataGridViewLogs.Columns["action"].ReadOnly = true;
                         dataGridViewLogs.Columns["action"].AutoSizeMode =
                             DataGridViewAutoSizeColumnMode.None;
@@ -2152,10 +2154,10 @@ namespace RyzenTuner.UI
                     {
                         dataGridViewLogs.Columns["elapsed_ms"].HeaderText =
                             Properties.Strings.TextLogColumnElapsed;
-                        dataGridViewLogs.Columns["elapsed_ms"].Width = 80;
                         dataGridViewLogs.Columns["elapsed_ms"].ReadOnly = true;
                         dataGridViewLogs.Columns["elapsed_ms"].AutoSizeMode =
-                            DataGridViewAutoSizeColumnMode.None;
+                            DataGridViewAutoSizeColumnMode.DisplayedCells;
+                        dataGridViewLogs.Columns["elapsed_ms"].MinimumWidth = 60;
                     }
                 }
 
