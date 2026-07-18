@@ -466,6 +466,7 @@ namespace RyzenTuner.UI
     this.pageSettings.Controls.Add(this.groupBoxSettingsPerformance);
     this.pageSettings.Controls.Add(this.groupBoxLanguage);
     this.pageSettings.Controls.Add(this.groupBoxHotkey);
+    this.pageSettings.Controls.Add(this.groupBoxLogSettings);
     this.pageSettings.Controls.Add(this.groupBoxAdvanced);
     this.pageSettings.Controls.Add(this.buttonSave);
     this.pageSettings.Controls.Add(this.buttonCancel);
