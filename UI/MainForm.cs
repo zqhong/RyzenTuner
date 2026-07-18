@@ -168,6 +168,12 @@ namespace RyzenTuner.UI
             // 同样修复：dataGridViewLogs.BeginInit() 后缺少对应的 EndInit()
             ((System.ComponentModel.ISupportInitialize)dataGridViewLogs).EndInit();
 
+            // 修复设计器遗漏：groupBoxLogSettings.SuspendLayout() 后缺少 ResumeLayout()
+            groupBoxLogSettings.ResumeLayout(false);
+
+            // 修复设计器遗漏：numericUpDownLogSaveDays.BeginInit() 后缺少 EndInit()
+            ((System.ComponentModel.ISupportInitialize)numericUpDownLogSaveDays).EndInit();
+
             // 运行时启动定时器
             mainFormTimer.Enabled = true;
 
@@ -1124,8 +1130,6 @@ namespace RyzenTuner.UI
             Application.Exit();
         }
 
-        private DateTime _lastResizeTime = DateTime.MinValue;
-
         private void Form1_Resize(object sender, EventArgs e)
         {
             if (WindowState == FormWindowState.Minimized)
@@ -1134,13 +1138,17 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            // 移除有缺陷的丢包式防抖，防止最大化/全屏瞬发多次 Resize 导致最终尺寸的布局计算被丢弃
-            _lastResizeTime = DateTime.UtcNow;
-
             RecalcCardColumns();
-            RecalcLogLayout();
+            try
+            {
+                RecalcLogLayout();
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Warning("MainForm", $"日志布局计算失败: {ex.Message}");
+            }
         }
-        
+
         /// <summary>
         /// 重新计算日志查看页布局
         /// </summary>
@@ -1148,12 +1156,6 @@ namespace RyzenTuner.UI
         {
             if (pageLog == null || !pageLog.Visible || dataGridViewLogs == null)
                 return;
-
-            // 确保 DataGridView 自身能随父容器自适应拉伸（修补设计器中可能遗漏的 Anchor 属性）
-            if ((dataGridViewLogs.Anchor & AnchorStyles.Right) != AnchorStyles.Right)
-            {
-                dataGridViewLogs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            }
 
             // 强制 DataGridView 重算列宽，使详情列（Fill 模式）填满剩余宽度
             // 注：PerformLayout() 不会触发 Fill 列重算，需要切换 AutoSizeColumnsMode 来强制重算
@@ -2160,8 +2162,6 @@ namespace RyzenTuner.UI
                     }
                 }
 
-                // 列配置完成后强制重算布局，确保 Details 列（Fill 模式）填满剩余宽度
-                RecalcLogLayout();
             }
             catch (Exception ex)
             {
