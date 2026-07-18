@@ -21,7 +21,7 @@ namespace RyzenTuner.Common.Logger
             Fatal
         }
 
-        private const string DbDirName = "logs";
+        private const string DbDirName = "";
         private const string DbFileName = "RyzenTuner.db";
 
         // 注意：_datetimeFormat 必须保持 "yyyy-MM-dd HH:mm:ss" 格式不变，
@@ -40,13 +40,8 @@ namespace RyzenTuner.Common.Logger
             _datetimeFormat = "yyyy-MM-dd HH:mm:ss";
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            // SQLite database path in logs/ subdirectory
-            var dbDir = Path.Combine(baseDir, DbDirName);
-            if (!Directory.Exists(dbDir))
-            {
-                Directory.CreateDirectory(dbDir);
-            }
-            _dbPath = Path.Combine(dbDir, DbFileName);
+            // SQLite database path in application base directory
+            _dbPath = Path.Combine(baseDir, DbFileName);
 
             DefaultLogLevel = LogLevel.Warning;
 
