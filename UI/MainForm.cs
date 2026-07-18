@@ -160,6 +160,14 @@ namespace RyzenTuner.UI
                 return;
             }
 
+            // 修复设计器遗漏：pageLog.SuspendLayout() 后从未调用 ResumeLayout，
+            // 导致其内部控件的 Anchor/Dock 布局从未计算，表格始终为固定宽度。
+            // 必须在 Load 阶段立即恢复，延迟到 Resize 或页切换后再做已来不及。
+            pageLog.ResumeLayout(true);
+
+            // 同样修复：dataGridViewLogs.BeginInit() 后缺少对应的 EndInit()
+            ((System.ComponentModel.ISupportInitialize)dataGridViewLogs).EndInit();
+
             // 运行时启动定时器
             mainFormTimer.Enabled = true;
 
@@ -1126,16 +1134,13 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            // 防抖：拖拽窗口时 Resize 高频触发，限制重算频率
-            var now = DateTime.UtcNow;
-            if ((now - _lastResizeTime).TotalMilliseconds < 50)
-                return;
-            _lastResizeTime = now;
+            // 移除有缺陷的丢包式防抖，防止最大化/全屏瞬发多次 Resize 导致最终尺寸的布局计算被丢弃
+            _lastResizeTime = DateTime.UtcNow;
 
             RecalcCardColumns();
             RecalcLogLayout();
         }
-
+        
         /// <summary>
         /// 重新计算日志查看页布局
         /// </summary>
@@ -1144,9 +1149,16 @@ namespace RyzenTuner.UI
             if (pageLog == null || !pageLog.Visible || dataGridViewLogs == null)
                 return;
 
-            // 强制 DataGridView 刷新列布局以适配当前宽度
-            // （列尺寸由 AutoSizeMode 控制：固定宽度列 = None，详情列 = Fill）
-            dataGridViewLogs.Invalidate();
+            // 确保 DataGridView 自身能随父容器自适应拉伸（修补设计器中可能遗漏的 Anchor 属性）
+            if ((dataGridViewLogs.Anchor & AnchorStyles.Right) != AnchorStyles.Right)
+            {
+                dataGridViewLogs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            }
+
+            // 强制 DataGridView 重算列宽，使详情列（Fill 模式）填满剩余宽度
+            // 注：PerformLayout() 不会触发 Fill 列重算，需要切换 AutoSizeColumnsMode 来强制重算
+            dataGridViewLogs.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            dataGridViewLogs.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
 
         private void RecalcCardColumns()
@@ -2147,6 +2159,9 @@ namespace RyzenTuner.UI
                             DataGridViewAutoSizeColumnMode.None;
                     }
                 }
+
+                // 列配置完成后强制重算布局，确保 Details 列（Fill 模式）填满剩余宽度
+                RecalcLogLayout();
             }
             catch (Exception ex)
             {
