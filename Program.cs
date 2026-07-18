@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
 using RyzenTuner.Common.Container;
+using RyzenTuner.Common.SettingsStore;
 using RyzenTuner.UI;
 
 namespace RyzenTuner
@@ -55,6 +56,9 @@ namespace RyzenTuner
                 {
                     SetProcessDPIAware();
                 }
+
+                // 将旧版 user.config 设置迁移到 SQLite（首次运行时）
+                SettingsMigration.Migrate();
 
                 AutoSelectLang();
 

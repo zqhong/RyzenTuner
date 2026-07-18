@@ -57,6 +57,7 @@
     <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Buffers.4.4.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
     </Reference>
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.IO.Compression" />
@@ -103,6 +104,8 @@
     <Compile Include="Common\Benchmark\BenchmarkEngine.cs" />
     <Compile Include="Common\Container\AppContainer.cs" />
     <Compile Include="Common\Container\Container.cs" />
+    <Compile Include="Common\Settings\SettingsMigration.cs" />
+    <Compile Include="Common\Settings\SqliteSettingsProvider.cs" />
     <Compile Include="Common\EnergyStar\EnergyManager.cs" />
     <Compile Include="Common\EnergyStar\Interop\Win32Api.cs" />
     <Compile Include="Common\Hardware\HardwareMonitor.cs" />
@@ -167,6 +170,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Properties\Settings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
