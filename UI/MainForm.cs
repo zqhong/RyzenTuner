@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using RyzenTuner.Common;
 using RyzenTuner.Common.Benchmark;
 using RyzenTuner.Common.Container;
+using RyzenTuner.Common.Settings;
 using RyzenTuner.Properties;
 using RyzenTuner.Utils;
 
@@ -178,8 +179,8 @@ namespace RyzenTuner.UI
             mainFormTimer.Enabled = true;
 
             _isInitializingOptions = true;
-            checkBoxEnergyStar.Checked = Properties.Settings.Default.EnergyStar;
-            keepAwakeCheckBox.Checked = Properties.Settings.Default.KeepAwake;
+            checkBoxEnergyStar.Checked = AppSettings.GetBool("EnergyStar");
+            keepAwakeCheckBox.Checked = AppSettings.GetBool("KeepAwake");
             SyncLaunchAtLogonSetting();
             SyncCpuBoostSetting();
             SyncEnergyModeSelection();
@@ -210,7 +211,7 @@ namespace RyzenTuner.UI
             // 日志：清理过期日志
             try
             {
-                AppContainer.Logger().Cleanup(Settings.Default.LogRetentionDays);
+                AppContainer.Logger().Cleanup(AppSettings.Get<int>("LogRetentionDays", 3));
                 _lastLogCleanupTime = DateTime.UtcNow;
             }
             catch (Exception cleanupEx)
@@ -355,19 +356,19 @@ namespace RyzenTuner.UI
 
         private void SettingsLoadValues()
         {
-            TrySetNumericValue(numericUpDownPowerSaveMode, Settings.Default.PowerSaveMode);
-            TrySetNumericValue(numericUpDownBalancedMode, Settings.Default.BalancedMode);
-            TrySetNumericValue(numericUpDownPerformanceMode, Settings.Default.PerformanceMode);
+            TrySetNumericValue(numericUpDownPowerSaveMode, AppSettings.Get("PowerSaveMode", "16")!);
+            TrySetNumericValue(numericUpDownBalancedMode, AppSettings.Get("BalancedMode", "26")!);
+            TrySetNumericValue(numericUpDownPerformanceMode, AppSettings.Get("PerformanceMode", "45")!);
 
-            numericUpDownTctlTemp.Value = ClampNumeric(Settings.Default.TctlTemp, numericUpDownTctlTemp);
-            numericUpDownApuSkinTemp.Value = ClampNumeric(Settings.Default.ApuSkinTemp, numericUpDownApuSkinTemp);
-            numericUpDownPowerLimitUpdateInterval.Value = ClampNumeric(Settings.Default.PowerLimitUpdateInterval, numericUpDownPowerLimitUpdateInterval);
+            numericUpDownTctlTemp.Value = ClampNumeric(AppSettings.Get<int>("TctlTemp", 100), numericUpDownTctlTemp);
+            numericUpDownApuSkinTemp.Value = ClampNumeric(AppSettings.Get<int>("ApuSkinTemp", 43), numericUpDownApuSkinTemp);
+            numericUpDownPowerLimitUpdateInterval.Value = ClampNumeric(AppSettings.Get<int>("PowerLimitUpdateInterval", 4), numericUpDownPowerLimitUpdateInterval);
 
             // 加载快捷键设置
             LoadHotkeySettings();
 
             // 加载日志设置
-            var logLevel = Settings.Default.LogLevel;
+            var logLevel = AppSettings.Get("LogLevel", "Warning");
             for (var i = 0; i < comboBoxLogLevel.Items.Count; i++)
             {
                 if (comboBoxLogLevel.Items[i].ToString() == logLevel)
@@ -388,7 +389,7 @@ namespace RyzenTuner.UI
                 // 忽略日志级别解析失败
             }
 
-            numericUpDownLogSaveDays.Value = ClampNumeric(Settings.Default.LogRetentionDays, numericUpDownLogSaveDays);
+            numericUpDownLogSaveDays.Value = ClampNumeric(AppSettings.Get<int>("LogRetentionDays", 3), numericUpDownLogSaveDays);
         }
 
         private static void TrySetNumericValue(NumericUpDown control, string mode)
@@ -423,9 +424,9 @@ namespace RyzenTuner.UI
             var newHotkeyPerformance = GetHotkeyFromTextBox(textBoxHotkeyPerformance);
 
             // ===== 检查快捷键是否有变化 =====
-            var oldHotkeyPowerSave = Settings.Default.HotkeyPowerSaveMode;
-            var oldHotkeyBalanced = Settings.Default.HotkeyBalancedMode;
-            var oldHotkeyPerformance = Settings.Default.HotkeyPerformanceMode;
+            var oldHotkeyPowerSave = AppSettings.Get("HotkeyPowerSaveMode", "");
+            var oldHotkeyBalanced = AppSettings.Get("HotkeyBalancedMode", "");
+            var oldHotkeyPerformance = AppSettings.Get("HotkeyPerformanceMode", "");
 
             var hotkeyPowerSaveChanged = newHotkeyPowerSave != oldHotkeyPowerSave;
             var hotkeyBalancedChanged = newHotkeyBalanced != oldHotkeyBalanced;
@@ -520,25 +521,23 @@ namespace RyzenTuner.UI
                 }
             }
             // ===== 快捷键验证通过，保存所有设置 =====
-            Settings.Default.PowerSaveMode = numericUpDownPowerSaveMode.Value.ToString("F0", CultureInfo.InvariantCulture);
-            Settings.Default.BalancedMode = numericUpDownBalancedMode.Value.ToString("F0", CultureInfo.InvariantCulture);
-            Settings.Default.PerformanceMode = numericUpDownPerformanceMode.Value.ToString("F0", CultureInfo.InvariantCulture);
+            AppSettings.Set("PowerSaveMode", numericUpDownPowerSaveMode.Value.ToString("F0", CultureInfo.InvariantCulture));
+            AppSettings.Set("BalancedMode", numericUpDownBalancedMode.Value.ToString("F0", CultureInfo.InvariantCulture));
+            AppSettings.Set("PerformanceMode", numericUpDownPerformanceMode.Value.ToString("F0", CultureInfo.InvariantCulture));
 
-            Settings.Default.TctlTemp = (int)numericUpDownTctlTemp.Value;
-            Settings.Default.ApuSkinTemp = (int)numericUpDownApuSkinTemp.Value;
-            Settings.Default.PowerLimitUpdateInterval = (int)numericUpDownPowerLimitUpdateInterval.Value;
+            AppSettings.Set("TctlTemp", (int)numericUpDownTctlTemp.Value);
+            AppSettings.Set("ApuSkinTemp", (int)numericUpDownApuSkinTemp.Value);
+            AppSettings.Set("PowerLimitUpdateInterval", (int)numericUpDownPowerLimitUpdateInterval.Value);
 
             // 保存快捷键设置（快捷键已经注册成功，只需保存值）
-            Settings.Default.HotkeyPowerSaveMode = newHotkeyPowerSave;
-            Settings.Default.HotkeyBalancedMode = newHotkeyBalanced;
-            Settings.Default.HotkeyPerformanceMode = newHotkeyPerformance;
+            AppSettings.Set("HotkeyPowerSaveMode", newHotkeyPowerSave);
+            AppSettings.Set("HotkeyBalancedMode", newHotkeyBalanced);
+            AppSettings.Set("HotkeyPerformanceMode", newHotkeyPerformance);
 
             // 保存日志设置
             var selectedLogLevel = comboBoxLogLevel.SelectedItem?.ToString() ?? "Warning";
-            Settings.Default.LogLevel = selectedLogLevel;
-            Settings.Default.LogRetentionDays = (int)numericUpDownLogSaveDays.Value;
-
-            Settings.Default.Save();
+            AppSettings.Set("LogLevel", selectedLogLevel);
+            AppSettings.Set("LogRetentionDays", (int)numericUpDownLogSaveDays.Value);
 
             // 应用日志级别到运行时日志记录器
             try
@@ -554,7 +553,7 @@ namespace RyzenTuner.UI
             // 保存后立即执行日志清理
             try
             {
-                AppContainer.Logger().Cleanup(Settings.Default.LogRetentionDays);
+                AppContainer.Logger().Cleanup(AppSettings.Get<int>("LogRetentionDays", 3));
             }
             catch (Exception cleanupEx)
             {
@@ -590,7 +589,7 @@ namespace RyzenTuner.UI
         {
             try
             {
-                var currentLang = Properties.Settings.Default.Language;
+                var currentLang = AppSettings.Get("Language", "");
                 if (string.IsNullOrEmpty(currentLang))
                 {
                     currentLang = RyzenTunerUtils.DetectDefaultLanguageCode();
@@ -637,7 +636,7 @@ namespace RyzenTuner.UI
                 return;
 
             var newLang = selected.Key;
-            if (newLang == Properties.Settings.Default.Language)
+            if (newLang == AppSettings.Get("Language", ""))
                 return;
 
             // Fix #7: 先询问用户是否重启，再保存
@@ -655,8 +654,7 @@ namespace RyzenTuner.UI
             }
 
             // 用户确认重启后保存语言设置
-            Properties.Settings.Default.Language = newLang;
-            Properties.Settings.Default.Save();
+            AppSettings.Set("Language", newLang);
 
             // Fix #6: 先释放 Mutex 再启动新进程，异常时恢复
             Program.ReleaseInstanceMutex();
@@ -1227,7 +1225,7 @@ namespace RyzenTuner.UI
             _tickCount++;
 
             // 根据用户配置的间隔控制 DoPowerLimit 的更新频率（默认 4 秒）
-            var interval = Settings.Default.PowerLimitUpdateInterval;
+            var interval = AppSettings.Get<int>("PowerLimitUpdateInterval", 4);
             if (interval < 1) interval = 1; // 防御：确保最小值为 1 秒
             if (DateTime.UtcNow - _lastPowerLimitRunTime >= TimeSpan.FromSeconds(interval))
             {
@@ -1244,7 +1242,7 @@ namespace RyzenTuner.UI
                 _lastLogCleanupTime = DateTime.UtcNow;
                 try
                 {
-                    AppContainer.Logger().Cleanup(Settings.Default.LogRetentionDays);
+                    AppContainer.Logger().Cleanup(AppSettings.Get<int>("LogRetentionDays", 3));
                 }
                 catch
                 {
@@ -1265,8 +1263,7 @@ namespace RyzenTuner.UI
                 if (tag == null) return;
                 var checkedMode = tag.ToString();
 
-                Settings.Default.CurrentMode = checkedMode;
-                Settings.Default.Save();
+                AppSettings.Set("CurrentMode", checkedMode);
                 SyncEnergyModeSelection();
 
                 DoPowerLimit();
@@ -1280,8 +1277,7 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            Properties.Settings.Default.EnergyStar = checkBoxEnergyStar.Checked;
-            Properties.Settings.Default.Save();
+            AppSettings.Set("EnergyStar", checkBoxEnergyStar.Checked);
 
             if (checkBoxEnergyStar.Checked)
             {
@@ -1300,10 +1296,9 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            Properties.Settings.Default.KeepAwake = keepAwakeCheckBox.Checked;
-            Properties.Settings.Default.Save();
+            AppSettings.Set("KeepAwake", keepAwakeCheckBox.Checked);
 
-            if (Properties.Settings.Default.KeepAwake)
+            if (AppSettings.GetBool("KeepAwake"))
             {
                 Awake.KeepingSysAwake(true);
             }
@@ -1325,8 +1320,7 @@ namespace RyzenTuner.UI
             try
             {
                 StartupTaskScheduler.SetEnabled(isEnabled);
-                Properties.Settings.Default.LaunchAtLogon = isEnabled;
-                Properties.Settings.Default.Save();
+                AppSettings.Set("LaunchAtLogon", isEnabled);
             }
             catch (Exception ex)
             {
@@ -1334,8 +1328,7 @@ namespace RyzenTuner.UI
                 launchAtLogonCheckBox.Checked = !isEnabled;
                 _isInitializingOptions = false;
 
-                Properties.Settings.Default.LaunchAtLogon = !isEnabled;
-                Properties.Settings.Default.Save();
+                AppSettings.Set("LaunchAtLogon", !isEnabled);
                 MessageBox.Show($"{Properties.Strings.TextFailedToUpdateLaunchAtLogon}\n\n{ex.Message}",
                     Properties.Strings.TextExceptionTitle,
                     MessageBoxButtons.OK,
@@ -1350,8 +1343,7 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            Properties.Settings.Default.CpuBoostEnabled = cpuBoostCheckBox.Checked;
-            Properties.Settings.Default.Save();
+            AppSettings.Set("CpuBoostEnabled", cpuBoostCheckBox.Checked);
 
             DoPowerLimit();
         }
@@ -1367,7 +1359,7 @@ namespace RyzenTuner.UI
         {
             foreach (Control c in groupBoxMode.Controls)
             {
-                if (c.Tag != null && c.Tag.ToString() == Properties.Settings.Default.CurrentMode)
+                if (c.Tag != null && c.Tag.ToString() == AppSettings.Get("CurrentMode", "BalancedMode"))
                 {
                     var rb = (RadioButton)c;
                     rb.Checked = true;
@@ -1381,10 +1373,9 @@ namespace RyzenTuner.UI
             {
                 var isEnabled = StartupTaskScheduler.IsEnabled();
 
-                if (Properties.Settings.Default.LaunchAtLogon != isEnabled)
+                if (AppSettings.GetBool("LaunchAtLogon") != isEnabled)
                 {
-                    Properties.Settings.Default.LaunchAtLogon = isEnabled;
-                    Properties.Settings.Default.Save();
+                    AppSettings.Set("LaunchAtLogon", isEnabled);
                 }
             }
             catch (Exception ex)
@@ -1400,15 +1391,14 @@ namespace RyzenTuner.UI
                 var isEnabled = AppContainer.PowerConfig().IsCpuBoostEnabled();
                 _lastCpuBoostEnabled = isEnabled;
 
-                if (Properties.Settings.Default.CpuBoostEnabled != isEnabled)
+                if (AppSettings.GetBool("CpuBoostEnabled") != isEnabled)
                 {
-                    Properties.Settings.Default.CpuBoostEnabled = isEnabled;
-                    Properties.Settings.Default.Save();
+                    AppSettings.Set("CpuBoostEnabled", isEnabled);
                 }
             }
             catch (Exception ex)
             {
-                _lastCpuBoostEnabled = Properties.Settings.Default.CpuBoostEnabled;
+                _lastCpuBoostEnabled = AppSettings.GetBool("CpuBoostEnabled");
                 AppContainer.Logger().Warning("System", $"Failed to query cpu boost status: {ex.Message}");
             }
         }
@@ -1506,7 +1496,7 @@ namespace RyzenTuner.UI
 
             if (!_isErrorRecoveryPending)
             {
-                _preErrorMode = Settings.Default.CurrentMode;
+                _preErrorMode = AppSettings.Get("CurrentMode", "BalancedMode");
             }
 
             try
@@ -1516,7 +1506,7 @@ namespace RyzenTuner.UI
                 var stampLimit = RyzenAdjUtils.GetPowerLimit();
                 var tctlTemp = RyzenAdjUtils.GetTctlTemp();
                 var apuSkinTemp = RyzenAdjUtils.GetApuSkinTemp();
-                var shouldEnableCpuBoost = Settings.Default.CpuBoostEnabled;
+                var shouldEnableCpuBoost = AppSettings.GetBool("CpuBoostEnabled");
 
                 notifyIcon1.Text = "";
 
@@ -1608,7 +1598,7 @@ namespace RyzenTuner.UI
                     {
                         _isErrorRecoveryPending = false;
                         // 若恢复期间用户手动切换了模式，尊重用户选择，不覆盖
-                        if (Settings.Default.CurrentMode == "PerformanceMode")
+                        if (AppSettings.Get("CurrentMode", "") == "PerformanceMode")
                         {
                             // catch 块设了 PerformanceMode，用户未干预 — 尝试还原原始模式
                             SetCurrentMode(_preErrorMode);
@@ -1710,7 +1700,7 @@ namespace RyzenTuner.UI
 
         private void DoProcessManage()
         {
-            if (Properties.Settings.Default.EnergyStar)
+            if (AppSettings.GetBool("EnergyStar"))
             {
                 AppContainer.EnergyManager().HandleForeground();
 
@@ -1735,13 +1725,12 @@ namespace RyzenTuner.UI
 
         private void SetCurrentMode(string mode)
         {
-            if (mode == Settings.Default.CurrentMode)
+            if (mode == AppSettings.Get("CurrentMode", "BalancedMode"))
             {
                 return;
             }
 
-            Settings.Default.CurrentMode = mode;
-            Settings.Default.Save();
+            AppSettings.Set("CurrentMode", mode);
             SyncEnergyModeSelection();
         }
 
@@ -1791,14 +1780,13 @@ namespace RyzenTuner.UI
             if (_isBenchmarkRunning || _isChangingMode)
                 return;
 
-            if (mode == Settings.Default.CurrentMode)
+            if (mode == AppSettings.Get("CurrentMode", "BalancedMode"))
                 return;
 
             _isChangingMode = true;
             try
             {
-                Settings.Default.CurrentMode = mode;
-                Settings.Default.Save();
+                AppSettings.Set("CurrentMode", mode);
                 SyncEnergyModeSelection();
                 DoPowerLimit();
             }
@@ -1817,9 +1805,9 @@ namespace RyzenTuner.UI
 
             var allOk = true;
 
-            allOk &= TryRegisterHotkey(Settings.Default.HotkeyPowerSaveMode, HOTKEY_ID_POWERSAVE);
-            allOk &= TryRegisterHotkey(Settings.Default.HotkeyBalancedMode, HOTKEY_ID_BALANCED);
-            allOk &= TryRegisterHotkey(Settings.Default.HotkeyPerformanceMode, HOTKEY_ID_PERFORMANCE);
+            allOk &= TryRegisterHotkey(AppSettings.Get("HotkeyPowerSaveMode", ""), HOTKEY_ID_POWERSAVE);
+            allOk &= TryRegisterHotkey(AppSettings.Get("HotkeyBalancedMode", ""), HOTKEY_ID_BALANCED);
+            allOk &= TryRegisterHotkey(AppSettings.Get("HotkeyPerformanceMode", ""), HOTKEY_ID_PERFORMANCE);
 
             if (!allOk)
             {
@@ -2068,9 +2056,9 @@ namespace RyzenTuner.UI
 
         private void LoadHotkeySettings()
         {
-            SetHotkeyTextBox(textBoxHotkeyPowerSave, Settings.Default.HotkeyPowerSaveMode);
-            SetHotkeyTextBox(textBoxHotkeyBalanced, Settings.Default.HotkeyBalancedMode);
-            SetHotkeyTextBox(textBoxHotkeyPerformance, Settings.Default.HotkeyPerformanceMode);
+            SetHotkeyTextBox(textBoxHotkeyPowerSave, AppSettings.Get("HotkeyPowerSaveMode", ""));
+            SetHotkeyTextBox(textBoxHotkeyBalanced, AppSettings.Get("HotkeyBalancedMode", ""));
+            SetHotkeyTextBox(textBoxHotkeyPerformance, AppSettings.Get("HotkeyPerformanceMode", ""));
         }
 
         private static void SetHotkeyTextBox(TextBox tb, string hotkeyStr)

@@ -1,4 +1,4 @@
-﻿using RyzenTuner.Properties;
+﻿using RyzenTuner.Common.Settings;
 
 namespace RyzenTuner.Utils
 {
@@ -6,7 +6,7 @@ namespace RyzenTuner.Utils
     {
         public static float GetPowerLimit()
         {
-            var powerLimit = RyzenTunerUtils.GetPowerLimitByMode(Settings.Default.CurrentMode);
+            var powerLimit = RyzenTunerUtils.GetPowerLimitByMode(AppSettings.Get("CurrentMode", "BalancedMode"));
 
             // 数值修正
             if (powerLimit < 0)
@@ -19,12 +19,12 @@ namespace RyzenTuner.Utils
 
         public static int GetTctlTemp()
         {
-            return Settings.Default.TctlTemp;
+            return AppSettings.Get<int>("TctlTemp", 100);
         }
 
         public static int GetApuSkinTemp()
         {
-            return Settings.Default.ApuSkinTemp;
+            return AppSettings.Get<int>("ApuSkinTemp", 43);
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using RyzenTuner.Common.Container;
 using RyzenTuner.Common.EnergyStar.Interop;
-using RyzenTuner.Properties;
+using RyzenTuner.Common.Settings;
 
 namespace RyzenTuner.Common.EnergyStar
 {
@@ -113,7 +113,7 @@ namespace RyzenTuner.Common.EnergyStar
         public EnergyManager()
         {
             var bypassSetting =
-                Settings.Default.EnergyStarBypassProcessList
+                (AppSettings.Get("EnergyStarBypassProcessList") ?? "")
                     .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => x.Trim());
             _bypassProcessList.UnionWith(bypassSetting);

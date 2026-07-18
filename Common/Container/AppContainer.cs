@@ -1,6 +1,7 @@
 ﻿using RyzenTuner.Common.EnergyStar;
 using RyzenTuner.Common.Logger;
 using RyzenTuner.Common.Processor;
+using RyzenTuner.Common.Settings;
 
 namespace RyzenTuner.Common.Container
 {
@@ -31,7 +32,7 @@ namespace RyzenTuner.Common.Container
             Container.Register(() =>
                 {
                     var logger = new SqliteLogger();
-                    logger.DefaultLogLevel = logger.ToLogLevel(Properties.Settings.Default.LogLevel);
+                    logger.DefaultLogLevel = logger.ToLogLevel(AppSettings.Get("LogLevel", "Warning"));
                     return logger;
                 })
                 .AsSingleton();

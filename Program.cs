@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
 using RyzenTuner.Common.Container;
-using RyzenTuner.Common.SettingsStore;
+using RyzenTuner.Common.Settings;
 using RyzenTuner.UI;
 
 namespace RyzenTuner
@@ -66,7 +66,7 @@ namespace RyzenTuner
                 }
 
                 // 在 Mutex 保护下初始化数据库和设置（确保不会与并发实例冲突）
-                SettingsMigration.Migrate();
+                AppSettings.Initialize();
                 AutoSelectLang();
 
                 Application.EnableVisualStyles();
@@ -115,7 +115,7 @@ namespace RyzenTuner
             string langCode;
 
             // 优先使用用户设置的语言
-            var userLang = Properties.Settings.Default.Language;
+            var userLang = AppSettings.Get("Language", "");
             if (!string.IsNullOrEmpty(userLang))
             {
                 langCode = userLang;

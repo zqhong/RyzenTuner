@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using RyzenTuner.Common.Settings;
 
 namespace RyzenTuner.Utils
 {
@@ -58,11 +59,7 @@ namespace RyzenTuner.Utils
         {
             powerLimit = 0;
 
-            // 检查设置项是否存在（避免升级后残留的旧模式名引发 SettingsPropertyNotFoundException）
-            if (Properties.Settings.Default.Properties[mode] == null)
-                return false;
-
-            var value = Properties.Settings.Default[mode]?.ToString();
+            var value = AppSettings.Get(mode);
 
             if (string.IsNullOrWhiteSpace(value))
             {

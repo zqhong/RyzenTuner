@@ -104,9 +104,8 @@
     <Compile Include="Common\Benchmark\BenchmarkEngine.cs" />
     <Compile Include="Common\Container\AppContainer.cs" />
     <Compile Include="Common\Container\Container.cs" />
+    <Compile Include="Common\Settings\AppSettings.cs" />
     <Compile Include="Common\Settings\SettingsDatabase.cs" />
-    <Compile Include="Common\Settings\SettingsMigration.cs" />
-    <Compile Include="Common\Settings\SqliteSettingsProvider.cs" />
     <Compile Include="Common\EnergyStar\EnergyManager.cs" />
     <Compile Include="Common\EnergyStar\Interop\Win32Api.cs" />
     <Compile Include="Common\Hardware\HardwareMonitor.cs" />
@@ -161,16 +160,6 @@
     </EmbeddedResource>
     <None Include="app.manifest" />
     <None Include="packages.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
-    <Compile Include="Properties\Settings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

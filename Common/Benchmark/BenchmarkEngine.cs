@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using RyzenTuner.Common.Container;
-using RyzenTuner.Properties;
+using RyzenTuner.Common.Settings;
 
 namespace RyzenTuner.Common.Benchmark
 {
@@ -55,10 +55,10 @@ namespace RyzenTuner.Common.Benchmark
 
             // 保存原始设置在 try 之前，确保 finally 中可访问
             var totalPoints = config.GetTestPointCount();
-            var keepAwakeWas = Settings.Default.KeepAwake;
-            var currentModeWas = Settings.Default.CurrentMode;
-            var originalTctlTemp = Settings.Default.TctlTemp;
-            var originalApuSkinTemp = Settings.Default.ApuSkinTemp;
+            var keepAwakeWas = AppSettings.GetBool("KeepAwake");
+            var currentModeWas = AppSettings.Get("CurrentMode", "BalancedMode");
+            var originalTctlTemp = AppSettings.Get<int>("TctlTemp", 100);
+            var originalApuSkinTemp = AppSettings.Get<int>("ApuSkinTemp", 43);
 
             // 测试期间阻止系统休眠
             if (!keepAwakeWas)
@@ -341,8 +341,7 @@ namespace RyzenTuner.Common.Benchmark
                     processor.SetApuSkinTemp((uint)apuSkinTemp);
 
                 // 恢复模式
-                Settings.Default.CurrentMode = originalMode;
-                Settings.Default.Save();
+                AppSettings.Set("CurrentMode", originalMode);
             }
             catch (Exception ex)
             {
