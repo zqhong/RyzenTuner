@@ -355,6 +355,9 @@
     <data name="TextHotkeyConflictTitle" xml:space="preserve">
         <value>快捷键冲突</value>
     </data>
+    <data name="TextHotkeyRecoveryFailed" xml:space="preserve">
+        <value>恢复旧快捷键也失败，请重新设置。</value>
+    </data>
     <data name="TextLogSettings" xml:space="preserve">
         <value>日志设置</value>
     </data>

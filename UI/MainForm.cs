@@ -42,6 +42,7 @@ namespace RyzenTuner.UI
         private BenchmarkEngine? _engine;
         private readonly List<BenchmarkTestPoint> _allResults = new();
         private BenchmarkTestType _benchmarkTestType;
+        private int _benchmarkVersion;
         // 是否需要运行 BoostAllUserBackgroundProcesses 任务
         private bool _needRunBoostAllBgProcesses;
 
@@ -181,6 +182,8 @@ namespace RyzenTuner.UI
             _isInitializingOptions = true;
             checkBoxEnergyStar.Checked = AppSettings.GetBool("EnergyStar");
             keepAwakeCheckBox.Checked = AppSettings.GetBool("KeepAwake");
+            launchAtLogonCheckBox.Checked = AppSettings.GetBool("LaunchAtLogon");
+            cpuBoostCheckBox.Checked = AppSettings.GetBool("CpuBoostEnabled");
             SyncLaunchAtLogonSetting();
             SyncCpuBoostSetting();
             SyncEnergyModeSelection();
@@ -193,6 +196,9 @@ namespace RyzenTuner.UI
             // 设置系统唤醒状态
             keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
 
+            // 若 EnergyStar 禁用，确保下次 DoProcessManage 提升后台进程（修复崩溃重启后进程被节流的问题）
+            _needRunBoostAllBgProcesses = !checkBoxEnergyStar.Checked;
+
             // 初始化设置页
             SettingsLoadValues();
 
@@ -201,9 +207,6 @@ namespace RyzenTuner.UI
 
             // 刷新首页模式标签（Designer 中只显示模式名，运行时补上功率值）
             RefreshModeLabels();
-
-            // 注册全局快捷键
-            RegisterAllHotkeys();
 
             // 日志：记录启动事件
             AppContainer.Logger().Info("System", "RyzenTuner started");
@@ -378,9 +381,9 @@ namespace RyzenTuner.UI
 
         private void SettingsLoadValues()
         {
-            TrySetNumericValue(numericUpDownPowerSaveMode, AppSettings.Get("PowerSaveMode", "16"));
-            TrySetNumericValue(numericUpDownBalancedMode, AppSettings.Get("BalancedMode", "26"));
-            TrySetNumericValue(numericUpDownPerformanceMode, AppSettings.Get("PerformanceMode", "45"));
+            TrySetNumericValue(numericUpDownPowerSaveMode, "PowerSaveMode");
+            TrySetNumericValue(numericUpDownBalancedMode, "BalancedMode");
+            TrySetNumericValue(numericUpDownPerformanceMode, "PerformanceMode");
 
             numericUpDownTctlTemp.Value = ClampNumeric(AppSettings.Get("TctlTemp", 100), numericUpDownTctlTemp);
             numericUpDownApuSkinTemp.Value = ClampNumeric(AppSettings.Get("ApuSkinTemp", 43), numericUpDownApuSkinTemp);
@@ -531,7 +534,7 @@ namespace RyzenTuner.UI
                     if (recoveryFailed)
                     {
                         fullMsg += "\r\n\r\n" + Strings.TextHotkeyConflictTitle +
-                                   ": 恢复旧快捷键也失败，请重新设置。";
+                                   ": " + Strings.TextHotkeyRecoveryFailed;
                     }
 
                     MessageBox.Show(
@@ -594,7 +597,7 @@ namespace RyzenTuner.UI
 
             // 立即重新应用功率限制
             DoPowerLimit();
-            notifyIcon1.Text = "";
+            notifyIcon1.Text = RyzenTunerUtils.GetLocalizedModeName(AppSettings.Get("CurrentMode", "BalancedMode"));
         }
 
         private void SettingsCancel_Click(object? sender, EventArgs e)
@@ -797,7 +800,8 @@ namespace RyzenTuner.UI
             }
 
             var pointCount = config.GetTestPointCount();
-            var totalMinutes = pointCount * (int)numericUpDownDuration.Value;
+            var totalMinutes = pointCount * (int)numericUpDownDuration.Value
+                               + Math.Max(0, pointCount - 1) * (int)numericUpDownRestTime.Value / 60;
 
             var confirmMsg = Strings.TextBenchmarkConfirmStart
                 .Replace("{count}", pointCount.ToString())
@@ -812,6 +816,8 @@ namespace RyzenTuner.UI
             }
 
             _isBenchmarkRunning = true;
+            _benchmarkVersion++;
+            var capturedVersion = _benchmarkVersion;
             _benchmarkTestType = config.TestType;
             _allResults.Clear();
             dataGridViewResults.Rows.Clear();
@@ -860,7 +866,8 @@ namespace RyzenTuner.UI
                         if (IsDisposed) return;
                         BeginInvoke(new Action(() =>
                         {
-                            if (_allResults.Count > 0)
+                            if (capturedVersion != _benchmarkVersion) return;
+							if (_allResults.Count > 0)
                             {
                                 RefreshAllResults();
                             }
@@ -878,6 +885,7 @@ namespace RyzenTuner.UI
                         BeginInvoke(new Action(() =>
                         {
                             labelStatus.Text = error;
+                            if (capturedVersion != _benchmarkVersion) return;
                             buttonExportCsv.Enabled = _allResults.Count > 0;
                             EnableBenchmarkConfig(true);
                             progressBar.Visible = false;
@@ -993,21 +1001,22 @@ namespace RyzenTuner.UI
 
             foreach (var r in _allResults)
             {
+                var ci = CultureInfo.InvariantCulture;
                 var values = new[]
                 {
-                    $"{r.SetTdp:F0}",
-                    r.Score.ToString("D"),
-                    $"{r.PowerMin:F2}",
-                    $"{r.PowerMax:F2}",
-                    $"{r.PowerAvg:F2}",
-                    $"{r.PowerMedian:F2}",
-                    $"{r.TempMin:F1}",
-                    $"{r.TempMax:F1}",
-                    $"{r.TempAvg:F1}",
-                    $"{r.TempMedian:F1}",
-                    $"{r.CpuFreqAvg:F0}",
-                    $"{r.Efficiency:F0}",
-                    $"{r.Capability:P0}",
+                    r.SetTdp.ToString("F0", ci),
+                    r.Score.ToString("D", ci),
+                    r.PowerMin.ToString("F2", ci),
+                    r.PowerMax.ToString("F2", ci),
+                    r.PowerAvg.ToString("F2", ci),
+                    r.PowerMedian.ToString("F2", ci),
+                    r.TempMin.ToString("F1", ci),
+                    r.TempMax.ToString("F1", ci),
+                    r.TempAvg.ToString("F1", ci),
+                    r.TempMedian.ToString("F1", ci),
+                    r.CpuFreqAvg.ToString("F0", ci),
+                    r.Efficiency.ToString("F0", ci),
+                    r.Capability.ToString("P0", ci),
                 };
                 sb.AppendLine(string.Join(",", values.Select(EscapeCsvField)));
             }
@@ -1424,14 +1433,11 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                _lastCpuBoostEnabled = AppSettings.GetBool("CpuBoostEnabled");
+                // 不要用 AppSettings 的值覆盖 _lastCpuBoostEnabled — 保留 null 或上次成功值，
+                // 避免 DoPowerLimit 在状态未知时反复切换 CPU boost
                 AppContainer.Logger().Warning("System", $"Failed to query cpu boost status: {ex.Message}");
             }
         }
-
-        /// <summary>
-        /// 展开/收起监控信息面板（保留兼容，新 UI 中监控信息始终可见）
-        /// </summary>
 
 
         /// <summary>
@@ -1449,8 +1455,11 @@ namespace RyzenTuner.UI
                 }
                 var proc = AppContainer.AmdProcessor();
 
-                // 刷新 SMU 表后再读取
-                proc.RefreshTable();
+                // 刷新 SMU 表后再读取（跑分进行中时由 BenchmarkEngine 后台线程负责写入，跳过以避免竞争）
+                if (!_isBenchmarkRunning)
+                {
+                    proc.RefreshTable();
+                }
 
                 // ===== 当前状态（首页） =====
                 currentFreqLabel.Text = string.Format(Strings.TextMonitorFreqFormat, hw.CpuFreq);
@@ -1542,41 +1551,41 @@ namespace RyzenTuner.UI
                 var apuSkinTemp = RyzenAdjUtils.GetApuSkinTemp();
                 var shouldEnableCpuBoost = AppSettings.GetBool("CpuBoostEnabled");
 
-                notifyIcon1.Text = "";
+                notifyIcon1.Text = RyzenTunerUtils.GetLocalizedModeName(AppSettings.Get("CurrentMode", "BalancedMode"));
 
                 var applyErrors = new List<string>();
 
-                if (!TryApplyPowerLimit(() => processor.SetFastPpt(stampLimit)))
+                if (!processor.SetFastPpt(stampLimit))
                 {
                     applyErrors.Add($"SetFastPpt({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyPowerLimit(() => processor.SetSlowPpt(stampLimit)))
+                if (!processor.SetSlowPpt(stampLimit))
                 {
                     applyErrors.Add($"SetSlowPpt({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyPowerLimit(() => processor.SetStampPpt(stampLimit)))
+                if (!processor.SetStampPpt(stampLimit))
                 {
                     applyErrors.Add($"SetStampPpt({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyTctlTemp(() => processor.SetTctlTemp((uint)tctlTemp)))
+                if (!processor.SetTctlTemp((uint)tctlTemp))
                 {
                     applyErrors.Add($"SetTctlTemp({tctlTemp}C)");
                 }
 
-                if (!TryApplyIntSetting(() => processor.SetApuSkinTemp((uint)apuSkinTemp)))
+                if (!processor.SetApuSkinTemp((uint)apuSkinTemp))
                 {
                     applyErrors.Add($"SetApuSkinTemp({apuSkinTemp}C)");
                 }
 
-                if (_lastCpuBoostEnabled != shouldEnableCpuBoost)
+                if (_lastCpuBoostEnabled.HasValue && _lastCpuBoostEnabled.Value != shouldEnableCpuBoost)
                 {
-                    var boostApplied = TryApplyCpuBoost(() =>
+                    var boostApplied =
                         shouldEnableCpuBoost
                             ? AppContainer.PowerConfig().EnableCpuBoost()
-                            : AppContainer.PowerConfig().DisableCpuBoost());
+                            : AppContainer.PowerConfig().DisableCpuBoost();
 
                     if (!boostApplied)
                     {
@@ -1652,21 +1661,6 @@ namespace RyzenTuner.UI
         /// 应用功率限制。
         /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
         /// </summary>
-        private static bool TryApplyPowerLimit(Func<bool> applyAction) => applyAction();
-
-        /// <summary>
-        /// 应用 Tctl 温度限制。
-        /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
-        /// </summary>
-        private bool TryApplyTctlTemp(Func<bool> applyAction) => applyAction();
-
-        /// <summary>
-        /// 应用整数型 SMU 设置（如 ApuSkinTemp）。
-        /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
-        /// </summary>
-        private static bool TryApplyIntSetting(Func<bool> applyAction) => applyAction();
-
-        private static bool TryApplyCpuBoost(Func<bool> applyAction) => applyAction();
 
         private void ReportPowerLimitApplyError(string errorText)
         {
@@ -1789,18 +1783,25 @@ namespace RyzenTuner.UI
         {
             UnregisterAllHotkeys();
 
-            var allOk = true;
+            var failedHotkeys = new List<string>();
+            var hkPowerSave = AppSettings.Get("HotkeyPowerSaveMode", "");
+            var hkBalanced = AppSettings.Get("HotkeyBalancedMode", "");
+            var hkPerformance = AppSettings.Get("HotkeyPerformanceMode", "");
 
-            allOk &= TryRegisterHotkey(AppSettings.Get("HotkeyPowerSaveMode", ""), HOTKEY_ID_POWERSAVE);
-            allOk &= TryRegisterHotkey(AppSettings.Get("HotkeyBalancedMode", ""), HOTKEY_ID_BALANCED);
-            allOk &= TryRegisterHotkey(AppSettings.Get("HotkeyPerformanceMode", ""), HOTKEY_ID_PERFORMANCE);
+            if (!TryRegisterHotkey(hkPowerSave, HOTKEY_ID_POWERSAVE))
+                failedHotkeys.Add(GetHotkeyDisplayText(hkPowerSave));
+            if (!TryRegisterHotkey(hkBalanced, HOTKEY_ID_BALANCED))
+                failedHotkeys.Add(GetHotkeyDisplayText(hkBalanced));
+            if (!TryRegisterHotkey(hkPerformance, HOTKEY_ID_PERFORMANCE))
+                failedHotkeys.Add(GetHotkeyDisplayText(hkPerformance));
 
-            if (!allOk)
+            if (failedHotkeys.Count > 0)
             {
-                AppContainer.Logger().Warning("HotkeyReg", "部分快捷键注册失败，请检查是否与其他程序冲突");
+                AppContainer.Logger().Warning("HotkeyReg",
+                    $"部分快捷键注册失败: {string.Join(", ", failedHotkeys)}");
                 notifyIcon1.BalloonTipTitle = Strings.TextHotkeyConflictTitle;
                 notifyIcon1.BalloonTipText = Strings.TextHotkeyConflict
-                    .Replace("{hotkey}", Strings.TextHotkeyConflictTitle);
+                    .Replace("{hotkey}", string.Join(", ", failedHotkeys));
                 notifyIcon1.ShowBalloonTip(3000);
             }
         }
@@ -1880,7 +1881,7 @@ namespace RyzenTuner.UI
                 Keys.Oemcomma => ",",
                 Keys.OemPeriod => ".",
                 Keys.OemMinus => "-",
-                Keys.Oemplus => "+",
+                Keys.Oemplus => "Oemplus",
                 Keys.OemQuestion => "/",
                 Keys.OemOpenBrackets => "[",
                 Keys.OemCloseBrackets => "]",
@@ -2245,3 +2246,5 @@ namespace RyzenTuner.UI
         }
     }
 }
+
+

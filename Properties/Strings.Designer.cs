@@ -717,6 +717,10 @@ namespace RyzenTuner.Properties {
             get { return ResourceManager.GetString("TextHotkeyConflictTitle", resourceCulture); }
         }
 
+        internal static string TextHotkeyRecoveryFailed {
+            get { return ResourceManager.GetString("TextHotkeyRecoveryFailed", resourceCulture); }
+        }
+
         internal static string TextLogSettings {
             get { return ResourceManager.GetString("TextLogSettings", resourceCulture); }
         }
