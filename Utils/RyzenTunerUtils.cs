@@ -8,14 +8,14 @@ namespace RyzenTuner.Utils
     public static class RyzenTunerUtils
     {
         [DllImport("user32.dll")]
-        static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+        private static extern bool GetLastInputInfo(ref LastInputInfo plii);
 
         // https://www.pinvoke.net/default.aspx/user32.GetLastInputInfo
         // https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-lastinputinfo
         [StructLayout(LayoutKind.Sequential)]
-        struct LASTINPUTINFO
+        private struct LastInputInfo
         {
-            public static readonly int SizeOf = Marshal.SizeOf(typeof(LASTINPUTINFO));
+            public static readonly int SizeOf = Marshal.SizeOf(typeof(LastInputInfo));
 
             [MarshalAs(UnmanagedType.U4)] public int cbSize;
             [MarshalAs(UnmanagedType.U4)] public UInt32 dwTime;
@@ -29,7 +29,7 @@ namespace RyzenTuner.Utils
          */
         public static int GetIdleSecond()
         {
-            var lastInputInfo = new LASTINPUTINFO();
+            var lastInputInfo = new LastInputInfo();
             lastInputInfo.cbSize = Marshal.SizeOf(lastInputInfo);
             lastInputInfo.dwTime = 0;
 

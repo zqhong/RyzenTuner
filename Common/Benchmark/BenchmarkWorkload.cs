@@ -26,7 +26,7 @@ namespace RyzenTuner.Common.Benchmark
         /// <param name="durationMs">测试持续时间（毫秒）</param>
         /// <param name="cancellationToken">取消令牌</param>
         /// <returns>所有线程总迭代次数</returns>
-        public async Task<long> RunAsync(int threadCount, int durationMs, CancellationToken cancellationToken)
+        public static async Task<long> RunAsync(int threadCount, int durationMs, CancellationToken cancellationToken)
         {
             var tasks = new Task<long>[threadCount];
             for (var i = 0; i < threadCount; i++)

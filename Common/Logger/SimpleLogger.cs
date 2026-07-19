@@ -51,7 +51,7 @@ namespace RyzenTuner.Common.Logger
         private StreamWriter? _writer;
         private bool _disposed;
 
-        public LogLevel DefaultLogLevel;
+        public LogLevel DefaultLogLevel { get; set; }
 
         /// <summary>
         /// Initiate an instance of SimpleLogger class constructor.

@@ -32,7 +32,7 @@ namespace RyzenTuner.Common.Logger
         private bool _disposed;
         private bool _dbInitialized;
 
-        public LogLevel DefaultLogLevel;
+        public LogLevel DefaultLogLevel { get; set; }
 
         public SqliteLogger()
         {
@@ -55,7 +55,7 @@ namespace RyzenTuner.Common.Logger
         /// <summary>
         /// 获取数据库连接字符串（含 Busy Timeout）
         /// </summary>
-        private string ConnectionString =>
+        private static string ConnectionString =>
             SettingsDatabase.GetConnectionString();
 
         /// <summary>

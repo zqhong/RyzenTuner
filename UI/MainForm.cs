@@ -725,7 +725,7 @@ namespace RyzenTuner.UI
                 Strings.TextBenchmarkTempMid,
                 Strings.TextBenchmarkFreq,
                 Strings.TextBenchmarkEfficiency,
-                Strings.TextBenchmarkCapability,
+                Strings.TextBenchmarkCapability
             };
 
             foreach (var header in columns)
@@ -1546,27 +1546,27 @@ namespace RyzenTuner.UI
 
                 var applyErrors = new List<string>();
 
-                if (!TryApplyPowerLimit(() => processor.SetFastPPT(stampLimit), out _))
+                if (!TryApplyPowerLimit(() => processor.SetFastPpt(stampLimit)))
                 {
-                    applyErrors.Add($"SetFastPPT({stampLimit:0.##}W)");
+                    applyErrors.Add($"SetFastPpt({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyPowerLimit(() => processor.SetSlowPPT(stampLimit), out _))
+                if (!TryApplyPowerLimit(() => processor.SetSlowPpt(stampLimit)))
                 {
-                    applyErrors.Add($"SetSlowPPT({stampLimit:0.##}W)");
+                    applyErrors.Add($"SetSlowPpt({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyPowerLimit(() => processor.SetStampPPT(stampLimit), out _))
+                if (!TryApplyPowerLimit(() => processor.SetStampPpt(stampLimit)))
                 {
-                    applyErrors.Add($"SetStampPPT({stampLimit:0.##}W)");
+                    applyErrors.Add($"SetStampPpt({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyTctlTemp(() => processor.SetTctlTemp((uint)tctlTemp), out _))
+                if (!TryApplyTctlTemp(() => processor.SetTctlTemp((uint)tctlTemp)))
                 {
                     applyErrors.Add($"SetTctlTemp({tctlTemp}C)");
                 }
 
-                if (!TryApplyIntSetting(() => processor.SetApuSkinTemp((uint)apuSkinTemp), out _))
+                if (!TryApplyIntSetting(() => processor.SetApuSkinTemp((uint)apuSkinTemp)))
                 {
                     applyErrors.Add($"SetApuSkinTemp({apuSkinTemp}C)");
                 }
@@ -1653,34 +1653,19 @@ namespace RyzenTuner.UI
         /// 应用功率限制。
         /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
         /// </summary>
-        private static bool TryApplyPowerLimit(Func<bool> applyAction, out bool changed)
-        {
-            var result = applyAction();
-            changed = result;
-            return result;
-        }
+        private static bool TryApplyPowerLimit(Func<bool> applyAction) => applyAction();
 
         /// <summary>
         /// 应用 Tctl 温度限制。
         /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
         /// </summary>
-        private bool TryApplyTctlTemp(Func<bool> applyAction, out bool changed)
-        {
-            var result = applyAction();
-            changed = result;
-            return result;
-        }
+        private bool TryApplyTctlTemp(Func<bool> applyAction) => applyAction();
 
         /// <summary>
         /// 应用整数型 SMU 设置（如 ApuSkinTemp）。
         /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
         /// </summary>
-        private static bool TryApplyIntSetting(Func<bool> applyAction, out bool changed)
-        {
-            var result = applyAction();
-            changed = result;
-            return result;
-        }
+        private static bool TryApplyIntSetting(Func<bool> applyAction) => applyAction();
 
         private static bool TryApplyCpuBoost(Func<bool> applyAction, out bool changed)
         {

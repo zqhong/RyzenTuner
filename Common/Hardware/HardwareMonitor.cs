@@ -8,13 +8,9 @@ namespace RyzenTuner.Common.Hardware
 {
     public class HardwareMonitor : IDisposable
     {
-        private float _cpuUsage;
         private float _cpuPackagePower;
         private float _cpuTemperature;
         private float _cpuFreq;
-        private string _cpuName = "Unknown";
-
-        private float _videoCard3DUsage;
 
         private readonly Computer _computer;
         private bool _disposed;
@@ -58,16 +54,10 @@ namespace RyzenTuner.Common.Hardware
             _disposed = true;
         }
 
-        public float CpuUsage => _cpuUsage;
-
         public float CpuPackagePower => _cpuPackagePower;
 
         public float CpuTemperature => _cpuTemperature;
         public float CpuFreq => _cpuFreq;
-
-        public float VideoCard3DUsage => _videoCard3DUsage;
-
-        public string CpuName => _cpuName;
 
         private void Update()
         {
@@ -104,18 +94,13 @@ namespace RyzenTuner.Common.Hardware
                     .Where(i => i.HardwareType == HardwareType.Cpu)
                     .ToList();
 
-                _cpuName = cpuHardwareList.Count > 0
-                    ? cpuHardwareList[0].Name
-                    : "Unknown";
-
                 var cpuSensorList = cpuHardwareList.SelectMany(s => s.Sensors).ToList();
-                _cpuUsage = FetchCpuUsage(cpuSensorList);
                 _cpuPackagePower = FetchCpuPackage(cpuSensorList);
                 _cpuTemperature = FetchCpuTemperature(cpuSensorList);
                 _cpuFreq = FetchCpuFreq(cpuSensorList);
 
                 var videoCardSensorList = FetchHardwareVideoCard();
-                _videoCard3DUsage = FetchVideoCard3DUsage(videoCardSensorList);
+                FetchVideoCard3DUsage(videoCardSensorList);
             }
             catch (Exception e)
             {
@@ -123,7 +108,7 @@ namespace RyzenTuner.Common.Hardware
             }
         }
 
-        private float FetchVideoCard3DUsage(IEnumerable<ISensor> videoCardSensorList)
+        private static float FetchVideoCard3DUsage(IEnumerable<ISensor> videoCardSensorList)
         {
             var linqVideoCard3D = videoCardSensorList
                 .Where(s => s.SensorType == SensorType.Load)
@@ -139,7 +124,7 @@ namespace RyzenTuner.Common.Hardware
             return 0;
         }
 
-        private float FetchCpuTemperature(IEnumerable<ISensor> cpuEnumerable)
+        private static float FetchCpuTemperature(IEnumerable<ISensor> cpuEnumerable)
         {
             //  CPU 温度
             var linqCpuTemperature = cpuEnumerable
@@ -161,7 +146,7 @@ namespace RyzenTuner.Common.Hardware
         /// </summary>
         /// <param name="cpuEnumerable"></param>
         /// <returns></returns>
-        private float FetchCpuPackage(IEnumerable<ISensor> cpuEnumerable)
+        private static float FetchCpuPackage(IEnumerable<ISensor> cpuEnumerable)
         {
             //  
             var linqCpuPackage = cpuEnumerable
@@ -178,34 +163,13 @@ namespace RyzenTuner.Common.Hardware
             return 0;
         }
 
-        /// <summary>
-        /// 获取 CPU 占用率
-        /// </summary>
-        /// <param name="cpuEnumerable"></param>
-        /// <returns></returns>
-        private static float FetchCpuUsage(IEnumerable<ISensor> cpuEnumerable)
-        {
-            var linqCpuUsage = cpuEnumerable
-                .Where(s => s.SensorType == SensorType.Load)
-                .Where(s => s.Name == "CPU Total")
-                .Where(s => s.Value != null)
-                .Select(s => s.Value)
-                .FirstOrDefault();
-
-            if (linqCpuUsage is <= 100)
-            {
-                return linqCpuUsage.Value;
-            }
-
-            return 0;
-        }
 
         /// <summary>
         /// 获取 CPU 平均频率
         /// </summary>
         /// <param name="cpuEnumerable"></param>
         /// <returns></returns>
-        private float FetchCpuFreq(IEnumerable<ISensor> cpuEnumerable)
+        private static float FetchCpuFreq(IEnumerable<ISensor> cpuEnumerable)
         {
             var cpuSensorList = cpuEnumerable.ToList();
             var cpuCount = Environment.ProcessorCount;

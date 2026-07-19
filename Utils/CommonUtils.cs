@@ -1,32 +1,9 @@
-using System;
-using System.Diagnostics;
 using System.Drawing;
 
 namespace RyzenTuner.Utils
 {
     public static class CommonUtils
     {
-        /**
-         * 检查系统是否处于锁屏状态
-         */
-        public static bool IsSystemLocked()
-        {
-            // logonui，即 Windows Logon User Interface Host，翻译为【登录用户界面】
-            var processes = Process.GetProcessesByName("logonui");
-
-            try
-            {
-                return processes.Length > 0;
-            }
-            finally
-            {
-                foreach (var process in processes)
-                {
-                    process.Dispose();
-                }
-            }
-        }
-
         /**
          * 检查字体是否存在
          */
@@ -48,22 +25,6 @@ namespace RyzenTuner.Utils
             {
                 return false;
             }
-        }
-
-        /**
-         * 检查提供的日期是否处于晚上
-         */
-        public static bool IsNight(DateTime now)
-        {
-            TimeSpan nightShiftStart = new TimeSpan(23, 0, 0); // 23:00pm 
-            TimeSpan nightShiftEnd = new TimeSpan(7, 0, 0); // 7:00am
-
-            if (now.TimeOfDay > nightShiftStart || now.TimeOfDay < nightShiftEnd)
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }

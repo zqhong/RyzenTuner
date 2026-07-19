@@ -34,18 +34,12 @@ namespace RyzenTuner.Common.Container
             /// Make registered type a singleton
             /// </summary>
             void AsSingleton();
-
-            /// <summary>
-            /// Make registered type a per-scope type (single instance within a Scope)
-            /// </summary>
-            void PerScope();
         }
 
         #endregion
 
         // Map of registered types
-        private readonly Dictionary<Type, Func<ILifetime, object>> _registeredTypes =
-            new Dictionary<Type, Func<ILifetime, object>>();
+        private readonly Dictionary<Type, Func<ILifetime, object>> _registeredTypes = new();
 
         // Lifetime management
         private readonly ContainerLifetime _lifetime;
@@ -83,9 +77,7 @@ namespace RyzenTuner.Common.Container
         /// <returns>Instance of the registered type, if registered; otherwise <see langword="null"/></returns>
         public object GetService(Type type)
         {
-            Func<ILifetime, object> registeredType;
-
-            if (!_registeredTypes.TryGetValue(type, out registeredType))
+            if (!_registeredTypes.TryGetValue(type, out var registeredType))
             {
                 // 不显示 WARN
                 return null!;
@@ -111,16 +103,13 @@ namespace RyzenTuner.Common.Container
         private interface ILifetime : IScope
         {
             object GetServiceAsSingleton(Type type, Func<ILifetime, object> factory);
-
-            object GetServicePerScope(Type type, Func<ILifetime, object> factory);
         }
 
         // ObjectCache provides common caching logic for lifetimes
         private abstract class ObjectCache
         {
             // Instance cache
-            private readonly ConcurrentDictionary<Type, object> _instanceCache =
-                new ConcurrentDictionary<Type, object>();
+            private readonly ConcurrentDictionary<Type, object> _instanceCache = new();
 
             // Get from cache or create and cache object
             protected object GetCached(Type type, Func<ILifetime, object> factory, ILifetime lifetime)
@@ -147,9 +136,6 @@ namespace RyzenTuner.Common.Container
             public object GetServiceAsSingleton(Type type, Func<ILifetime, object> factory)
                 => GetCached(type, factory, this);
 
-            // At container level, per-scope items are equivalent to singletons
-            public object GetServicePerScope(Type type, Func<ILifetime, object> factory)
-                => GetServiceAsSingleton(type, factory);
         }
 
         // Per-scope lifetime management
@@ -166,9 +152,6 @@ namespace RyzenTuner.Common.Container
             public object GetServiceAsSingleton(Type type, Func<ILifetime, object> factory)
                 => _parentLifetime.GetServiceAsSingleton(type, factory);
 
-            // Per-scope objects get cached
-            public object GetServicePerScope(Type type, Func<ILifetime, object> factory)
-                => GetCached(type, factory, this);
         }
 
         #endregion
@@ -223,9 +206,6 @@ namespace RyzenTuner.Common.Container
 
             public void AsSingleton()
                 => _registerFactory(lifetime => lifetime.GetServiceAsSingleton(_itemType, _factory));
-
-            public void PerScope()
-                => _registerFactory(lifetime => lifetime.GetServicePerScope(_itemType, _factory));
         }
 
         #endregion
@@ -237,27 +217,6 @@ namespace RyzenTuner.Common.Container
     internal static class ContainerExtensions
     {
         /// <summary>
-        /// Registers an implementation type for the specified interface
-        /// </summary>
-        /// <typeparam name="T">Interface to register</typeparam>
-        /// <param name="container">This container instance</param>
-        /// <param name="type">Implementing type</param>
-        /// <returns>IRegisteredType object</returns>
-        public static Container.IRegisteredType Register<T>(this Container container, Type type)
-            => container.Register(typeof(T), type);
-
-        /// <summary>
-        /// Registers an implementation type for the specified interface
-        /// </summary>
-        /// <typeparam name="TInterface">Interface to register</typeparam>
-        /// <typeparam name="TImplementation">Implementing type</typeparam>
-        /// <param name="container">This container instance</param>
-        /// <returns>IRegisteredType object</returns>
-        public static Container.IRegisteredType Register<TInterface, TImplementation>(this Container container)
-            where TImplementation : TInterface
-            => container.Register(typeof(TInterface), typeof(TImplementation));
-
-        /// <summary>
         /// Registers a factory function which will be called to resolve the specified interface
         /// </summary>
         /// <typeparam name="T">Interface to register</typeparam>
@@ -267,15 +226,6 @@ namespace RyzenTuner.Common.Container
         /// 不显示 WARN
         public static Container.IRegisteredType Register<T>(this Container container, Func<T> factory)
             => container.Register(typeof(T), () => factory()!);
-
-        /// <summary>
-        /// Registers a type
-        /// </summary>
-        /// <param name="container">This container instance</param>
-        /// <typeparam name="T">Type to register</typeparam>
-        /// <returns>IRegisteredType object</returns>
-        public static Container.IRegisteredType Register<T>(this Container container)
-            => container.Register(typeof(T), typeof(T));
 
         /// <summary>
         /// Returns an implementation of the specified interface

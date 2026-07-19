@@ -7,7 +7,6 @@ namespace RyzenTuner.Common.Logger
     /// </summary>
     public class LogEntry
     {
-        public long Id { get; set; }
         public DateTime Timestamp { get; set; }
         public string Level { get; set; } = ""; // Trace/Debug/Info/Warning/Error/Fatal
         public string Action { get; set; } = ""; // 操作类别（Auto Switch, Power Limit, etc.）

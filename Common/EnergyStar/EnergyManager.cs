@@ -108,7 +108,7 @@ namespace RyzenTuner.Common.EnergyStar
         private readonly int _szControlBlock;
         private bool _disposed;
 
-        public const string UwpFrameHostApp = "ApplicationFrameHost.exe";
+        private const string UwpFrameHostApp = "ApplicationFrameHost.exe";
 
         public EnergyManager()
         {
@@ -211,7 +211,7 @@ namespace RyzenTuner.Common.EnergyStar
         /// </summary>
         /// <param name="hProcess"></param>
         /// <returns></returns>
-        private string GetProcessNameFromHandle(IntPtr hProcess)
+        private static string GetProcessNameFromHandle(IntPtr hProcess)
         {
             try
             {
@@ -308,7 +308,7 @@ namespace RyzenTuner.Common.EnergyStar
         /// </summary>
         /// <param name="processId"></param>
         /// <returns></returns>
-        private IntPtr NativeOpenProcess(int processId)
+        private static IntPtr NativeOpenProcess(int processId)
         {
             const uint processAccess = (uint)(
                 Win32Api.ProcessAccessFlags.QueryLimitedInformation |

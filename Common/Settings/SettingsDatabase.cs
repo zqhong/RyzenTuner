@@ -11,8 +11,7 @@ namespace RyzenTuner.Common.Settings
     /// </summary>
     internal static class SettingsDatabase
     {
-        public const string DbFileName = "RyzenTuner.db";
-        public const string SettingsTableName = "settings";
+        private const string DbFileName = "RyzenTuner.db";
 
         /// <summary>
         /// 新路径：%LocalAppData%\RyzenTuner\RyzenTuner.db
@@ -131,11 +130,5 @@ namespace RyzenTuner.Common.Settings
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL
             )";
-
-        /// <summary>
-        /// 架构版本控制密钥（用于检测是否需要重新迁移）。
-        /// </summary>
-        public const string SchemaVersionKey = "__schema_version";
-        public const int CurrentSchemaVersion = 2; // v1: 初始 SQLite 架构
     }
 }

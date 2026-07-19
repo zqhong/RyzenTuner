@@ -15,7 +15,7 @@ namespace RyzenTuner.Common.Settings
     public static class AppSettings
     {
         private static string? _connectionString;
-        private static readonly Dictionary<string, string?> _cache = new(StringComparer.Ordinal);
+        private static readonly Dictionary<string, string?> Cache = new(StringComparer.Ordinal);
 
         /// <summary>
         /// 初始化数据库连接并加载所有已保存的设置到缓存。
@@ -48,7 +48,7 @@ namespace RyzenTuner.Common.Settings
                     using var reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
-                        _cache[reader.GetString(0)] = reader.GetString(1);
+                        Cache[reader.GetString(0)] = reader.GetString(1);
                     }
                 }
             }
@@ -63,7 +63,7 @@ namespace RyzenTuner.Common.Settings
         /// </summary>
         public static string? Get(string key)
         {
-            return _cache.TryGetValue(key, out var value) ? value : null;
+            return Cache.TryGetValue(key, out var value) ? value : null;
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace RyzenTuner.Common.Settings
         /// </summary>
         public static T Get<T>(string key, T defaultValue) where T : IConvertible
         {
-            if (_cache.TryGetValue(key, out var value) && value != null)
+            if (Cache.TryGetValue(key, out var value) && value != null)
             {
                 try
                 {
@@ -99,7 +99,7 @@ namespace RyzenTuner.Common.Settings
         /// </summary>
         public static void Set(string key, string value)
         {
-            _cache[key] = value;
+            Cache[key] = value;
 
             try
             {
@@ -133,20 +133,5 @@ namespace RyzenTuner.Common.Settings
             Set(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
-        /// <summary>
-        /// 检查指定键是否存在缓存中（即是否曾在 SQLite 中保存过值）。
-        /// </summary>
-        public static bool Has(string key)
-        {
-            return _cache.ContainsKey(key);
-        }
-
-        /// <summary>
-        /// 兼容旧版 Save() 调用 — 设置已立即持久化，此方法为无操作。
-        /// </summary>
-        [Obsolete("设置已自动持久化，无需调用 Save()")]
-        public static void Save()
-        {
-        }
     }
 }

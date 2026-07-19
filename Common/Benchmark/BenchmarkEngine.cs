@@ -194,8 +194,6 @@ namespace RyzenTuner.Common.Benchmark
             var tempSamples = new List<float>(totalSamples);
             var freqSamples = new List<float>(totalSamples);
 
-            var workload = new BenchmarkWorkload();
-
             // 启动数据采集任务
             // 使用 Task.Run 确保采样循环运行在线程池上，避免因 SynchronizationContext
             // （UI 线程）导致每次 await Task.Delay 后回送到 UI 线程阻塞消息泵
@@ -204,7 +202,7 @@ namespace RyzenTuner.Common.Benchmark
                     config.DurationSeconds * 1000, sampleIntervalMs, _cts.Token));
 
             // 启动跑分
-            var score = await workload.RunAsync(threadCount, config.DurationSeconds * 1000, _cts.Token);
+            var score = await BenchmarkWorkload.RunAsync(threadCount, config.DurationSeconds * 1000, _cts.Token);
 
             // 等待采集任务完成
             await samplingTask;
@@ -294,9 +292,9 @@ namespace RyzenTuner.Common.Benchmark
         private static bool ApplyTdpLimit(Processor.AmdProcessor processor, float tdp)
         {
             var ok = true;
-            ok &= processor.SetFastPPT(tdp);
-            ok &= processor.SetSlowPPT(tdp);
-            ok &= processor.SetStampPPT(tdp);
+            ok &= processor.SetFastPpt(tdp);
+            ok &= processor.SetSlowPpt(tdp);
+            ok &= processor.SetStampPpt(tdp);
             return ok;
         }
 
