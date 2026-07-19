@@ -938,12 +938,14 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            using var sfd = new SaveFileDialog();
-            sfd.Filter = Strings.TextBenchmarkExportSaveFilter;
-            sfd.FilterIndex = 1;
-            sfd.RestoreDirectory = true;
-            sfd.FileName =
-                $"{Strings.TextBenchmarkExportFileName}-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
+            using var sfd = new SaveFileDialog
+            {
+                Filter = Strings.TextBenchmarkExportSaveFilter,
+                FilterIndex = 1,
+                RestoreDirectory = true,
+                FileName =
+                    $"{Strings.TextBenchmarkExportFileName}-{DateTime.Now:yyyyMMdd-HHmmss}.csv",
+            };
 
             if (sfd.ShowDialog() != DialogResult.OK)
                 return;

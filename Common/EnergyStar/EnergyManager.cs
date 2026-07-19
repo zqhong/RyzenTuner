@@ -153,7 +153,7 @@ namespace RyzenTuner.Common.EnergyStar
 
         ~EnergyManager()
         {
-            Dispose();
+            DisposeCore();
         }
 
         /// <summary>
@@ -379,6 +379,12 @@ namespace RyzenTuner.Common.EnergyStar
 
         public void Dispose()
         {
+            DisposeCore();
+            GC.SuppressFinalize(this);
+        }
+
+        private void DisposeCore()
+        {
             if (_disposed)
             {
                 return;
@@ -395,7 +401,6 @@ namespace RyzenTuner.Common.EnergyStar
             }
 
             _disposed = true;
-            GC.SuppressFinalize(this);
         }
     }
 }
