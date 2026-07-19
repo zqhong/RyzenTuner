@@ -147,11 +147,15 @@ namespace RyzenTuner.Common.Processor
             }
 
             // 例如：15W : 15000 mW
-            // 保护：拒绝负数或零值，避免 (uint) 转换后环绕为超大值
-            if (limit <= 0)
+            // 保护：拒绝负数、零值或 NaN，避免 (uint) 转换后环绕为超大值
+            if (limit <= 0 || double.IsNaN(limit))
                 return false;
 
             limit *= 1000;
+
+            // 保护：防止 double→uint 溢出（uint.MaxValue = 4294967295）
+            if (limit > uint.MaxValue)
+                return false;
 
             var result = type switch
             {

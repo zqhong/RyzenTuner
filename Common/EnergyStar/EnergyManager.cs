@@ -254,7 +254,7 @@ namespace RyzenTuner.Common.EnergyStar
                 if (appName == UwpFrameHostApp)
                 {
                     var found = false;
-                    Win32Api.EnumChildWindows(hwnd, (innerHwnd, _) =>
+                    var enumResult = Win32Api.EnumChildWindows(hwnd, (innerHwnd, _) =>
                     {
                         if (found) return true;
                         if (Win32Api.GetWindowThreadProcessId(innerHwnd, out var innerProcId) <= 0) return true;
@@ -283,8 +283,14 @@ namespace RyzenTuner.Common.EnergyStar
                             }
                         }
 
-                        return true;
+                        return false; // stop enumeration once found
                     }, IntPtr.Zero);
+
+                    if (!enumResult)
+                    {
+                        AppContainer.Logger().Warning("EnergyStar",
+                            "EnumChildWindows failed while searching for UWP child process");
+                    }
                 }
 
 

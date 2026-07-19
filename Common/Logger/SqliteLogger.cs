@@ -23,10 +23,10 @@ namespace RyzenTuner.Common.Logger
             Fatal
         }
 
-        // 注意：_datetimeFormat 必须保持 "yyyy-MM-dd HH:mm:ss" 格式不变，
+        // ISO 8601 兼容格式，作为常量以防止误改。
         // Cleanup() 中的 DELETE 查询使用字符串字典序比较 timestamp 列，
         // 任何格式变更（如省略前导零、12 小时制）都会导致时间比较失效。
-        private readonly string _datetimeFormat;
+        private const string DateTimeFormat = "yyyy-MM-dd HH:mm:ss";
         private readonly string _dbPath;
         private readonly object _dbLock = new();
         private bool _disposed;
@@ -36,7 +36,6 @@ namespace RyzenTuner.Common.Logger
 
         public SqliteLogger()
         {
-            _datetimeFormat = "yyyy-MM-dd HH:mm:ss";
 
             // #4, #14: 使用 SettingsDatabase 共享的路径和连接字符串
             _dbPath = SettingsDatabase.GetDbPath();
@@ -364,7 +363,7 @@ namespace RyzenTuner.Common.Logger
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = "DELETE FROM logs WHERE timestamp < @cutoff";
                     cmd.Parameters.AddWithValue("@cutoff",
-                        DateTime.UtcNow.AddDays(-retentionDays).ToString(_datetimeFormat));
+                        DateTime.UtcNow.AddDays(-retentionDays).ToString(DateTimeFormat));
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -420,7 +419,7 @@ namespace RyzenTuner.Common.Logger
                         VALUES (@timestamp, @level, @action, @details, @elapsed_ms)
                     ";
                     cmd.Parameters.AddWithValue("@timestamp",
-                        entry.Timestamp.ToString(_datetimeFormat));
+                        entry.Timestamp.ToString(DateTimeFormat));
                     cmd.Parameters.AddWithValue("@level", entry.Level);
                     cmd.Parameters.AddWithValue("@action", entry.Action);
                     cmd.Parameters.AddWithValue("@details", entry.Details);

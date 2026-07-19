@@ -169,7 +169,13 @@ namespace RyzenTuner.Common.Container
                 constructors = itemType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic);
             }
 
-            var constructor = constructors.First();
+            if (constructors.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    $"Type {itemType.FullName} has no public or non-public constructors.");
+            }
+
+            var constructor = constructors[0];
 
             // Compile constructor call as a lambda expression
             var arg = Expression.Parameter(typeof(ILifetime));

@@ -77,6 +77,9 @@ namespace RyzenTuner.Common.Benchmark
         /// <summary>跑分成绩（迭代次数）</summary>
         public long Score { get; set; }
 
+        /// <summary>缩放后的分数（用于显示，原始 Score 保留给 Efficiency 计算）</summary>
+        public long ScaledScore { get; set; }
+
         // ---- 实际功耗统计 ----
         public float PowerMin { get; set; }
         public float PowerMax { get; set; }
@@ -92,7 +95,7 @@ namespace RyzenTuner.Common.Benchmark
         /// <summary>CPU 频率平均值（MHz）</summary>
         public float CpuFreqAvg { get; set; }
 
-        /// <summary>能效比 = Score / PowerAvg</summary>
+        /// <summary>能效比 = Score / PowerAvg（使用原始 Score，不受缩放影响）</summary>
         public float Efficiency => PowerAvg > 0.01f ? Score / PowerAvg : 0;
 
         /// <summary>能力发挥 = 当前分数 / 所有测试点最高分（0~1），在全部测试完成后计算</summary>

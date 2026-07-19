@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -103,8 +103,8 @@ namespace RyzenTuner.Common.Benchmark
                 }
 
                 // 将跑分成绩缩放到可读范围（控制在五位数以内，≤99,999）
-                // 统一缩放不影响相对比较：Capability（比值）完全不变，
-                // Efficiency（Score/PowerAvg）同步缩放。
+                // 只缩放 ScaledScore（用于 UI 显示），不修改原始 Score，
+                // 确保 Efficiency 使用原始分数计算，不受缩放影响。
                 if (results.Count > 0)
                 {
                     var maxScore = results.Max(r => r.Score);
@@ -122,16 +122,23 @@ namespace RyzenTuner.Common.Benchmark
 
                         foreach (var r in results)
                         {
-                            r.Score = Math.Max(r.Score / divisor, 1L);
+                            r.ScaledScore = Math.Max(r.Score / divisor, 1L);
+                        }
+                    }
+                    else
+                    {
+                        // 无需缩放时，ScaledScore = Score
+                        foreach (var r in results)
+                        {
+                            r.ScaledScore = r.Score;
                         }
                     }
 
                     // 计算能力发挥（Capability）
-                    // 未缩放时 divisor = 1，maxScore / 1 ≈ maxScore，与旧值等价
-                    var finalMax = maxScore / divisor;
+                    var finalMax = divisor > 0 ? maxScore / divisor : maxScore;
                     foreach (var r in results)
                     {
-                        r.Capability = finalMax > 0 ? (double)r.Score / finalMax : 0;
+                        r.Capability = finalMax > 0 ? (double)r.ScaledScore / finalMax : 0;
                     }
                 }
 
