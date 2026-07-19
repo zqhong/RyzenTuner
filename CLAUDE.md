@@ -1,24 +1,28 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 构建
 
-.NET Framework 4.8 WinForms 项目，使用 MSBuild 构建：
+.NET Framework 4.8 WinForms 项目，使用 MSBuild 构建（NuGet 包通过 `packages.config` 管理，非 PackageReference）：
 
 ```bash
 MSBUILD_EXE="/c/Program Files/JetBrains/JetBrains Rider 2026.1.4/tools/MSBuild/Current/Bin/amd64/MSBuild.exe"
+nuget restore RyzenTuner.sln
 "$MSBUILD_EXE" "RyzenTuner.csproj" "//t:Rebuild" "//p:Configuration=Debug" "//nologo" "//verbosity:minimal"
 ```
 
 Release 构建：
 ```bash
+nuget restore RyzenTuner.sln
 "$MSBUILD_EXE" "RyzenTuner.csproj" "//t:Rebuild" "//p:Configuration=Release" "//nologo" "//verbosity:minimal"
 ```
 
 发布打包（生成 zip）：
 ```bash
-make release    # 需要 Git Bash，见 Makefile
+# 手动打包 bin\Release 目录下的所有文件（含 native DLL）
+cd bin/Release
+zip -r ../../RyzenTuner-{version}.zip .
 ```
 
 CI：`.github/workflows/debug_build.yml` — GitHub Actions 使用 `microsoft/setup-msbuild` + `nuget restore`，手动触发时可选日志级别。
@@ -53,6 +57,9 @@ RyzenTuner/
 │   ├── Logger/                # SQLite 日志（SqliteLogger）
 │   │   └── LogModels.cs       # 日志条目模型（LogEntry）
 │   ├── Processor/             # RyzenAdj P/Invoke 绑定 + AMDProcessor 封装
+│   ├── Settings/              # SQLite 设置存储（替代旧 user.config）
+│   │   ├── AppSettings.cs        # 静态 API：Get<T>() / Set()，缓存 + 即时持久化
+│   │   └── SettingsDatabase.cs   # DB 路径、迁移、连接字符串（含 WAL + BusyTimeout）
 │   ├── Awake.cs               # 阻止系统睡眠（SetThreadExecutionState）
 │   ├── PowerConfig.cs         # Windows 电源计划管理（CPU Boost 开关）
 │   └── StartupTaskScheduler.cs
@@ -67,14 +74,7 @@ RyzenTuner/
 │   ├── CommonUtils.cs         # 锁屏检测、夜间判断、字体检查
 │   └── DebugUtils.cs
 ├── Properties/
-│   ├── Settings.settings      # 用户设置（各模式功率、高级参数、开关等）
-│   │   ├── SleepMode/PowerSaveMode/BalancedMode/PerformanceMode/AutoMode/CustomMode — 瓦特值
-│   │   ├── CurrentMode — 当前选中模式
-│   │   ├── TctlTemp/ApuSkinTemp — 温度限制
-│   │   ├── EnergyStar/KeepAwake/LaunchAtLogon/CpuBoostEnabled — 开关
-│   │   ├── LogLevel — 日志详细级别（Trace/Debug/Info/Warning/Error/Fatal）
-│   │   └── EnergyStarBypassProcessList — 逗号分隔的进程豁免名单
-│   ├── Strings.resx           # 中文字符串
+│   ├── Strings.resx           # 中文 UI 字符串
 │   └── Strings.en.resx        # 英文字符串回退
 └── native/                    # 原生 DLL（构建时自动复制到输出目录根目录）
     ├── libryzenadj.dll        # AMD SMU 通信库（v0.19.0）

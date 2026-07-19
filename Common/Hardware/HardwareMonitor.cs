@@ -65,24 +65,6 @@ namespace RyzenTuner.Common.Hardware
             _computer.Accept(new UpdateVisitor());
         }
 
-        /// <summary>
-        /// 获取核心显卡的传感器信息
-        ///
-        /// 显卡名称示例：AMD Radeon(TM) Graphics
-        /// 备注：如果是 AMD 核心显卡 + AMD 独立显卡，可能会有问题
-        /// </summary>
-        /// <returns></returns>
-        private List<ISensor> FetchHardwareVideoCard()
-        {
-            var hardwareVideoCard = _computer
-                .Hardware
-                .Where(i => i.HardwareType == HardwareType.GpuAmd)
-                .SelectMany(s => s.Sensors);
-            var videoCardList = hardwareVideoCard.ToList();
-
-            return videoCardList;
-        }
-
         public void Monitor()
         {
             try
@@ -98,30 +80,11 @@ namespace RyzenTuner.Common.Hardware
                 _cpuPackagePower = FetchCpuPackage(cpuSensorList);
                 _cpuTemperature = FetchCpuTemperature(cpuSensorList);
                 _cpuFreq = FetchCpuFreq(cpuSensorList);
-
-                var videoCardSensorList = FetchHardwareVideoCard();
-                FetchVideoCard3DUsage(videoCardSensorList);
             }
             catch (Exception e)
             {
                 AppContainer.Logger().LogException(e);
             }
-        }
-
-        private static float FetchVideoCard3DUsage(IEnumerable<ISensor> videoCardSensorList)
-        {
-            var linqVideoCard3D = videoCardSensorList
-                .Where(s => s.SensorType == SensorType.Load)
-                .Where(s => s.Name == "D3D 3D")
-                .Where(s => s.Value != null)
-                .Select(s => s.Value)
-                .FirstOrDefault();
-            if (linqVideoCard3D is <= 100)
-            {
-                return linqVideoCard3D.Value;
-            }
-
-            return 0;
         }
 
         private static float FetchCpuTemperature(IEnumerable<ISensor> cpuEnumerable)

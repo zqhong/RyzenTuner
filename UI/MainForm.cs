@@ -1576,14 +1576,13 @@ namespace RyzenTuner.UI
                     var boostApplied = TryApplyCpuBoost(() =>
                         shouldEnableCpuBoost
                             ? AppContainer.PowerConfig().EnableCpuBoost()
-                            : AppContainer.PowerConfig().DisableCpuBoost(),
-                        out var boostChanged);
+                            : AppContainer.PowerConfig().DisableCpuBoost());
 
                     if (!boostApplied)
                     {
                         applyErrors.Add(shouldEnableCpuBoost ? "EnableCpuBoost()" : "DisableCpuBoost()");
                     }
-                    else if (boostChanged)
+                    else
                     {
                         _lastCpuBoostEnabled = shouldEnableCpuBoost;
                     }
@@ -1667,12 +1666,7 @@ namespace RyzenTuner.UI
         /// </summary>
         private static bool TryApplyIntSetting(Func<bool> applyAction) => applyAction();
 
-        private static bool TryApplyCpuBoost(Func<bool> applyAction, out bool changed)
-        {
-            var result = applyAction();
-            changed = result;
-            return result;
-        }
+        private static bool TryApplyCpuBoost(Func<bool> applyAction) => applyAction();
 
         private void ReportPowerLimitApplyError(string errorText)
         {
