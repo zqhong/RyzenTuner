@@ -1004,7 +1004,7 @@ namespace RyzenTuner.UI
     this.toolStripMenuItemExit.Click += new EventHandler(this.ExitAppToolStripMenuItem_Click);
 
     this.notifyIcon1.ContextMenuStrip = this.contextMenuStripIcon;
-    this.notifyIcon1.Icon = getIcon();
+    this.notifyIcon1.Icon = GetIcon();
     this.notifyIcon1.Visible = true;
     this.notifyIcon1.MouseDoubleClick += new MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
 
@@ -1021,7 +1021,7 @@ namespace RyzenTuner.UI
     this.AutoScaleDimensions = new SizeF(96F, 96F);
     this.AutoScaleMode = AutoScaleMode.Dpi; // 使用 DPI 缩放代替 Font 缩放能更好地适配高分屏
     this.ClientSize = new Size(860, 580);
-    this.Icon = getIcon();
+    this.Icon = GetIcon();
     this.MinimumSize = new Size(760, 510);
     this.Name = "MainForm";
     

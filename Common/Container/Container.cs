@@ -108,7 +108,7 @@ namespace RyzenTuner.Common.Container
         #region Lifetime management
 
         // ILifetime management adds resolution strategies to an IScope
-        interface ILifetime : IScope
+        private interface ILifetime : IScope
         {
             object GetServiceAsSingleton(Type type, Func<ILifetime, object> factory);
 
@@ -116,7 +116,7 @@ namespace RyzenTuner.Common.Container
         }
 
         // ObjectCache provides common caching logic for lifetimes
-        abstract class ObjectCache
+        private abstract class ObjectCache
         {
             // Instance cache
             private readonly ConcurrentDictionary<Type, object> _instanceCache =
@@ -134,7 +134,7 @@ namespace RyzenTuner.Common.Container
         }
 
         // Container lifetime management
-        class ContainerLifetime : ObjectCache, ILifetime
+        private class ContainerLifetime : ObjectCache, ILifetime
         {
             // Retrieves the factory function from the given type, provided by owning container
             public Func<Type, Func<ILifetime, object>> GetFactory { get; private set; }
@@ -153,7 +153,7 @@ namespace RyzenTuner.Common.Container
         }
 
         // Per-scope lifetime management
-        class ScopeLifetime : ObjectCache, ILifetime
+        private class ScopeLifetime : ObjectCache, ILifetime
         {
             // Singletons come from parent container's lifetime
             private readonly ContainerLifetime _parentLifetime;
@@ -205,7 +205,7 @@ namespace RyzenTuner.Common.Container
 
         // RegisteredType is supposed to be a short lived object tying an item to its container
         // and allowing users to mark it as a singleton or per-scope item
-        class RegisteredType : IRegisteredType
+        private class RegisteredType : IRegisteredType
         {
             private readonly Type _itemType;
             private readonly Action<Func<ILifetime, object>> _registerFactory;
@@ -234,7 +234,7 @@ namespace RyzenTuner.Common.Container
     /// <summary>
     /// Extension methods for Container
     /// </summary>
-    static class ContainerExtensions
+    internal static class ContainerExtensions
     {
         /// <summary>
         /// Registers an implementation type for the specified interface

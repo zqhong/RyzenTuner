@@ -127,15 +127,15 @@ namespace RyzenTuner.Common.EnergyStar
             var throttleState = new Win32Api.ProcessPowerThrottlingState
             {
                 Version = Win32Api.ProcessPowerThrottlingState.ProcessPowerThrottlingCurrentVersion,
-                ControlMask = Win32Api.ProcessorPowerThrottlingFlags.PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
-                StateMask = Win32Api.ProcessorPowerThrottlingFlags.PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
+                ControlMask = Win32Api.ProcessorPowerThrottlingFlags.ProcessPowerThrottlingExecutionSpeed,
+                StateMask = Win32Api.ProcessorPowerThrottlingFlags.ProcessPowerThrottlingExecutionSpeed,
             };
 
             // HighQoS：关闭 ExecutionSpeed 节流
             var unThrottleState = new Win32Api.ProcessPowerThrottlingState
             {
                 Version = Win32Api.ProcessPowerThrottlingState.ProcessPowerThrottlingCurrentVersion,
-                ControlMask = Win32Api.ProcessorPowerThrottlingFlags.PROCESS_POWER_THROTTLING_EXECUTION_SPEED,
+                ControlMask = Win32Api.ProcessorPowerThrottlingFlags.ProcessPowerThrottlingExecutionSpeed,
                 StateMask = Win32Api.ProcessorPowerThrottlingFlags.None,
             };
 
@@ -188,13 +188,13 @@ namespace RyzenTuner.Common.EnergyStar
                 }
 
                 var r1 = Win32Api.SetProcessInformation(hProcess,
-                    Win32Api.PROCESS_INFORMATION_CLASS.ProcessPowerThrottling,
+                    Win32Api.ProcessInformationClass.ProcessPowerThrottling,
                     enable ? _pThrottleOn : _pThrottleOff, (uint)_szControlBlock);
 
                 var r2 = Win32Api.SetPriorityClass(hProcess,
                     enable
-                        ? Win32Api.PriorityClass.BELOW_NORMAL_PRIORITY_CLASS
-                        : Win32Api.PriorityClass.NORMAL_PRIORITY_CLASS);
+                        ? Win32Api.PriorityClass.BelowNormalPriorityClass
+                        : Win32Api.PriorityClass.NormalPriorityClass);
 
                 var actionText = enable ? "Throttle" : "Boost";
                 logger.Debug(

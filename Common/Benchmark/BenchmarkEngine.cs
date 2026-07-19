@@ -297,9 +297,9 @@ namespace RyzenTuner.Common.Benchmark
         private static bool ApplyTdpLimit(Processor.AmdProcessor processor, float tdp)
         {
             var ok = true;
-            ok &= processor.SetFastPpt(tdp);
-            ok &= processor.SetSlowPpt(tdp);
-            ok &= processor.SetStampPpt(tdp);
+            ok &= processor.SetFastPPT(tdp);
+            ok &= processor.SetSlowPPT(tdp);
+            ok &= processor.SetStampPPT(tdp);
             return ok;
         }
 

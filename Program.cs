@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
@@ -33,8 +34,7 @@ namespace RyzenTuner
         {
             try
             {
-                bool isFirst;
-                _instanceMutex = new Mutex(true, "RyzenTuner-InstanceMutex", out isFirst);
+                _instanceMutex = new Mutex(true, "RyzenTuner-InstanceMutex", out var isFirst);
                 return isFirst;
             }
             catch
@@ -57,8 +57,7 @@ namespace RyzenTuner
                 }
 
                 // 使用 Mutex 进行单例检测，支持重启场景
-                bool isFirstInstance;
-                _instanceMutex = new Mutex(true, "RyzenTuner-InstanceMutex", out isFirstInstance);
+                _instanceMutex = new Mutex(true, "RyzenTuner-InstanceMutex", out var isFirstInstance);
                 if (!isFirstInstance)
                 {
                     throw new Exception(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
@@ -121,7 +120,7 @@ namespace RyzenTuner
             }
             else
             {
-                langCode = Utils.RyzenTunerUtils.DetectDefaultLanguageCode();
+                langCode = RyzenTuner.Utils.RyzenTunerUtils.DetectDefaultLanguageCode();
             }
 
             var culture = new CultureInfo(langCode);

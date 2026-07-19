@@ -14,11 +14,9 @@ namespace RyzenTuner.Common.Processor
         }
         
         private IntPtr _ry;
-        private readonly bool _canChangeTdp;
-        private readonly RyzenFamily _family;
 
-        public bool CanChangeTdp => _canChangeTdp;
-        public RyzenFamily CpuFamily => _family;
+        public bool CanChangeTdp { get; private set; }
+        public RyzenFamily CpuFamily { get; private set; }
 
         public void Dispose()
         {
@@ -37,14 +35,12 @@ namespace RyzenTuner.Common.Processor
 
                 _ = RyzenAdj.get_table_ver(_ry);
 
-                _family = RyzenAdj.get_cpu_family(_ry);
+                CpuFamily = RyzenAdj.get_cpu_family(_ry);
 
-                switch (_family)
+                switch (CpuFamily)
                 {
-                    case RyzenFamily.FamUnknown:
-                    case RyzenFamily.FamEnd:
                     default:
-                        _canChangeTdp = false;
+                        CanChangeTdp = false;
                         break;
 
                     case RyzenFamily.FamRaven:
@@ -63,7 +59,7 @@ namespace RyzenTuner.Common.Processor
                     case RyzenFamily.FamStrixPoint:
                     case RyzenFamily.FamStrixHalo:
                     case RyzenFamily.FamFireRange:
-                        _canChangeTdp = true;
+                        CanChangeTdp = true;
                         break;
                 }
 
@@ -92,14 +88,14 @@ namespace RyzenTuner.Common.Processor
 
         private void CleanupRy()
         {
-            if (_ry != IntPtr.Zero)
-            {
-                RyzenAdj.cleanup_ryzenadj(_ry);
-                _ry = IntPtr.Zero;
-            }
+            if (_ry == IntPtr.Zero)
+                return;
+
+            RyzenAdj.cleanup_ryzenadj(_ry);
+            _ry = IntPtr.Zero;
         }
         
-        public string CpuFamilyName => _family switch
+        public string CpuFamilyName => CpuFamily switch
         {
             RyzenFamily.FamUnknown => "Unknown",
             RyzenFamily.FamRaven => "Raven (2000/3000 series)",
@@ -222,7 +218,7 @@ namespace RyzenTuner.Common.Processor
 
         private bool SetTdpLimit(PowerType type, double limit)
         {
-            if (!_canChangeTdp)
+            if (!CanChangeTdp)
             {
                 return false;
             }
@@ -245,24 +241,24 @@ namespace RyzenTuner.Common.Processor
             return result == (int)ErrCode.AdjErrNone;
         }
 
-        public bool SetFastPpt(double limit)
+        public bool SetFastPPT(double limit)
         {
             return SetTdpLimit(PowerType.Fast, limit);
         }
         
-        public bool SetSlowPpt(double limit)
+        public bool SetSlowPPT(double limit)
         {
             return SetTdpLimit(PowerType.Slow, limit);
         }
         
-        public bool SetStampPpt(double limit)
+        public bool SetStampPPT(double limit)
         {
             return SetTdpLimit(PowerType.Stapm, limit);
         }
 
         public bool SetApuSkinTemp(uint temp)
         {
-            if (!_canChangeTdp)
+            if (!CanChangeTdp)
                 return false;
 
             var result = RyzenAdj.set_apu_skin_temp_limit(_ry, temp);

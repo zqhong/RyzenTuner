@@ -132,7 +132,7 @@ namespace RyzenTuner.UI
         /// <summary>
         /// 返回图标（在 Designer.cs 外部实现，避免 Rider CodeDom 解析器卡死）
         /// </summary>
-        private static Icon getIcon()
+        private static Icon GetIcon()
         {
             if (_cachedIcon != null)
                 return _cachedIcon;
@@ -1536,19 +1536,19 @@ namespace RyzenTuner.UI
 
                 var applyErrors = new List<string>();
 
-                if (!TryApplyPowerLimit(() => processor.SetFastPpt(stampLimit), out _))
+                if (!TryApplyPowerLimit(() => processor.SetFastPPT(stampLimit), out _))
                 {
-                    applyErrors.Add($"SetFastPpt({stampLimit:0.##}W)");
+                    applyErrors.Add($"SetFastPPT({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyPowerLimit(() => processor.SetSlowPpt(stampLimit), out _))
+                if (!TryApplyPowerLimit(() => processor.SetSlowPPT(stampLimit), out _))
                 {
-                    applyErrors.Add($"SetSlowPpt({stampLimit:0.##}W)");
+                    applyErrors.Add($"SetSlowPPT({stampLimit:0.##}W)");
                 }
 
-                if (!TryApplyPowerLimit(() => processor.SetStampPpt(stampLimit), out _))
+                if (!TryApplyPowerLimit(() => processor.SetStampPPT(stampLimit), out _))
                 {
-                    applyErrors.Add($"SetStampPpt({stampLimit:0.##}W)");
+                    applyErrors.Add($"SetStampPPT({stampLimit:0.##}W)");
                 }
 
                 if (!TryApplyTctlTemp(() => processor.SetTctlTemp((uint)tctlTemp), out _))

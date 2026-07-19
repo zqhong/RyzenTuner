@@ -16,23 +16,23 @@ namespace RyzenTuner.Utils
 
             AppContainer.PowerConfig().DisableCpuBoost();
             AppContainer.Logger().Debug("CpuBoost", "关闭睿频");
-            _logCpuInfo();
+            LogCpuInfoInternal();
 
             AppContainer.PowerConfig().EnableCpuBoost();
             AppContainer.Logger().Debug("CpuBoost", "开启睿频");
-            _logCpuInfo();
+            LogCpuInfoInternal();
         }
 
-        private static void _logCpuInfo()
+        private static void LogCpuInfoInternal()
         {
             const int maxPowerLimit = 30;
             var hardware = AppContainer.HardwareMonitor();
 
             for (var i = 1; i <= maxPowerLimit; i++)
             {
-                AppContainer.AmdProcessor().SetFastPpt(i);
-                AppContainer.AmdProcessor().SetSlowPpt(i);
-                AppContainer.AmdProcessor().SetStampPpt(i);
+                AppContainer.AmdProcessor().SetFastPPT(i);
+                AppContainer.AmdProcessor().SetSlowPPT(i);
+                AppContainer.AmdProcessor().SetStampPPT(i);
 
                 System.Threading.Thread.Sleep(2048);
                 AppContainer.HardwareMonitor().Monitor();

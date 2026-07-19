@@ -12,7 +12,7 @@ namespace RyzenTuner.Common
         /**
          * 获取当前激活的电源方案的 GUID
          */
-        private Guid GetActiveScheme()
+        private static Guid GetActiveScheme()
         {
             HKEY powerKey = default;
             var result = PowerGetActiveScheme(powerKey, out var activeGuidHandle);

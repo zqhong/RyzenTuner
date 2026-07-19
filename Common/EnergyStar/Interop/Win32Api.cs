@@ -26,8 +26,8 @@ namespace RyzenTuner.Common.EnergyStar.Interop
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetProcessInformation([In] IntPtr hProcess,
-            [In] PROCESS_INFORMATION_CLASS ProcessInformationClass, IntPtr ProcessInformation,
-            uint ProcessInformationSize);
+            [In] ProcessInformationClass processInformationClass, IntPtr processInformation,
+            uint processInformationSize);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetPriorityClass(IntPtr handle, PriorityClass priorityClass);
@@ -48,8 +48,8 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         public static extern int MessageBox(IntPtr hInstance, string lpText, string lpCaption, uint type);
 
         // two message box releated constants
-        public const int MB_OK = 0x00000000;
-        public const int MB_ICONERROR = 0x00000010;
+        public const int MbOk = 0x00000000;
+        public const int MbIconError = 0x00000010;
 
         [Flags]
         public enum ProcessAccessFlags : uint
@@ -72,7 +72,7 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         /// <summary>
         /// 参考：https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/ne-processthreadsapi-process_information_class
         /// </summary>
-        public enum PROCESS_INFORMATION_CLASS
+        public enum ProcessInformationClass
         {
             ProcessMemoryPriority,
             ProcessMemoryExhaustionInfo,
@@ -86,7 +86,7 @@ namespace RyzenTuner.Common.EnergyStar.Interop
             ProcessTelemetryCoverageInfo,
             ProcessProtectionLevelInfo,
             ProcessLeapSecondInfo,
-            ProcessInformationClassMax,
+            ProcessInformationClassMax
         }
 
         [Flags]
@@ -102,7 +102,7 @@ namespace RyzenTuner.Common.EnergyStar.Interop
             // 参考：
             //      https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setprocessinformation
             //      https://docs.microsoft.com/en-us/windows/win32/procthread/quality-of-service
-            PROCESS_POWER_THROTTLING_EXECUTION_SPEED = 0x1,
+            ProcessPowerThrottlingExecutionSpeed = 0x1
         }
 
         /// <summary>
@@ -111,32 +111,32 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         public enum PriorityClass : uint
         {
             // 【实时】具有最高优先级的进程。该进程的线程抢占所有其他进程的线程，包括执行重要任务的操作系统进程
-            REALTIME_PRIORITY_CLASS = 0x100,
+            RealtimePriorityClass = 0x100,
 
             // 【高】执行必须立即执行的时间关键任务的流程
             // 在使用高优先级类时要格外小心，因为高优先级类应用程序几乎可以使用所有可用的CPU时间。
-            HIGH_PRIORITY_CLASS = 0x80,
+            HighPriorityClass = 0x80,
 
             // 【高于正常】优先级高于普通优先级但低于高优先级的进程
-            ABOVE_NORMAL_PRIORITY_CLASS = 0x8000,
+            AboveNormalPriorityClass = 0x8000,
 
             // 【正常】Process with no special scheduling needs
-            NORMAL_PRIORITY_CLASS = 0x00000020,
+            NormalPriorityClass = 0x00000020,
 
             // 【低于正常】优先级高于空闲优先级但低于正常优先级的进程
-            BELOW_NORMAL_PRIORITY_CLASS = 0x4000,
+            BelowNormalPriorityClass = 0x4000,
 
             // 【低】仅在系统空闲时才运行线程的进程。进程的线程会被运行在更高优先级类中的任何进程的线程抢占。
             // 屏幕保护程序就是一个例子。空闲优先级类由子进程继承
-            IDLE_PRIORITY_CLASS = 0x00000040,
+            IdlePriorityClass = 0x00000040,
 
             // 开始后台处理模式。系统降低了进程(及其线程)的资源调度优先级，以便它可以在不显著影响前台活动的情况下执行后台工作
             // PROCESS_MODE_BACKGROUND_BEGIN 不适合用于低优先级的后台工作
             // 参考：https://stackoverflow.com/questions/13631644/setthreadpriority-and-setpriorityclass
-            PROCESS_MODE_BACKGROUND_BEGIN = 0x100000, // Windows Vista/2008 and higher
+            ProcessModeBackgroundBegin = 0x100000, // Windows Vista/2008 and higher
 
             // 结束后台处理模式。系统恢复进程(及其线程)进入后台处理模式前的资源调度优先级
-            PROCESS_MODE_BACKGROUND_END = 0x200000, //   Windows Vista/2008 and higher
+            ProcessModeBackgroundEnd = 0x200000 //   Windows Vista/2008 and higher
         }
 
         [StructLayout(LayoutKind.Sequential)]

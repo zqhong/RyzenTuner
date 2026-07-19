@@ -15,6 +15,8 @@ namespace RyzenTuner.Utils
         [StructLayout(LayoutKind.Sequential)]
         struct LASTINPUTINFO
         {
+            public static readonly int SizeOf = Marshal.SizeOf(typeof(LASTINPUTINFO));
+
             [MarshalAs(UnmanagedType.U4)] public int cbSize;
             [MarshalAs(UnmanagedType.U4)] public UInt32 dwTime;
         }
@@ -36,8 +38,8 @@ namespace RyzenTuner.Utils
                 return 0;
             }
 
-            uint envTicks = unchecked((uint)Environment.TickCount);
-            uint idleTime = envTicks - lastInputInfo.dwTime;
+            var envTicks = unchecked((uint)Environment.TickCount);
+            var idleTime = envTicks - lastInputInfo.dwTime;
 
             return (int)(idleTime / 1000);
         }
@@ -45,12 +47,9 @@ namespace RyzenTuner.Utils
 
         public static float GetPowerLimitByMode(string mode)
         {
-            if (TryGetPowerLimitByMode(mode, out var powerLimit))
-            {
-                return powerLimit;
-            }
-
-            throw new FormatException($"Invalid power limit setting: {mode}");
+            return TryGetPowerLimitByMode(mode, out var powerLimit)
+                ? powerLimit
+                : throw new FormatException($"Invalid power limit setting: {mode}");
         }
 
         public static bool TryGetPowerLimitByMode(string mode, out float powerLimit)
