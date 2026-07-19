@@ -166,8 +166,8 @@ namespace RyzenTuner.Common
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.Unicode,
-                StandardErrorEncoding = Encoding.Unicode,
+                StandardOutputEncoding = Console.OutputEncoding,
+                StandardErrorEncoding = Console.OutputEncoding,
             };
 
             process.Start();
