@@ -49,7 +49,7 @@ namespace RyzenTuner.Common.Processor
      * WinRing0x64.dll
      * WinRing0x64.sys
      */
-    public class RyzenAdj
+    public static class RyzenAdj
     {
         [DllImport("libryzenadj.dll")]
         public static extern IntPtr init_ryzenadj();

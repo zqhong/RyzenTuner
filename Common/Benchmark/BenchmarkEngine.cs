@@ -223,9 +223,6 @@ namespace RyzenTuner.Common.Benchmark
                 TempAvg = tempSamples.Count > 0 ? tempSamples.Average() : 0,
                 TempMedian = tempSamples.Count > 0 ? Median(tempSamples) : 0,
                 CpuFreqAvg = freqSamples.Count > 0 ? freqSamples.Average() : 0,
-                RawPowerSamples = powerSamples,
-                RawTempSamples = tempSamples,
-                RawFreqSamples = freqSamples,
             };
 
             return point;

@@ -889,6 +889,10 @@ namespace RyzenTuner.UI
                     await _engine.RunAsync(config);
                 }
             }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Error("Benchmark", $"跑分未处理异常: {ex}");
+            }
             finally
             {
                 // 异常保护：若引擎 setup/RunAsync 同步抛出导致 OnCompleted/OnError 未触发，
@@ -1275,23 +1279,21 @@ namespace RyzenTuner.UI
             }
         }
 
-        private void ChangeEnergyMode(object sender, EventArgs e)
+        private void ChangeEnergyMode(object? sender, EventArgs e)
         {
             // 防止 SwitchToMode（快捷键触发）→ SyncEnergyModeSelection → CheckedChanged 循环
             if (_isChangingMode)
                 return;
 
-            if (((RadioButton)sender).Checked)
-            {
-                var tag = ((RadioButton)sender).Tag;
-                if (tag == null) return;
-                var checkedMode = tag.ToString();
+            if (sender is not RadioButton { Checked: true, Tag: { } tag })
+                return;
 
-                AppSettings.Set("CurrentMode", checkedMode);
-                SyncEnergyModeSelection();
+            var checkedMode = tag.ToString();
 
-                DoPowerLimit();
-            }
+            AppSettings.Set("CurrentMode", checkedMode);
+            SyncEnergyModeSelection();
+
+            DoPowerLimit();
         }
 
         private void checkBoxEnergyStar_CheckedChanged(object sender, EventArgs e)
@@ -1451,22 +1453,30 @@ namespace RyzenTuner.UI
                 proc.RefreshTable();
 
                 // ===== 当前状态（首页） =====
-                currentFreqLabel.Text = $"{hw.CpuFreq:F0} MHz";
-                currentPowerLabel.Text = $"{hw.CpuPackagePower:F1} W";
-                currentTempLabel.Text = $"{hw.CpuTemperature:F1} ℃";
+                currentFreqLabel.Text = string.Format(Strings.TextMonitorFreqFormat, hw.CpuFreq);
+                currentPowerLabel.Text = string.Format(Strings.TextMonitorPowerFormat, hw.CpuPackagePower);
+                currentTempLabel.Text = string.Format(Strings.TextMonitorTempFormat, hw.CpuTemperature);
 
                 // ===== 生效参数（首页） =====
                 var fastLimit = proc.GetFastLimit();
-                fastLimitLabel.Text = float.IsNaN(fastLimit) ? "N/A" : $"{fastLimit:F1} W";
+                fastLimitLabel.Text = float.IsNaN(fastLimit)
+                    ? Strings.TextNotAvailable
+                    : string.Format(Strings.TextMonitorPowerFormat, fastLimit);
 
                 var slowLimit = proc.GetSlowLimit();
-                slowLimitLabel.Text = float.IsNaN(slowLimit) ? "N/A" : $"{slowLimit:F1} W";
+                slowLimitLabel.Text = float.IsNaN(slowLimit)
+                    ? Strings.TextNotAvailable
+                    : string.Format(Strings.TextMonitorPowerFormat, slowLimit);
 
                 var tctlTemp = proc.GetTctlTempLimit();
-                tctlTempLabel.Text = float.IsNaN(tctlTemp) ? "N/A" : $"{tctlTemp:F0} ℃";
+                tctlTempLabel.Text = float.IsNaN(tctlTemp)
+                    ? Strings.TextNotAvailable
+                    : string.Format(Strings.TextMonitorTempIntFormat, tctlTemp);
 
                 var stampLimit = proc.GetStampLimit();
-                stampLimitLabel.Text = float.IsNaN(stampLimit) ? "N/A" : $"{stampLimit:F1} W";
+                stampLimitLabel.Text = float.IsNaN(stampLimit)
+                    ? Strings.TextNotAvailable
+                    : string.Format(Strings.TextMonitorPowerFormat, stampLimit);
 
                 try
                 {
@@ -1474,20 +1484,20 @@ namespace RyzenTuner.UI
                     var apuSkinValue = proc.GetApuSkinTempValue();
                     if (float.IsNaN(apuSkinLimit) && float.IsNaN(apuSkinValue))
                     {
-                        apuSkinTempLabel.Text = "N/A";
+                        apuSkinTempLabel.Text = Strings.TextNotAvailable;
                     }
                     else if (float.IsNaN(apuSkinValue))
                     {
-                        apuSkinTempLabel.Text = $"{apuSkinLimit:F0} ℃";
+                        apuSkinTempLabel.Text = string.Format(Strings.TextMonitorTempIntFormat, apuSkinLimit);
                     }
                     else
                     {
-                        apuSkinTempLabel.Text = $"{apuSkinLimit:F0} ℃ ({apuSkinValue:F0} ℃)";
+                        apuSkinTempLabel.Text = string.Format(Strings.TextMonitorApuSkinDetailFormat, apuSkinLimit, apuSkinValue);
                     }
                 }
                 catch (Exception apuEx)
                 {
-                    apuSkinTempLabel.Text = "N/A";
+                    apuSkinTempLabel.Text = Strings.TextNotAvailable;
                     AppContainer.Logger().Warning("HardwareMonitor", $"读取 APU SkinTemp 失败: {apuEx.Message}");
                 }
             }
@@ -1690,7 +1700,7 @@ namespace RyzenTuner.UI
             }
 
             _lastPowerLimitApplyError = message;
-            notifyIcon1.BalloonTipTitle = "RyzenTuner";
+            notifyIcon1.BalloonTipTitle = Strings.TextAppName;
             notifyIcon1.BalloonTipText = message;
             notifyIcon1.ShowBalloonTip(3000);
         }
@@ -2245,9 +2255,10 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning("LogCleanup", $"清空日志失败: {ex.Message}");
+                var errorMsg = string.Format(Strings.TextLogClearFailed, ex.Message);
+                AppContainer.Logger().Warning("LogCleanup", errorMsg);
                 MessageBox.Show(
-                    $"清空日志失败: {ex.Message}",
+                    errorMsg,
                     Strings.TextExceptionTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);

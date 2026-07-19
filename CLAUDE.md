@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 .NET Framework 4.8 WinForms 项目，使用 MSBuild 构建：
 
 ```bash
-MSBUILD_EXE="/c/Program Files/JetBrains/JetBrains Rider 2025.2.6/tools/MSBuild/Current/Bin/amd64/MSBuild.exe"
+MSBUILD_EXE="/c/Program Files/JetBrains/JetBrains Rider 2026.1.4/tools/MSBuild/Current/Bin/amd64/MSBuild.exe"
 "$MSBUILD_EXE" "RyzenTuner.csproj" "//t:Rebuild" "//p:Configuration=Debug" "//nologo" "//verbosity:minimal"
 ```
 

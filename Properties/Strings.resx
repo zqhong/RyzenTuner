@@ -418,4 +418,28 @@
     <data name="TextLogSearchButton" xml:space="preserve">
         <value>搜索</value>
     </data>
+    <data name="TextNotAvailable" xml:space="preserve">
+        <value>N/A</value>
+    </data>
+    <data name="TextMonitorFreqFormat" xml:space="preserve">
+        <value>{0:F0} MHz</value>
+    </data>
+    <data name="TextMonitorPowerFormat" xml:space="preserve">
+        <value>{0:F1} W</value>
+    </data>
+    <data name="TextMonitorTempFormat" xml:space="preserve">
+        <value>{0:F1} ℃</value>
+    </data>
+    <data name="TextMonitorTempIntFormat" xml:space="preserve">
+        <value>{0:F0} ℃</value>
+    </data>
+    <data name="TextMonitorApuSkinDetailFormat" xml:space="preserve">
+        <value>{0:F0} ℃ ({1:F0} ℃)</value>
+    </data>
+    <data name="TextLogClearFailed" xml:space="preserve">
+        <value>清空日志失败: {0}</value>
+    </data>
+    <data name="TextAppName" xml:space="preserve">
+        <value>RyzenTuner</value>
+    </data>
 </root>

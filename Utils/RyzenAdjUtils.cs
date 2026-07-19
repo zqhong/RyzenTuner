@@ -2,7 +2,7 @@
 
 namespace RyzenTuner.Utils
 {
-    public class RyzenAdjUtils
+    public static class RyzenAdjUtils
     {
         public static float GetPowerLimit()
         {

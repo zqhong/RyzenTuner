@@ -99,9 +99,5 @@ namespace RyzenTuner.Common.Benchmark
         /// <summary>能力发挥 = 当前分数 / 所有测试点最高分（0~1），在全部测试完成后计算</summary>
         public double Capability { get; set; }
 
-        /// <summary>原始数据采样列表（用于调试，非序列化）</summary>
-        public List<float>? RawPowerSamples { get; set; }
-        public List<float>? RawTempSamples { get; set; }
-        public List<float>? RawFreqSamples { get; set; }
     }
 }

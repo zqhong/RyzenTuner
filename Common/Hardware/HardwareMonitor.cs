@@ -207,6 +207,7 @@ namespace RyzenTuner.Common.Hardware
         /// <returns></returns>
         private float FetchCpuFreq(IEnumerable<ISensor> cpuEnumerable)
         {
+            var cpuSensorList = cpuEnumerable.ToList();
             var cpuCount = Environment.ProcessorCount;
 
             float tmpTotal = 0;
@@ -215,7 +216,7 @@ namespace RyzenTuner.Common.Hardware
             for (var i = 1; i <= cpuCount; i++)
             {
                 var index = i;
-                var linqCpuFreq = cpuEnumerable
+                var linqCpuFreq = cpuSensorList
                     .Where(s => s.SensorType == SensorType.Clock)
                     .Where(s => s.Name == $"Core #{index}")
                     .Where(s => s.Value != null)

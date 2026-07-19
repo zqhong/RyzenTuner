@@ -800,5 +800,37 @@ namespace RyzenTuner.Properties {
         internal static string TextLogSearchButton {
             get { return ResourceManager.GetString("TextLogSearchButton", resourceCulture); }
         }
+
+        internal static string TextNotAvailable {
+            get { return ResourceManager.GetString("TextNotAvailable", resourceCulture); }
+        }
+
+        internal static string TextMonitorFreqFormat {
+            get { return ResourceManager.GetString("TextMonitorFreqFormat", resourceCulture); }
+        }
+
+        internal static string TextMonitorPowerFormat {
+            get { return ResourceManager.GetString("TextMonitorPowerFormat", resourceCulture); }
+        }
+
+        internal static string TextMonitorTempFormat {
+            get { return ResourceManager.GetString("TextMonitorTempFormat", resourceCulture); }
+        }
+
+        internal static string TextMonitorTempIntFormat {
+            get { return ResourceManager.GetString("TextMonitorTempIntFormat", resourceCulture); }
+        }
+
+        internal static string TextMonitorApuSkinDetailFormat {
+            get { return ResourceManager.GetString("TextMonitorApuSkinDetailFormat", resourceCulture); }
+        }
+
+        internal static string TextLogClearFailed {
+            get { return ResourceManager.GetString("TextLogClearFailed", resourceCulture); }
+        }
+
+        internal static string TextAppName {
+            get { return ResourceManager.GetString("TextAppName", resourceCulture); }
+        }
     }
 }
