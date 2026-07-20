@@ -1,15 +1,15 @@
-## RyzenTuner
+# RyzenTuner
 
 
 RyzenTuner provides a GUI for adjusting the power limits of Ryzen mobile processors. It also lets you tune the QoS level and priority of Windows processes to improve battery life and reduce fan noise.
 
 ## Features
 
-![](./docs/images/1.jpg)
-![](./docs/images/2.jpg)
-![](./docs/images/3.jpg)
-![](./docs/images/4.jpg)
-![](./docs/images/5.jpg)
+![Main window — power mode selection and hardware monitoring](./docs/images/1.jpg)
+![Settings window — TDP configuration per mode](./docs/images/2.jpg)
+![Efficiency benchmark window](./docs/images/3.jpg)
+![System tray and process management](./docs/images/4.jpg)
+![About page](./docs/images/5.jpg)
 
 ## Usage
 
