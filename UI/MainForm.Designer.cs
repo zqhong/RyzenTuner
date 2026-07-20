@@ -238,6 +238,12 @@ namespace RyzenTuner.UI
     string[] navBtnTexts = { Properties.Strings.TextNavHome, Properties.Strings.TextNavSettings, Properties.Strings.TextNavBenchmark, Properties.Strings.TextNavLogs, Properties.Strings.TextNavAbout };
     Button[] navBtns = { this.navHome, this.navSettings, this.navBenchmark, this.navLogs, this.navAbout };
 
+    // 导航按钮图标列表
+    this.imageListNavIcons = new ImageList(this.components);
+    this.imageListNavIcons.ImageSize = new Size(24, 24);
+    this.imageListNavIcons.ColorDepth = ColorDepth.Depth32Bit;
+    this.imageListNavIcons.TransparentColor = Color.Transparent;
+
     for (int i = 0; i < 5; i++)
     {
         Button btn = navBtns[i];
@@ -251,6 +257,8 @@ namespace RyzenTuner.UI
         btn.TabIndex = i + 1;
         btn.Text = navBtnTexts[i];
         btn.TextAlign = ContentAlignment.MiddleLeft;
+        btn.ImageList = this.imageListNavIcons;
+        btn.TextImageRelation = TextImageRelation.ImageBeforeText;
         btn.UseVisualStyleBackColor = false;
         btn.Click += new EventHandler(this.NavButton_Click);
     }
@@ -1094,6 +1102,7 @@ namespace RyzenTuner.UI
         private Button navBenchmark;
         private Button navAbout;
         private Button navLogs;
+        private ImageList imageListNavIcons;
 
         // ---- 内容区 ----
         private Panel panelContent;

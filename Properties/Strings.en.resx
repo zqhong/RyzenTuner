@@ -292,16 +292,16 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
         <value>Options</value>
     </data>
     <data name="TextNavHome" xml:space="preserve">
-        <value>  Home</value>
+        <value>Home</value>
     </data>
     <data name="TextNavSettings" xml:space="preserve">
-        <value>  Settings</value>
+        <value>Settings</value>
     </data>
     <data name="TextNavBenchmark" xml:space="preserve">
-        <value>  Efficiency</value>
+        <value>Efficiency</value>
     </data>
     <data name="TextNavAbout" xml:space="preserve">
-        <value>  About</value>
+        <value>About</value>
     </data>
     <data name="TextCpuFreqTitle" xml:space="preserve">
         <value>CPU Frequency</value>
@@ -364,7 +364,7 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
         <value>day(s)</value>
     </data>
     <data name="TextNavLogs" xml:space="preserve">
-        <value>  Logs</value>
+        <value>Logs</value>
     </data>
     <data name="TextLogViewerTitle" xml:space="preserve">
         <value>Search Logs</value>

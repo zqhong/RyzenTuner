@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using System.Drawing.Drawing2D;
 using RyzenTuner.Common;
 using RyzenTuner.Common.Benchmark;
 using RyzenTuner.Common.Container;
@@ -151,6 +152,88 @@ namespace RyzenTuner.UI
             return _cachedIcon;
         }
 
+        // ================================================================
+        // 导航图标
+        // ================================================================
+
+        /// <summary>
+        /// 初始化导航按钮图标（程序绘制 24x24 图标）
+        /// </summary>
+        private void InitializeNavIcons()
+        {
+            imageListNavIcons.Images.Clear();
+
+            imageListNavIcons.Images.Add("navHome", CreateNavIcon("navHome"));
+            imageListNavIcons.Images.Add("navSettings", CreateNavIcon("navSettings"));
+            imageListNavIcons.Images.Add("navBenchmark", CreateNavIcon("navBenchmark"));
+            imageListNavIcons.Images.Add("navLogs", CreateNavIcon("navLogs"));
+            imageListNavIcons.Images.Add("navAbout", CreateNavIcon("navAbout"));
+
+            navHome.ImageKey = "navHome";
+            navSettings.ImageKey = "navSettings";
+            navBenchmark.ImageKey = "navBenchmark";
+            navLogs.ImageKey = "navLogs";
+            navAbout.ImageKey = "navAbout";
+        }
+
+        /// <summary>
+        /// 绘制单个导航图标（纯 GDI+ 绘制，无外部资源依赖）
+        /// </summary>
+        private static Bitmap CreateNavIcon(string iconName)
+        {
+            var bmp = new Bitmap(24, 24);
+            using var g = Graphics.FromImage(bmp);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            var color = Color.FromArgb(80, 80, 80);
+            using var brush = new SolidBrush(color);
+            using var bgBrush = new SolidBrush(Color.FromArgb(215, 215, 215));
+
+            switch (iconName)
+            {
+                case "navHome":
+                    // 房屋：屋顶 + 墙体 + 门
+                    g.FillPolygon(brush, new[] { new Point(12, 2), new Point(2, 9), new Point(22, 9) });
+                    g.FillRectangle(brush, 4, 9, 16, 13);
+                    g.FillRectangle(bgBrush, 10, 14, 4, 8);
+                    break;
+
+                case "navSettings":
+                    // 齿轮：外圈 + 内孔 + 4 个齿
+                    g.FillEllipse(brush, 5, 5, 14, 14);
+                    g.FillEllipse(bgBrush, 8, 8, 8, 8);
+                    g.FillRectangle(brush, 10, 1, 4, 5);
+                    g.FillRectangle(brush, 10, 18, 4, 5);
+                    g.FillRectangle(brush, 1, 10, 5, 4);
+                    g.FillRectangle(brush, 18, 10, 5, 4);
+                    break;
+
+                case "navBenchmark":
+                    // 柱状图：3 根递增柱
+                    g.FillRectangle(brush, 4, 11, 4, 9);
+                    g.FillRectangle(brush, 10, 6, 4, 14);
+                    g.FillRectangle(brush, 16, 2, 4, 18);
+                    break;
+
+                case "navLogs":
+                    // 文档列表：矩形 + 横线
+                    g.FillRectangle(brush, 3, 2, 18, 20);
+                    g.FillRectangle(bgBrush, 6, 7, 12, 2);
+                    g.FillRectangle(bgBrush, 6, 12, 12, 2);
+                    g.FillRectangle(bgBrush, 6, 17, 8, 2);
+                    break;
+
+                case "navAbout":
+                    // 信息圆圈：圆圈 + "i" 点 + 竖线
+                    g.FillEllipse(brush, 2, 2, 20, 20);
+                    g.FillEllipse(bgBrush, 10, 6, 4, 4);
+                    g.FillRectangle(bgBrush, 11, 12, 2, 6);
+                    break;
+            }
+
+            return bmp;
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             if (DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime)
@@ -175,6 +258,9 @@ namespace RyzenTuner.UI
 
             // 修复设计器遗漏：numericUpDownLogSaveDays.BeginInit() 后缺少 EndInit()
             ((ISupportInitialize)numericUpDownLogSaveDays).EndInit();
+
+            // 初始化导航按钮图标
+            InitializeNavIcons();
 
             // 运行时启动定时器
             mainFormTimer.Enabled = true;

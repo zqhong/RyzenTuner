@@ -299,16 +299,16 @@
         <value>选项</value>
     </data>
     <data name="TextNavHome" xml:space="preserve">
-        <value>  首页</value>
+        <value>首页</value>
     </data>
     <data name="TextNavSettings" xml:space="preserve">
-        <value>  设置</value>
+        <value>设置</value>
     </data>
     <data name="TextNavBenchmark" xml:space="preserve">
-        <value>  能效</value>
+        <value>能效</value>
     </data>
     <data name="TextNavAbout" xml:space="preserve">
-        <value>  关于</value>
+        <value>关于</value>
     </data>
     <data name="TextCpuFreqTitle" xml:space="preserve">
         <value>CPU 频率</value>
@@ -371,7 +371,7 @@
         <value>天</value>
     </data>
     <data name="TextNavLogs" xml:space="preserve">
-        <value>  日志</value>
+        <value>日志</value>
     </data>
     <data name="TextLogViewerTitle" xml:space="preserve">
         <value>搜索日志</value>
