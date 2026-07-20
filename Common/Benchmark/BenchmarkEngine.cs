@@ -331,24 +331,32 @@ namespace RyzenTuner.Common.Benchmark
             int tctlTemp,
             int apuSkinTemp)
         {
+            // 1. 尝试恢复原始 TDP 限制，失败时不阻断后续恢复
             try
             {
-                // 恢复原始 TDP 限制
                 var originalTdp = Utils.RyzenTunerUtils.GetPowerLimitByMode(originalMode);
                 ApplyTdpLimit(processor, originalTdp);
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Warning("Benchmark", $"恢复原始 TDP 失败: {ex.Message}");
+            }
 
+            // 2. 恢复温度限制（即使 TDP 恢复失败也应继续）
+            try
+            {
                 if (tctlTemp >= 30)
                     processor.SetTctlTemp((uint)tctlTemp);
                 if (apuSkinTemp >= 30)
                     processor.SetApuSkinTemp((uint)apuSkinTemp);
-
-                // 恢复模式
-                AppSettings.Set("CurrentMode", originalMode);
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning("Benchmark", $"恢复原始设置失败: {ex.Message}");
+                AppContainer.Logger().Warning("Benchmark", $"恢复温度限制失败: {ex.Message}");
             }
+
+            // 3. 始终恢复模式
+            AppSettings.Set("CurrentMode", originalMode);
         }
 
         public void Dispose()

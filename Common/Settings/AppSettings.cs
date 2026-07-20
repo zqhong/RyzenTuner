@@ -26,12 +26,13 @@ namespace RyzenTuner.Common.Settings
             if (_connectionString != null)
                 return;
 
-            _connectionString = SettingsDatabase.GetConnectionString();
-            SettingsDatabase.EnsureDirectoryExists(SettingsDatabase.DefaultDbPath);
+            var connectionString = SettingsDatabase.GetConnectionString();
 
             try
             {
-                using var conn = new SQLiteConnection(_connectionString);
+                SettingsDatabase.EnsureDirectoryExists(SettingsDatabase.DefaultDbPath);
+
+                using var conn = new SQLiteConnection(connectionString);
                 conn.Open();
 
                 // 确保 settings 表存在
@@ -51,6 +52,9 @@ namespace RyzenTuner.Common.Settings
                         _cache[reader.GetString(0)] = reader.GetString(1);
                     }
                 }
+
+                // 所有初始化成功后，才标记连接字符串（允许后续重试）
+                _connectionString = connectionString;
             }
             catch (Exception ex)
             {

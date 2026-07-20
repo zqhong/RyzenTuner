@@ -1,4 +1,5 @@
-﻿using RyzenTuner.Common.Settings;
+using System;
+using RyzenTuner.Common.Settings;
 
 namespace RyzenTuner.Utils
 {
@@ -8,8 +9,8 @@ namespace RyzenTuner.Utils
         {
             var powerLimit = RyzenTunerUtils.GetPowerLimitByMode(AppSettings.Get("CurrentMode", "BalancedMode"));
 
-            // 数值修正
-            if (powerLimit < 0)
+            // 数值修正：负值或 NaN 都视为无效，回退到最小安全值 1W
+            if (powerLimit < 0 || float.IsNaN(powerLimit))
             {
                 powerLimit = 1;
             }
@@ -17,14 +18,14 @@ namespace RyzenTuner.Utils
             return powerLimit;
         }
 
-        public static int GetTctlTemp()
+        public static uint GetTctlTemp()
         {
-            return AppSettings.Get("TctlTemp", 100);
+            return (uint)Math.Max(1, AppSettings.Get("TctlTemp", 100));
         }
 
-        public static int GetApuSkinTemp()
+        public static uint GetApuSkinTemp()
         {
-            return AppSettings.Get("ApuSkinTemp", 43);
+            return (uint)Math.Max(1, AppSettings.Get("ApuSkinTemp", 43));
         }
     }
 }

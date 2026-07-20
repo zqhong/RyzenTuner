@@ -206,7 +206,14 @@ namespace RyzenTuner.UI
             SetupBenchmarkDataGridView();
 
             // 刷新首页模式标签（Designer 中只显示模式名，运行时补上功率值）
-            RefreshModeLabels();
+            try
+            {
+                RefreshModeLabels();
+            }
+            catch (Exception ex)
+            {
+                AppContainer.Logger().Warning("UI", $"刷新模式标签失败: {ex.Message}");
+            }
 
             // 日志：记录启动事件
             AppContainer.Logger().Info("System", "RyzenTuner started");
@@ -1570,12 +1577,12 @@ namespace RyzenTuner.UI
                     applyErrors.Add($"SetStampPpt({stampLimit:0.##}W)");
                 }
 
-                if (!processor.SetTctlTemp((uint)tctlTemp))
+                if (!processor.SetTctlTemp(tctlTemp))
                 {
                     applyErrors.Add($"SetTctlTemp({tctlTemp}C)");
                 }
 
-                if (!processor.SetApuSkinTemp((uint)apuSkinTemp))
+                if (!processor.SetApuSkinTemp(apuSkinTemp))
                 {
                     applyErrors.Add($"SetApuSkinTemp({apuSkinTemp}C)");
                 }

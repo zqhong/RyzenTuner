@@ -1,60 +1,26 @@
-﻿using System;
+using System;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using RyzenTuner.Common.Settings;
 
 namespace RyzenTuner.Utils
 {
     public static class RyzenTunerUtils
     {
-        [DllImport("user32.dll")]
-        private static extern bool GetLastInputInfo(ref LastInputInfo plii);
-
-        // https://www.pinvoke.net/default.aspx/user32.GetLastInputInfo
-        // https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-lastinputinfo
-        [StructLayout(LayoutKind.Sequential)]
-        private struct LastInputInfo
-        {
-            public static readonly int SizeOf = Marshal.SizeOf(typeof(LastInputInfo));
-
-            [MarshalAs(UnmanagedType.U4)] public int cbSize;
-            [MarshalAs(UnmanagedType.U4)] public UInt32 dwTime;
-        }
-
-        /**
-         * 返回系统空闲时间，单位：秒
-         *
-         * 参考：
-         * https://stackoverflow.com/questions/203384/how-to-tell-when-windows-is-inactive
-         */
-        public static int GetIdleSecond()
-        {
-            var lastInputInfo = new LastInputInfo();
-            lastInputInfo.cbSize = Marshal.SizeOf(lastInputInfo);
-            lastInputInfo.dwTime = 0;
-
-            if (!GetLastInputInfo(ref lastInputInfo))
-            {
-                return 0;
-            }
-
-            var envTicks = unchecked((uint)Environment.TickCount);
-            var idleTime = envTicks - lastInputInfo.dwTime;
-
-            return (int)(idleTime / 1000);
-        }
-
-
         public static float GetPowerLimitByMode(string mode)
         {
             return TryGetPowerLimitByMode(mode, out var powerLimit)
                 ? powerLimit
-                : throw new FormatException($"Invalid power limit setting: {mode}");
+                : throw new InvalidOperationException($"未找到功率限制设置: {mode}");
         }
 
         public static bool TryGetPowerLimitByMode(string mode, out float powerLimit)
         {
             powerLimit = 0;
+
+            if (mode == null)
+            {
+                return false;
+            }
 
             var value = AppSettings.Get(mode);
 
@@ -63,13 +29,19 @@ namespace RyzenTuner.Utils
                 return false;
             }
 
-            return float.TryParse(value, NumberStyles.Float, CultureInfo.CurrentCulture, out powerLimit) ||
-                   float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out powerLimit);
+            // 优先使用 InvariantCulture 解析（所有值均以 InvariantCulture 存储）
+            return float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out powerLimit) ||
+                   float.TryParse(value, NumberStyles.Float, CultureInfo.CurrentCulture, out powerLimit);
         }
 
         public static string GetModeDetailText(string mode)
         {
-            return $"{GetLocalizedModeName(mode)}-{GetPowerLimitByMode(mode)}W";
+            if (TryGetPowerLimitByMode(mode, out var powerLimit))
+            {
+                return $"{GetLocalizedModeName(mode)}-{powerLimit}W";
+            }
+
+            return $"{GetLocalizedModeName(mode)}-?W";
         }
 
         public static string GetLocalizedModeName(string mode)
@@ -82,7 +54,7 @@ namespace RyzenTuner.Utils
         /// </summary>
         public static string DetectDefaultLanguageCode()
         {
-            return CultureInfo.CurrentUICulture.ToString().StartsWith("zh-")
+            return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "zh"
                 ? "zh-CN"
                 : "en-US";
         }

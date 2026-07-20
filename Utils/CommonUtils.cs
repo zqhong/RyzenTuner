@@ -1,12 +1,13 @@
+using System;
 using System.Drawing;
 
 namespace RyzenTuner.Utils
 {
     public static class CommonUtils
     {
-        /**
-         * 检查字体是否存在
-         */
+        /// <summary>
+        /// 检查字体是否存在
+        /// </summary>
         public static bool IsFontExists(string fontName)
         {
             try
@@ -19,9 +20,9 @@ namespace RyzenTuner.Utils
                     FontStyle.Regular,
                     GraphicsUnit.Pixel);
 
-                return fontTester.Name == fontName;
+                return fontTester.Name.Equals(fontName, StringComparison.OrdinalIgnoreCase);
             }
-            catch
+            catch (ArgumentException)
             {
                 return false;
             }
