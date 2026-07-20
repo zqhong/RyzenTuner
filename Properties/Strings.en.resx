@@ -324,6 +324,15 @@ Please update libryzenadj.dll to v0.18.0 or newer.</value>
     <data name="TextLanguageEnglish" xml:space="preserve">
         <value>English</value>
     </data>
+    <data name="TextTheme" xml:space="preserve">
+        <value>Theme</value>
+    </data>
+    <data name="TextThemeLight" xml:space="preserve">
+        <value>Light</value>
+    </data>
+    <data name="TextThemeDark" xml:space="preserve">
+        <value>Dark</value>
+    </data>
     <data name="TextHotkeySettings" xml:space="preserve">
         <value>Hotkeys</value>
     </data>

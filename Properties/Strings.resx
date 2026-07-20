@@ -331,6 +331,15 @@
     <data name="TextLanguageEnglish" xml:space="preserve">
         <value>English</value>
     </data>
+    <data name="TextTheme" xml:space="preserve">
+        <value>主题</value>
+    </data>
+    <data name="TextThemeLight" xml:space="preserve">
+        <value>浅色</value>
+    </data>
+    <data name="TextThemeDark" xml:space="preserve">
+        <value>深色</value>
+    </data>
     <data name="TextHotkeySettings" xml:space="preserve">
         <value>快捷键</value>
     </data>

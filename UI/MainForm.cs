@@ -16,6 +16,7 @@ using RyzenTuner.Common;
 using RyzenTuner.Common.Benchmark;
 using RyzenTuner.Common.Container;
 using RyzenTuner.Common.Settings;
+using RyzenTuner.Common.Theme;
 using RyzenTuner.Properties;
 using RyzenTuner.Utils;
 
@@ -185,9 +186,9 @@ namespace RyzenTuner.UI
             using var g = Graphics.FromImage(bmp);
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            var color = Color.FromArgb(80, 80, 80);
-            using var brush = new SolidBrush(color);
-            using var bgBrush = new SolidBrush(Color.FromArgb(215, 215, 215));
+            var (primary, secondary) = ThemeManager.GetNavIconColors();
+            using var brush = new SolidBrush(primary);
+            using var bgBrush = new SolidBrush(secondary);
 
             switch (iconName)
             {
@@ -288,6 +289,9 @@ namespace RyzenTuner.UI
             // 初始化设置页
             SettingsLoadValues();
 
+            // 应用保存的主题
+            ApplySavedTheme();
+
             // 初始化跑分页
             SetupBenchmarkDataGridView();
 
@@ -359,32 +363,38 @@ namespace RyzenTuner.UI
             pageLog.Visible = false;
 
             // 重置导航按钮背景
-            navHome.BackColor = Color.Transparent;
-            navSettings.BackColor = Color.Transparent;
-            navBenchmark.BackColor = Color.Transparent;
-            navLogs.BackColor = Color.Transparent;
-            navAbout.BackColor = Color.Transparent;
+            var inactiveNavBg = Color.Transparent;
+            navHome.BackColor = inactiveNavBg;
+            navSettings.BackColor = inactiveNavBg;
+            navBenchmark.BackColor = inactiveNavBg;
+            navLogs.BackColor = inactiveNavBg;
+            navAbout.BackColor = inactiveNavBg;
+
+            // 当前主题的活动导航按钮背景色
+            var activeNavBg = ThemeManager.CurrentMode == ThemeMode.Dark
+                ? Color.FromArgb(62, 62, 66)
+                : Color.White;
 
             // 显示目标页面
             switch (pageId)
             {
                 case "settings":
                     pageSettings.Visible = true;
-                    navSettings.BackColor = Color.White;
+                    navSettings.BackColor = activeNavBg;
                     SettingsLoadValues();
                     break;
                 case "benchmark":
                     pageBenchmark.Visible = true;
-                    navBenchmark.BackColor = Color.White;
+                    navBenchmark.BackColor = activeNavBg;
                     break;
                 case "log":
                     pageLog.Visible = true;
-                    navLogs.BackColor = Color.White;
+                    navLogs.BackColor = activeNavBg;
                     LoadLogViewerData();
                     break;
                 case "about":
                     pageAbout.Visible = true;
-                    navAbout.BackColor = Color.White;
+                    navAbout.BackColor = activeNavBg;
                     if (!_aboutInfoLoaded)
                     {
                         LoadAboutInfo();
@@ -393,7 +403,7 @@ namespace RyzenTuner.UI
                     break;
                 default:
                     pageHome.Visible = true;
-                    navHome.BackColor = Color.White;
+                    navHome.BackColor = activeNavBg;
                     break;
             }
         }
@@ -508,6 +518,11 @@ namespace RyzenTuner.UI
             }
 
             numericUpDownLogSaveDays.Value = ClampNumeric(AppSettings.Get("LogRetentionDays", 3), numericUpDownLogSaveDays);
+
+            // 加载主题设置（仅设置 RadioButton 选中状态，不应用颜色）
+            var theme = AppSettings.Get("ThemeMode", "Light");
+            radioButtonThemeLight.Checked = theme != "Dark";
+            radioButtonThemeDark.Checked = theme == "Dark";
         }
 
         private static void TrySetNumericValue(NumericUpDown control, string mode)
@@ -657,6 +672,9 @@ namespace RyzenTuner.UI
             AppSettings.Set("LogLevel", selectedLogLevel);
             AppSettings.Set("LogRetentionDays", (int)numericUpDownLogSaveDays.Value);
 
+            // 保存主题设置
+            AppSettings.Set("ThemeMode", radioButtonThemeDark.Checked ? "Dark" : "Light");
+
             // 应用日志级别到运行时日志记录器
             try
             {
@@ -697,6 +715,85 @@ namespace RyzenTuner.UI
         {
             SettingsLoadValues();
             SwitchPage("home");
+
+            // 取消时恢复已保存的主题（SettingsLoadValues 已重置 RadioButton 状态，
+            // 但主题颜色需要显式恢复）
+            ApplySavedTheme();
+        }
+
+        // ================================================================
+        // 主题设置
+        // ================================================================
+
+        /// <summary>
+        /// 应用已保存的主题模式（启动时调用）
+        /// </summary>
+        private void ApplySavedTheme()
+        {
+            var savedTheme = AppSettings.Get("ThemeMode", "Light");
+            if (savedTheme == "Dark")
+            {
+                ThemeManager.SetTheme(ThemeMode.Dark, this);
+            }
+
+            RefreshThemeColors();
+        }
+
+        /// <summary>
+        /// 刷新 ThemeManager 无法直接覆盖的顶级容器颜色（侧边栏、导航按钮等）
+        /// </summary>
+        private void RefreshThemeColors()
+        {
+            var isDark = ThemeManager.CurrentMode == ThemeMode.Dark;
+
+            // 侧边栏与内容区背景
+            panelSidebar.BackColor = isDark
+                ? Color.FromArgb(37, 37, 38)
+                : Color.FromArgb(234, 234, 234);
+
+            panelContent.BackColor = isDark
+                ? Color.FromArgb(45, 45, 48)
+                : Color.FromArgb(243, 243, 243);
+
+            // 导航按钮悬停色
+            var hoverColor = isDark
+                ? Color.FromArgb(40, 40, 43)
+                : Color.FromArgb(10, 0, 0, 0);
+
+            foreach (var btn in new[] { navHome, navSettings, navBenchmark, navLogs, navAbout })
+            {
+                btn.FlatAppearance.MouseOverBackColor = hoverColor;
+            }
+
+            // 更新活动导航按钮背景色（根据当前可见页面）
+            var activeNavBg = isDark
+                ? Color.FromArgb(62, 62, 66)
+                : Color.White;
+
+            if (pageHome.Visible) navHome.BackColor = activeNavBg;
+            else if (pageSettings.Visible) navSettings.BackColor = activeNavBg;
+            else if (pageBenchmark.Visible) navBenchmark.BackColor = activeNavBg;
+            else if (pageLog.Visible) navLogs.BackColor = activeNavBg;
+            else if (pageAbout.Visible) navAbout.BackColor = activeNavBg;
+
+            // 重新绘制导航图标（更新颜色）
+            InitializeNavIcons();
+        }
+
+        /// <summary>
+        /// 主题切换事件
+        /// </summary>
+        private void RadioButtonTheme_CheckedChanged(object? sender, EventArgs e)
+        {
+            if (_isInitializingOptions)
+                return;
+
+            if (sender is not RadioButton rb || !rb.Checked)
+                return;
+
+            var mode = rb.Tag?.ToString() == "Dark" ? ThemeMode.Dark : ThemeMode.Light;
+            ThemeManager.SetTheme(mode, this);
+            RefreshThemeColors();
         }
 
         // ================================================================
@@ -1168,10 +1265,14 @@ namespace RyzenTuner.UI
 
         private void HighlightBestRow()
         {
+            var isDark = ThemeManager.CurrentMode == ThemeMode.Dark;
+            var defaultBg = isDark ? Color.FromArgb(45, 45, 48) : SystemColors.Window;
+            var defaultFg = isDark ? Color.FromArgb(224, 224, 224) : SystemColors.ControlText;
+
             foreach (DataGridViewRow row in dataGridViewResults.Rows)
             {
-                row.DefaultCellStyle.BackColor = SystemColors.Window;
-                row.DefaultCellStyle.ForeColor = SystemColors.ControlText;
+                row.DefaultCellStyle.BackColor = defaultBg;
+                row.DefaultCellStyle.ForeColor = defaultFg;
             }
 
             if (_allResults.Count == 0 || dataGridViewResults.Rows.Count == 0)

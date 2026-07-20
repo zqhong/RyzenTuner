@@ -685,6 +685,27 @@ namespace RyzenTuner.Properties {
             get { return ResourceManager.GetString("TextLanguageEnglish", resourceCulture); }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to 主题/Theme.
+        /// </summary>
+        internal static string TextTheme {
+            get { return ResourceManager.GetString("TextTheme", resourceCulture); }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 浅色/Light.
+        /// </summary>
+        internal static string TextThemeLight {
+            get { return ResourceManager.GetString("TextThemeLight", resourceCulture); }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to 深色/Dark.
+        /// </summary>
+        internal static string TextThemeDark {
+            get { return ResourceManager.GetString("TextThemeDark", resourceCulture); }
+        }
+
         internal static string TextHotkeySettings {
             get { return ResourceManager.GetString("TextHotkeySettings", resourceCulture); }
         }

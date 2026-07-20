@@ -106,6 +106,7 @@
     <Compile Include="Common\Container\Container.cs" />
     <Compile Include="Common\Settings\AppSettings.cs" />
     <Compile Include="Common\Settings\SettingsDatabase.cs" />
+    <Compile Include="Common\Theme\ThemeManager.cs" />
     <Compile Include="Common\EnergyStar\EnergyManager.cs" />
     <Compile Include="Common\EnergyStar\Interop\Win32Api.cs" />
     <Compile Include="Common\Hardware\HardwareMonitor.cs" />

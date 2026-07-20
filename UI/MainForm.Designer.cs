@@ -176,6 +176,7 @@ namespace RyzenTuner.UI
     this.groupBoxSettingsPerformance.SuspendLayout();
     this.groupBoxAdvanced.SuspendLayout();
     this.groupBoxLanguage.SuspendLayout();
+    this.groupBoxTheme.SuspendLayout();
     this.groupBoxHotkey.SuspendLayout();
     this.groupBoxLogSettings.SuspendLayout();
     ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLogSaveDays)).BeginInit();
@@ -474,6 +475,7 @@ namespace RyzenTuner.UI
     this.pageSettings.Controls.Add(this.groupBoxSettingsBalanced);
     this.pageSettings.Controls.Add(this.groupBoxSettingsPerformance);
     this.pageSettings.Controls.Add(this.groupBoxLanguage);
+    this.pageSettings.Controls.Add(this.groupBoxTheme);
     this.pageSettings.Controls.Add(this.groupBoxHotkey);
     this.pageSettings.Controls.Add(this.groupBoxLogSettings);
     this.pageSettings.Controls.Add(this.groupBoxAdvanced);
@@ -634,6 +636,30 @@ namespace RyzenTuner.UI
     this.comboBoxLanguage.Size = new Size(140, 26);
     // SelectedIndex 由 MainForm.InitLanguageSelection() 运行时设置
     this.comboBoxLanguage.SelectedIndexChanged += new EventHandler(this.ComboBoxLanguage_SelectedIndexChanged);
+
+    // ---- 主题设置 ----
+    this.groupBoxTheme = new GroupBox();
+    this.radioButtonThemeLight = new RadioButton();
+    this.radioButtonThemeDark = new RadioButton();
+
+    this.groupBoxTheme.Controls.Add(this.radioButtonThemeLight);
+    this.groupBoxTheme.Controls.Add(this.radioButtonThemeDark);
+    this.groupBoxTheme.Location = new Point(340, 386);
+    this.groupBoxTheme.Size = new Size(300, 60);
+    this.groupBoxTheme.Text = Properties.Strings.TextTheme;
+
+    this.radioButtonThemeLight.AutoSize = true;
+    this.radioButtonThemeLight.Checked = true;
+    this.radioButtonThemeLight.Location = new Point(12, 24);
+    this.radioButtonThemeLight.Text = Properties.Strings.TextThemeLight;
+    this.radioButtonThemeLight.Tag = "Light";
+    this.radioButtonThemeLight.CheckedChanged += new EventHandler(this.RadioButtonTheme_CheckedChanged);
+
+    this.radioButtonThemeDark.AutoSize = true;
+    this.radioButtonThemeDark.Location = new Point(120, 24);
+    this.radioButtonThemeDark.Text = Properties.Strings.TextThemeDark;
+    this.radioButtonThemeDark.Tag = "Dark";
+    this.radioButtonThemeDark.CheckedChanged += new EventHandler(this.RadioButtonTheme_CheckedChanged);
 
     // ---- 快捷键设置 ----
     this.groupBoxHotkey.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -1068,6 +1094,8 @@ namespace RyzenTuner.UI
     this.groupBoxAdvanced.PerformLayout();
     this.groupBoxLanguage.ResumeLayout(false);
     this.groupBoxLanguage.PerformLayout();
+    this.groupBoxTheme.ResumeLayout(false);
+    this.groupBoxTheme.PerformLayout();
     this.groupBoxHotkey.ResumeLayout(false);
     this.groupBoxHotkey.PerformLayout();
     this.pageBenchmark.ResumeLayout(false);
@@ -1172,6 +1200,11 @@ namespace RyzenTuner.UI
         private GroupBox groupBoxLanguage;
         private Label labelLanguage;
         private ComboBox comboBoxLanguage;
+
+        // ---- 主题设置 ----
+        private GroupBox groupBoxTheme;
+        private RadioButton radioButtonThemeLight;
+        private RadioButton radioButtonThemeDark;
 
         // ---- 快捷键设置 ----
         private GroupBox groupBoxHotkey;
