@@ -104,6 +104,7 @@ namespace RyzenTuner.Common.EnergyStar
         };
 
         private readonly HashSet<string> _bypassProcessList = new(StringComparer.OrdinalIgnoreCase);
+        private readonly object _bypassLock = new();
 
         private readonly IntPtr _pThrottleOn;
         private readonly IntPtr _pThrottleOff;
@@ -115,11 +116,7 @@ namespace RyzenTuner.Common.EnergyStar
         public EnergyManager()
         {
             _bypassProcessList.UnionWith(_hardcodedBypassList);
-            var bypassSetting =
-                (AppSettings.Get("EnergyStarBypassProcessList") ?? "")
-                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => x.Trim());
-            _bypassProcessList.UnionWith(bypassSetting);
+            _bypassProcessList.UnionWith(LoadBypassSetting());
 
             _szControlBlock = Marshal.SizeOf<Win32Api.ProcessPowerThrottlingState>();
             _pThrottleOn = Marshal.AllocHGlobal(_szControlBlock);
@@ -184,7 +181,7 @@ namespace RyzenTuner.Common.EnergyStar
                     return;
                 }
 
-                if (_bypassProcessList.Contains(appName))
+                if (IsInBypassList(appName))
                 {
                     logger.Debug($"ToggleEfficiencyMode: 不处理白名单列表中的应用 {appName}");
                     return;
@@ -392,14 +389,33 @@ namespace RyzenTuner.Common.EnergyStar
         /// </summary>
         public void ReloadBypassList()
         {
-            var bypassSetting =
-                (AppSettings.Get("EnergyStarBypassProcessList") ?? "")
-                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => x.Trim());
+            lock (_bypassLock)
+            {
+                _bypassProcessList.Clear();
+                _bypassProcessList.UnionWith(_hardcodedBypassList);
+                _bypassProcessList.UnionWith(LoadBypassSetting());
+            }
+        }
 
-            _bypassProcessList.Clear();
-            _bypassProcessList.UnionWith(_hardcodedBypassList);
-            _bypassProcessList.UnionWith(bypassSetting);
+        /// <summary>
+        /// 从 AppSettings 解析 EnergyStarBypassProcessList 配置项，返回进程名列表。
+        /// </summary>
+        private static IEnumerable<string> LoadBypassSetting()
+        {
+            return (AppSettings.Get("EnergyStarBypassProcessList") ?? "")
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim());
+        }
+
+        /// <summary>
+        /// 线程安全的白名单检查（配合 ReloadBypassList 的写锁）
+        /// </summary>
+        private bool IsInBypassList(string appName)
+        {
+            lock (_bypassLock)
+            {
+                return _bypassProcessList.Contains(appName);
+            }
         }
 
         public void Dispose()

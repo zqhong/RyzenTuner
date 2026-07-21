@@ -105,8 +105,6 @@ namespace RyzenTuner.Common.Settings
         /// </summary>
         public static void Set(string key, string value)
         {
-            _cache[key] = value;
-
             try
             {
                 lock (_connectionLock)
@@ -123,9 +121,20 @@ namespace RyzenTuner.Common.Settings
                     cmd.Parameters.AddWithValue("@value", value);
                     cmd.ExecuteNonQuery();
                 }
+
+                // DB write succeeded, update in-memory cache
+                _cache[key] = value;
             }
             catch (Exception ex)
             {
+                // 重置断开的连接，下次 Set() 自动创建新连接重试
+                if (_connection != null)
+                {
+                    _connection.Close();
+                    _connection.Dispose();
+                    _connection = null;
+                }
+
                 Debug.WriteLine($"[AppSettings] Set('{key}') failed: {ex.Message}");
             }
         }

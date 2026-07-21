@@ -64,6 +64,30 @@ namespace RyzenTuner.UI
         private const int HOTKEY_ID_BALANCED = 2;
         private const int HOTKEY_ID_PERFORMANCE = 3;
 
+        /// <summary>
+        /// 快捷键元数据：模式名、设置键名、注册 ID
+        /// </summary>
+        private readonly struct HotkeyModeDef
+        {
+            public readonly string ModeName;
+            public readonly string SettingKey;
+            public readonly int Id;
+
+            public HotkeyModeDef(string modeName, string settingKey, int id)
+            {
+                ModeName = modeName;
+                SettingKey = settingKey;
+                Id = id;
+            }
+        }
+
+        private static readonly HotkeyModeDef[] HotkeyModes = new[]
+        {
+            new HotkeyModeDef("PowerSave", "HotkeyPowerSaveMode", HOTKEY_ID_POWERSAVE),
+            new HotkeyModeDef("Balanced", "HotkeyBalancedMode", HOTKEY_ID_BALANCED),
+            new HotkeyModeDef("Performance", "HotkeyPerformanceMode", HOTKEY_ID_PERFORMANCE),
+        };
+
         // ================================================================
         // 模式名称常量（避免魔法字符串）
         // ================================================================
@@ -275,7 +299,6 @@ namespace RyzenTuner.UI
             checkBoxEnergyStar.Checked = AppSettings.GetBool("EnergyStar");
             keepAwakeCheckBox.Checked = AppSettings.GetBool("KeepAwake");
             launchAtLogonCheckBox.Checked = AppSettings.GetBool("LaunchAtLogon");
-            cpuBoostCheckBox.Checked = AppSettings.GetBool("CpuBoostEnabled");
             SyncLaunchAtLogonSetting();
             SyncCpuBoostSetting();
             // SyncCpuBoostSetting 可能更新了 AppSettings 但未更新 checkbox，同步显示状态
@@ -580,10 +603,9 @@ namespace RyzenTuner.UI
             var hotkeyPerformanceChanged = newHotkeyPerformance != oldHotkeyPerformance;
 
             // ===== 检查同一组合键是否被分配给多个模式 =====
-            var modeNames = new[] { "PowerSave", "Balanced", "Performance" };
-            var hotkeyValuePairs = new[] { newHotkeyPowerSave, newHotkeyBalanced, newHotkeyPerformance };
-            var duplicateGroups = hotkeyValuePairs
-                .Select((v, i) => new { Value = v, Mode = modeNames[i] })
+            var newHotkeyValues = new[] { newHotkeyPowerSave, newHotkeyBalanced, newHotkeyPerformance };
+            var duplicateGroups = newHotkeyValues
+                .Select((v, i) => new { Value = v, Mode = HotkeyModes[i].ModeName })
                 .Where(x => !string.IsNullOrEmpty(x.Value))
                 .GroupBy(x => x.Value)
                 .Where(g => g.Count() > 1)
@@ -620,21 +642,19 @@ namespace RyzenTuner.UI
                 var conflictList = new List<string>();
 
                 // 尝试注册所有快捷键（包括未变更的，因为 UnregisterAllHotkeys 已注销全部）
-                if (!TryRegisterHotkey(
-                        hotkeyPowerSaveChanged ? newHotkeyPowerSave : oldHotkeyPowerSave,
-                        HOTKEY_ID_POWERSAVE))
-                    conflictList.Add(GetHotkeyDisplayText(
-                        hotkeyPowerSaveChanged ? newHotkeyPowerSave : oldHotkeyPowerSave));
-                if (!TryRegisterHotkey(
-                        hotkeyBalancedChanged ? newHotkeyBalanced : oldHotkeyBalanced,
-                        HOTKEY_ID_BALANCED))
-                    conflictList.Add(GetHotkeyDisplayText(
-                        hotkeyBalancedChanged ? newHotkeyBalanced : oldHotkeyBalanced));
-                if (!TryRegisterHotkey(
-                        hotkeyPerformanceChanged ? newHotkeyPerformance : oldHotkeyPerformance,
-                        HOTKEY_ID_PERFORMANCE))
-                    conflictList.Add(GetHotkeyDisplayText(
-                        hotkeyPerformanceChanged ? newHotkeyPerformance : oldHotkeyPerformance));
+                var hotkeyRegData = new[]
+                {
+                    new { changed = hotkeyPowerSaveChanged, newV = newHotkeyPowerSave, oldV = oldHotkeyPowerSave, mode = HotkeyModes[0] },
+                    new { changed = hotkeyBalancedChanged, newV = newHotkeyBalanced, oldV = oldHotkeyBalanced, mode = HotkeyModes[1] },
+                    new { changed = hotkeyPerformanceChanged, newV = newHotkeyPerformance, oldV = oldHotkeyPerformance, mode = HotkeyModes[2] },
+                };
+
+                foreach (var r in hotkeyRegData)
+                {
+                    var hk = r.changed ? r.newV : r.oldV;
+                    if (!TryRegisterHotkey(hk, r.mode.Id))
+                        conflictList.Add(GetHotkeyDisplayText(hk));
+                }
 
                 if (conflictList.Count > 0)
                 {
@@ -642,12 +662,11 @@ namespace RyzenTuner.UI
                     UnregisterAllHotkeys();
 
                     var recoveryFailed = false;
-                    if (!string.IsNullOrEmpty(oldHotkeyPowerSave))
-                        recoveryFailed |= !TryRegisterHotkey(oldHotkeyPowerSave, HOTKEY_ID_POWERSAVE);
-                    if (!string.IsNullOrEmpty(oldHotkeyBalanced))
-                        recoveryFailed |= !TryRegisterHotkey(oldHotkeyBalanced, HOTKEY_ID_BALANCED);
-                    if (!string.IsNullOrEmpty(oldHotkeyPerformance))
-                        recoveryFailed |= !TryRegisterHotkey(oldHotkeyPerformance, HOTKEY_ID_PERFORMANCE);
+                    foreach (var r in hotkeyRegData)
+                    {
+                        if (!string.IsNullOrEmpty(r.oldV))
+                            recoveryFailed |= !TryRegisterHotkey(r.oldV, r.mode.Id);
+                    }
 
                     // 恢复文本框显示
                     SetHotkeyTextBox(textBoxHotkeyPowerSave, oldHotkeyPowerSave);
@@ -985,6 +1004,22 @@ namespace RyzenTuner.UI
             buttonStop.Enabled = !enabled;
         }
 
+        /// <summary>
+        /// 线程安全的 BeginInvoke 包装：在窗体关闭竞态中安全地 marshal 到 UI 线程。
+        /// </summary>
+        private void SafeBeginInvoke(Action action)
+        {
+            if (IsDisposed || !IsHandleCreated) return;
+            try
+            {
+                BeginInvoke(new Action(action));
+            }
+            catch (ObjectDisposedException)
+            {
+                // 在 guard 检查和 BeginInvoke 之间窗体已关闭，忽略
+            }
+        }
+
         private async void BenchmarkStart_Click(object? sender, EventArgs e)
         {
             if (_isBenchmarkRunning)
@@ -1055,39 +1090,35 @@ namespace RyzenTuner.UI
                 {
                     _engine.OnProgressChanged += (current, total) =>
                     {
-                        if (IsDisposed || !IsHandleCreated) return;
-                        try { BeginInvoke(new Action(() =>
+                        SafeBeginInvoke(() =>
                         {
                             progressBar.Value = Math.Min(current, total);
-                        })); } catch (ObjectDisposedException) { }
+                        });
                     };
 
                     _engine.OnStatusChanged += (msg) =>
                     {
-                        if (IsDisposed || !IsHandleCreated) return;
-                        try { BeginInvoke(new Action(() =>
+                        SafeBeginInvoke(() =>
                         {
                             labelStatus.Text = msg;
-                        })); } catch (ObjectDisposedException) { }
+                        });
                     };
 
                     _engine.OnTestPointCompleted += (point) =>
                     {
-                        if (IsDisposed || !IsHandleCreated) return;
-                        try { BeginInvoke(new Action(() =>
+                        SafeBeginInvoke(() =>
                         {
                             _allResults.Add(point);
                             AddBenchmarkResultRow(point);
-                        })); } catch (ObjectDisposedException) { }
+                        });
                     };
 
                     _engine.OnCompleted += (_) =>
                     {
-                        if (IsDisposed || !IsHandleCreated) return;
-                        try { BeginInvoke(new Action(() =>
+                        SafeBeginInvoke(() =>
                         {
                             if (capturedVersion != _benchmarkVersion) return;
-							if (_allResults.Count > 0)
+                            if (_allResults.Count > 0)
                             {
                                 RefreshAllResults();
                             }
@@ -1096,13 +1127,12 @@ namespace RyzenTuner.UI
                             EnableBenchmarkConfig(true);
                             progressBar.Visible = false;
                             // _isBenchmarkRunning 和 _engine 由 finally 块统一清理
-                        })); } catch (ObjectDisposedException) { }
+                        });
                     };
 
                     _engine.OnError += (error) =>
                     {
-                        if (IsDisposed || !IsHandleCreated) return;
-                        try { BeginInvoke(new Action(() =>
+                        SafeBeginInvoke(() =>
                         {
                             labelStatus.Text = error;
                             if (capturedVersion != _benchmarkVersion) return;
@@ -1111,7 +1141,7 @@ namespace RyzenTuner.UI
                             progressBar.Visible = false;
                             // _isBenchmarkRunning 和 _engine 由 finally 块统一清理
                             AppContainer.Logger().Error("Benchmark", $"能效分析错误: {error}");
-                        })); } catch (ObjectDisposedException) { }
+                        });
                     };
 
                     await _engine.RunAsync(config);
@@ -1296,7 +1326,7 @@ namespace RyzenTuner.UI
         private void HighlightBestRow()
         {
             var isDark = ThemeManager.CurrentMode == ThemeMode.Dark;
-            var defaultBg = isDark ? ThemeManager.ContentBg : SystemColors.Window;
+            var defaultBg = ThemeManager.ContentBg;
             var defaultFg = ThemeManager.ControlText;
 
             foreach (DataGridViewRow row in dataGridViewResults.Rows)
@@ -1377,6 +1407,7 @@ namespace RyzenTuner.UI
             // 真正退出时停止定时器并注销全局快捷键
             mainFormTimer.Enabled = false;
             UnregisterAllHotkeys();
+            AppSettings.CloseConnection();
         }
 
         private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -1879,9 +1910,17 @@ namespace RyzenTuner.UI
                 _isErrorRecoveryPending = true;
                 // 直接设置模式状态，避免触发 CheckedChanged → ChangeEnergyMode 级联调用
                 _isChangingMode = true;
-                AppSettings.Set("CurrentMode", MODE_PERFORMANCE);
-                SyncEnergyModeSelection();
-                _isChangingMode = false;
+                try
+                {
+                    AppSettings.Set("CurrentMode", MODE_PERFORMANCE);
+                    SyncEnergyModeSelection();
+                    // 立即更新托盘图标，避免滞后显示旧模式
+                    notifyIcon1.Text = RyzenTunerUtils.GetLocalizedModeName(MODE_PERFORMANCE);
+                }
+                finally
+                {
+                    _isChangingMode = false;
+                }
             }
             finally
             {
@@ -1913,6 +1952,10 @@ namespace RyzenTuner.UI
 
         private void DoProcessManage()
         {
+            // 跑分进行中时跳过进程管理，避免干扰跑分结果
+            if (_isBenchmarkRunning)
+                return;
+
             if (AppSettings.GetBool("EnergyStar"))
             {
                 AppContainer.EnergyManager().HandleForeground();
@@ -2017,16 +2060,13 @@ namespace RyzenTuner.UI
             UnregisterAllHotkeys();
 
             var failedHotkeys = new List<string>();
-            var hkPowerSave = AppSettings.Get("HotkeyPowerSaveMode", "");
-            var hkBalanced = AppSettings.Get("HotkeyBalancedMode", "");
-            var hkPerformance = AppSettings.Get("HotkeyPerformanceMode", "");
 
-            if (!TryRegisterHotkey(hkPowerSave, HOTKEY_ID_POWERSAVE))
-                failedHotkeys.Add(GetHotkeyDisplayText(hkPowerSave));
-            if (!TryRegisterHotkey(hkBalanced, HOTKEY_ID_BALANCED))
-                failedHotkeys.Add(GetHotkeyDisplayText(hkBalanced));
-            if (!TryRegisterHotkey(hkPerformance, HOTKEY_ID_PERFORMANCE))
-                failedHotkeys.Add(GetHotkeyDisplayText(hkPerformance));
+            foreach (var mode in HotkeyModes)
+            {
+                var hotkey = AppSettings.Get(mode.SettingKey, "");
+                if (!TryRegisterHotkey(hotkey, mode.Id))
+                    failedHotkeys.Add(GetHotkeyDisplayText(hotkey));
+            }
 
             if (failedHotkeys.Count > 0)
             {
