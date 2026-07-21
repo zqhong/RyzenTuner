@@ -13,7 +13,11 @@ namespace RyzenTuner.Common.Settings
     {
         private const string DbFileName = "RyzenTuner.db";
         private static readonly object _lock = new object();
-        private static volatile string? _cachedConnectionString;
+        private static readonly Lazy<string> _connectionString = new Lazy<string>(() =>
+        {
+            var dbPath = GetDbPath();
+            return $"Data Source={dbPath};Version=3;Journal Mode=WAL;Busy Timeout=3000;";
+        });
 
         /// <summary>
         /// 新路径：%LocalAppData%\RyzenTuner\RyzenTuner.db
@@ -141,16 +145,9 @@ namespace RyzenTuner.Common.Settings
 
         /// <summary>
         /// 连接字符串，含 Busy Timeout 应对与日志组件的并发访问。
+        /// 使用 Lazy&lt;string&gt; 保证线程安全并避免重复计算。
         /// </summary>
-        public static string GetConnectionString()
-        {
-            if (_cachedConnectionString == null)
-            {
-                var dbPath = GetDbPath();
-                _cachedConnectionString = $"Data Source={dbPath};Version=3;Journal Mode=WAL;Busy Timeout=3000;";
-            }
-            return _cachedConnectionString;
-        }
+        public static string GetConnectionString() => _connectionString.Value;
 
         public const string CreateSettingsTableSql = @"
             CREATE TABLE IF NOT EXISTS settings (

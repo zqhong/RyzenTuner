@@ -43,10 +43,12 @@ namespace RyzenTuner.Common.Container
                         var logLevelStr = AppSettings.Get("LogLevel", "Warning");
                         logger.DefaultLogLevel = SqliteLogger.ToLogLevel(logLevelStr);
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         // SqliteLogger 构造函数已将 DefaultLogLevel 初始化为 LogLevel.Warning，
-                        // 此处无需额外赋值。
+                        // 此处无需额外赋值。Debug 输出便于开发时发现配置问题。
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[AppContainer] Failed to parse LogLevel, fallback to Warning. {ex.Message}");
                     }
 
                     return logger;

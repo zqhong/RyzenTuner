@@ -365,3 +365,6 @@ FodyWeavers.xsd
 .idea
 .DS_Store
 RyzenTuner.csproj.DotSettings
+
+# Workflow artifacts
+findings.json

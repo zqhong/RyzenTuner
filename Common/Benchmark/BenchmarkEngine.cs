@@ -21,8 +21,8 @@ namespace RyzenTuner.Common.Benchmark
     public class BenchmarkEngine : IDisposable
     {
         private CancellationTokenSource _cts = new();
-        private bool _isRunning;
-        private bool _disposed;
+        private volatile int _isRunning;
+        private int _disposed;
 
         /// <summary>每个测试点完成时触发</summary>
         public event Action<BenchmarkTestPoint>? OnTestPointCompleted;
@@ -39,16 +39,16 @@ namespace RyzenTuner.Common.Benchmark
         /// <summary>发生了错误</summary>
         public event Action<string>? OnError;
 
-        public bool IsRunning => _isRunning;
+        public bool IsRunning => _isRunning != 0;
 
         /// <summary>
         /// 异步执行跑分
         /// </summary>
         public async Task RunAsync(BenchmarkConfig config)
         {
-            if (_isRunning)
+            if (_disposed != 0)
                 return;
-            if (_disposed)
+            if (Interlocked.CompareExchange(ref _isRunning, 1, 0) != 0)
                 return;
 
             // 每次调用 RunAsync 重新创建 CancellationTokenSource，
@@ -72,9 +72,6 @@ namespace RyzenTuner.Common.Benchmark
             {
                 Awake.KeepSystemAwake(true);
             }
-
-            // 在 try 之前设置 _isRunning，确保 Stop() 能正确识别运行状态
-            _isRunning = true;
 
             try
             {
@@ -178,7 +175,7 @@ namespace RyzenTuner.Common.Benchmark
                     Awake.AllowSystemSleep();
                 }
 
-                _isRunning = false;
+                Interlocked.Exchange(ref _isRunning, 0);
             }
         }
 
@@ -187,7 +184,7 @@ namespace RyzenTuner.Common.Benchmark
         /// </summary>
         public void Stop()
         {
-            if (!_isRunning)
+            if (_disposed != 0 || _isRunning == 0)
                 return;
 
             _cts.Cancel();
@@ -252,10 +249,11 @@ namespace RyzenTuner.Common.Benchmark
             CancellationToken ct)
         {
             // 使用 Stopwatch 计时，避免 Environment.TickCount 的 int 溢出
+            const int samplingBufferMs = 100;
             var totalSw = Stopwatch.StartNew();
             var sampleSw = new Stopwatch();
 
-            while (totalSw.ElapsedMilliseconds < totalDurationMs + 100 && !ct.IsCancellationRequested)
+            while (totalSw.ElapsedMilliseconds < totalDurationMs + samplingBufferMs && !ct.IsCancellationRequested)
             {
                 sampleSw.Restart();
 
@@ -284,13 +282,13 @@ namespace RyzenTuner.Common.Benchmark
         /// <summary>
         /// 计算中位数
         /// </summary>
-        private static float Median(List<float> sortedValues)
+        private static float Median(List<float> values)
         {
-            if (sortedValues.Count == 0)
+            if (values.Count == 0)
                 return 0;
 
             // 排序（采样数据本身是无序的）
-            var sorted = new List<float>(sortedValues);
+            var sorted = new List<float>(values);
             sorted.Sort();
 
             var n = sorted.Count;
@@ -352,11 +350,12 @@ namespace RyzenTuner.Common.Benchmark
             }
 
             // 2. 恢复温度限制（即使 TDP 恢复失败也应继续）
+            const int minValidCelsius = 30;
             try
             {
-                if (tctlTemp >= 30)
+                if (tctlTemp >= minValidCelsius)
                     processor.SetTctlTemp((uint)tctlTemp);
-                if (apuSkinTemp >= 30)
+                if (apuSkinTemp >= minValidCelsius)
                     processor.SetApuSkinTemp((uint)apuSkinTemp);
             }
             catch (Exception ex)
@@ -370,9 +369,9 @@ namespace RyzenTuner.Common.Benchmark
 
         public void Dispose()
         {
-            if (_disposed)
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
                 return;
-            _disposed = true;
+
             _cts.Cancel();
             _cts.Dispose();
         }

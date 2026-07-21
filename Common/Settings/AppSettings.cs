@@ -58,8 +58,13 @@ namespace RyzenTuner.Common.Settings
                         }
                     }
 
-                    // 所有初始化成功后，才标记连接字符串（允许后续重试）
-                    _connectionString = connectionString;
+                    // 所有初始化成功后，才标记连接字符串（允许后续重试）。
+                    // 在 _connectionLock 下写入，确保与 Set()/Remove() 中的读取同步（内存屏障），
+                    // 保证跨线程可见性（尤其 ARM 架构）。
+                    lock (_connectionLock)
+                    {
+                        _connectionString = connectionString;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -199,10 +204,15 @@ namespace RyzenTuner.Common.Settings
         /// </summary>
         private static SQLiteConnection EnsureConnection()
         {
+            if (_connectionString == null)
+                throw new InvalidOperationException(
+                    "AppSettings has not been initialized. Call Initialize() first.");
+
             if (_connection == null)
             {
-                _connection = new SQLiteConnection(_connectionString);
-                _connection.Open();
+                var newConn = new SQLiteConnection(_connectionString);
+                newConn.Open();
+                _connection = newConn;
             }
 
             return _connection;

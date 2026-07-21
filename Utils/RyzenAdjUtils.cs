@@ -37,7 +37,13 @@ namespace RyzenTuner.Utils
 
         public static float GetPowerLimit()
         {
-            var powerLimit = RyzenTunerUtils.GetPowerLimitByMode(AppSettings.Get("CurrentMode", "BalancedMode"));
+            var mode = AppSettings.Get("CurrentMode", "BalancedMode");
+
+            // 先尝试获取已保存的功率限制，若未找到则回退到最小安全值
+            if (!RyzenTunerUtils.TryGetPowerLimitByMode(mode, out var powerLimit))
+            {
+                powerLimit = MinPowerLimit;
+            }
 
             // 数值修正：负值、0、NaN、Infinity 都视为无效，回退到最小安全值 1W
             if (powerLimit <= 0 || float.IsNaN(powerLimit) || float.IsInfinity(powerLimit))

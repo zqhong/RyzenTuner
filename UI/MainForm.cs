@@ -1019,6 +1019,10 @@ namespace RyzenTuner.UI
             {
                 // 在 guard 检查和 BeginInvoke 之间窗体已关闭，忽略
             }
+            catch (InvalidOperationException)
+            {
+                // 在 guard 检查和 BeginInvoke 之间句柄已无效（例如重建中），忽略
+            }
         }
 
         private async void BenchmarkStart_Click(object? sender, EventArgs e)
@@ -1109,6 +1113,7 @@ namespace RyzenTuner.UI
                     {
                         SafeBeginInvoke(() =>
                         {
+                            if (capturedVersion != _benchmarkVersion) return;
                             _allResults.Add(point);
                             AddBenchmarkResultRow(point);
                         });
@@ -1326,7 +1331,6 @@ namespace RyzenTuner.UI
 
         private void HighlightBestRow()
         {
-            var isDark = ThemeManager.CurrentMode == ThemeMode.Dark;
             var defaultBg = ThemeManager.ContentBg;
             var defaultFg = ThemeManager.ControlText;
 
@@ -1565,10 +1569,17 @@ namespace RyzenTuner.UI
 
             var checkedMode = tag.ToString();
 
-            AppSettings.Set("CurrentMode", checkedMode);
-            SyncEnergyModeSelection();
-
-            DoPowerLimit();
+            _isChangingMode = true;
+            try
+            {
+                AppSettings.Set("CurrentMode", checkedMode);
+                SyncEnergyModeSelection();
+                DoPowerLimit();
+            }
+            finally
+            {
+                _isChangingMode = false;
+            }
         }
 
         private void checkBoxEnergyStar_CheckedChanged(object sender, EventArgs e)

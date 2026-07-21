@@ -47,7 +47,11 @@ namespace RyzenTuner.Common.Container
         /// <summary>
         /// Creates a new instance of IoC Container
         /// </summary>
-        public Container() => _lifetime = new ContainerLifetime(t => _registeredTypes[t]);
+        public Container()
+        {
+            _lifetime = new ContainerLifetime(t =>
+                _registeredTypes.TryGetValue(t, out var factory) ? factory : null!);
+        }
 
         /// <summary>
         /// Registers a factory function which will be called to resolve the specified interface
@@ -90,7 +94,8 @@ namespace RyzenTuner.Common.Container
         {
             if (!_registeredTypes.TryGetValue(type, out var registeredType))
             {
-                // 不显示 WARN
+                // Returning null follows IServiceProvider convention for unregistered types;
+                // null! suppresses nullable warning to keep callers that assert non-null happy.
                 return null!;
             }
 
@@ -129,15 +134,30 @@ namespace RyzenTuner.Common.Container
             public void Dispose()
             {
                 // Snapshot to avoid collection-modified exception from concurrent resolution
+                var exceptions = new List<Exception>();
+
                 foreach (var kvp in _instanceCache.ToArray())
                 {
                     if (kvp.Value.IsValueCreated && kvp.Value.Value is IDisposable disposable)
                     {
-                        disposable.Dispose();
+                        try
+                        {
+                            disposable.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            exceptions.Add(ex);
+                        }
                     }
                 }
 
                 _instanceCache.Clear();
+
+                if (exceptions.Count > 0)
+                {
+                    throw new AggregateException(
+                        "One or more disposable services threw exceptions during disposal.", exceptions);
+                }
             }
         }
 
@@ -149,7 +169,17 @@ namespace RyzenTuner.Common.Container
 
             public ContainerLifetime(Func<Type, Func<ILifetime, object>> getFactory) => GetFactory = getFactory;
 
-            public object GetService(Type type) => GetFactory(type)(this);
+            public object GetService(Type type)
+            {
+                var factory = GetFactory(type);
+                if (factory == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Type \"{type.FullName}\" is not registered in the container.");
+                }
+
+                return factory(this);
+            }
 
             // Singletons get cached per container
             public object GetServiceAsSingleton(Type type, Func<ILifetime, object> factory)
@@ -165,7 +195,17 @@ namespace RyzenTuner.Common.Container
 
             public ScopeLifetime(ContainerLifetime parentContainer) => _parentLifetime = parentContainer;
 
-            public object GetService(Type type) => _parentLifetime.GetFactory(type)(this);
+            public object GetService(Type type)
+            {
+                var factory = _parentLifetime.GetFactory(type);
+                if (factory == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Type \"{type.FullName}\" is not registered in the container.");
+                }
+
+                return factory(this);
+            }
 
             // Singleton resolution is delegated to parent lifetime
             public object GetServiceAsSingleton(Type type, Func<ILifetime, object> factory)
@@ -243,7 +283,9 @@ namespace RyzenTuner.Common.Container
         /// <param name="container">This container instance</param>
         /// <param name="factory">Factory method</param>
         /// <returns>IRegisteredType object</returns>
-        /// 不显示 WARN
+        /// <remarks>The null-forgiving operator (!) on <c>factory()!</c> suppresses nullable
+        /// warnings -- the caller's factory is expected to return a non-null instance for valid
+        /// registrations.</remarks>
         public static Container.IRegisteredType Register<T>(this Container container, Func<T> factory)
             => container.Register(typeof(T), () => factory()!);
 
@@ -253,6 +295,16 @@ namespace RyzenTuner.Common.Container
         /// <typeparam name="T">Interface type</typeparam>
         /// <param name="scope">This scope instance</param>
         /// <returns>Object implementing the interface</returns>
-        public static T Resolve<T>(this Container.IScope scope) => (T)scope.GetService(typeof(T));
+        public static T Resolve<T>(this Container.IScope scope)
+        {
+            var service = scope.GetService(typeof(T));
+            if (service == null)
+            {
+                throw new InvalidOperationException(
+                    $"Type \"{typeof(T)}\" is not registered in the container.");
+            }
+
+            return (T)service;
+        }
     }
 }

@@ -35,7 +35,6 @@ namespace RyzenTuner.Common.Theme
         //       可能导致控件无法被垃圾回收。若出现内存泄漏，可改为 ConditionalWeakTable。
         private static readonly Dictionary<Control, OriginalColors> _originals = new();
 
-        // TODO: 考虑改为 readonly struct 以明确表示不可变性
         private struct OriginalColors
         {
             public Color BackColor;

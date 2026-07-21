@@ -108,13 +108,17 @@ namespace RyzenTuner.Common.Logger
         {
             if (_disposed)
                 return;
-            _disposed = true;
 
             // 等待所有进行中的数据库操作完成后再清空连接池，
             // 避免 ClearAllPools() 与 WriteToDatabase/Cleanup/DeleteAll
             // 中正在使用的连接发生竞态。
             lock (_dbLock)
             {
+                if (_disposed)
+                    return;
+
+                _disposed = true;
+
                 System.Diagnostics.Debug.WriteLine("[SqliteLogger] Disposing, clearing all connection pools");
                 // 释放 SQLite 连接池中的句柄，防止反复重启时句柄残留导致 SQLITE_BUSY
                 SQLiteConnection.ClearAllPools();
@@ -350,9 +354,12 @@ namespace RyzenTuner.Common.Logger
 
             try
             {
-                using var conn = CreateConnection();
                 lock (_dbLock)
                 {
+                    if (_disposed)
+                        return;
+
+                    using var conn = CreateConnection();
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = "DELETE FROM logs";
                     cmd.ExecuteNonQuery();
@@ -374,9 +381,12 @@ namespace RyzenTuner.Common.Logger
 
             try
             {
-                using var conn = CreateConnection();
                 lock (_dbLock)
                 {
+                    if (_disposed)
+                        return;
+
+                    using var conn = CreateConnection();
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = "DELETE FROM logs WHERE timestamp < @cutoff";
                     cmd.Parameters.AddWithValue("@cutoff",
@@ -435,7 +445,7 @@ namespace RyzenTuner.Common.Logger
             {
                 lock (_dbLock)
                 {
-                    if (_disposed)
+                    if (_disposed || !_dbInitialized)
                         return;
 
                     using var conn = CreateConnection();

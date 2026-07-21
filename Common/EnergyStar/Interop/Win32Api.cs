@@ -52,7 +52,7 @@ namespace RyzenTuner.Common.EnergyStar.Interop
 
         // We don’t need to bloat this app with WinForm/WPF to show a simple message box
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern int MessageBox(IntPtr hInstance, string lpText, string lpCaption, uint type);
+        public static extern int MessageBox(IntPtr hWnd, string lpText, string lpCaption, uint type);
 
         // two message box related constants
         public const int MbOk = 0x00000000;

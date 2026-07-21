@@ -13,7 +13,7 @@ namespace RyzenTuner
         private const string InstanceMutexName = "RyzenTuner-InstanceMutex";
 
         // 用于单例检测的 Mutex（替代 Process.GetProcessesByName，支持 Application.Restart）
-        private static Mutex? _instanceMutex;
+        private static volatile Mutex? _instanceMutex;
 
         // 跟踪当前线程是否拥有 Mutex，避免对未拥有的 Mutex 调用 ReleaseMutex 崩溃
         private static volatile bool _ownsInstanceMutex;
@@ -63,7 +63,7 @@ namespace RyzenTuner
             }
             catch (Exception ex)
             {
-                try { AppContainer.Logger()?.Error("System", $"重新获取单例 Mutex 失败: {ex.Message}"); } catch { /* 日志异常不影响流程 */ }
+                TryLogError($"重新获取单例 Mutex 失败: {ex.Message}");
                 return false;
             }
         }
@@ -98,7 +98,7 @@ namespace RyzenTuner
             {
                 // 检查是否是初始化失败导致的异常
                 if (HasException<DllNotFoundException>(ex) ||
-                    ex.Message.Contains("libryzenadj.dll"))
+                    ex.Message?.Contains("libryzenadj.dll") == true)
                 {
                     ShowErrorAndExit(Properties.Strings.TextCriticalError,
                         Properties.Strings.TextLibRyzenAdjMissing);
@@ -160,8 +160,10 @@ namespace RyzenTuner
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs arg)
         {
-            var e = (Exception)arg.ExceptionObject;
-            HandleUnhandledException(e);
+            if (arg.ExceptionObject is Exception e)
+            {
+                HandleUnhandledException(e);
+            }
         }
 
         private static void HandleUnhandledException(Exception ex)
@@ -174,6 +176,18 @@ namespace RyzenTuner
             AppContainer.Dispose();
 
             Application.Exit();
+        }
+
+        private static void TryLogError(string message)
+        {
+            try
+            {
+                AppContainer.Logger()?.Error("System", message);
+            }
+            catch
+            {
+                // 日志异常不影响主流程
+            }
         }
 
         private static bool HasException<T>(Exception ex) where T : Exception

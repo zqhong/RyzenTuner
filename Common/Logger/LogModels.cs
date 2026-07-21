@@ -4,6 +4,8 @@ namespace RyzenTuner.Common.Logger
 {
     /// <summary>
     /// Structured log entry for SQLite logging.
+    /// Timestamp must be UTC; the cleanup query relies on string-ordinal
+    /// comparison of ISO 8601 UTC timestamps and would misbehave with local time.
     /// </summary>
     public sealed class LogEntry
     {

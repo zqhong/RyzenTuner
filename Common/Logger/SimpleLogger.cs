@@ -202,7 +202,7 @@ namespace RyzenTuner.Common.Logger
 
         private void WriteFormattedLog(LogLevel level, string text)
         {
-            if (level < DefaultLogLevel)
+            if (_disposed || level < DefaultLogLevel)
             {
                 return;
             }

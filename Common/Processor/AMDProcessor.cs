@@ -32,8 +32,6 @@ namespace RyzenTuner.Common.Processor
             {
                 CleanupRy();
             }
-
-            GC.SuppressFinalize(this);
         }
 
         public AmdProcessor()
@@ -187,8 +185,8 @@ namespace RyzenTuner.Common.Processor
             }
 
             // 例如：15W : 15000 mW
-            // 保护：拒绝负数、零值或 NaN，避免 (uint) 转换后环绕为超大值
-            if (limit <= 0 || double.IsNaN(limit))
+            // 保护：拒绝负数、零值、NaN 或 Infinity，避免 (uint) 转换后环绕为超大值
+            if (limit <= 0 || double.IsNaN(limit) || double.IsInfinity(limit))
                 return false;
 
             limit *= WattsToMilliwatts;

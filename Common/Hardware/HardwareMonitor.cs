@@ -20,7 +20,7 @@ namespace RyzenTuner.Common.Hardware
 
         private readonly Computer _computer;
         private readonly object _monitorLock = new();
-        private bool _disposed;
+        private volatile bool _disposed;
 
         public HardwareMonitor()
         {
@@ -41,35 +41,65 @@ namespace RyzenTuner.Common.Hardware
         // Finalizers / destructor
         ~HardwareMonitor()
         {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
             if (_disposed)
             {
                 return;
             }
 
-            _computer.Close();
+            // Finalizers must not touch managed resources.
+            // _computer.Close() may access managed child objects (IHardware, ISensor, etc.)
+            // that may already have been finalized, so only call it during explicit disposal.
+            if (disposing)
+            {
+                _computer.Close();
+            }
+
             _disposed = true;
         }
 
-        public void Dispose()
+        public float CpuPackagePower
         {
-            lock (_monitorLock)
+            get
             {
-                if (_disposed)
+                lock (_monitorLock)
                 {
-                    return;
+                    return _cpuPackagePower;
                 }
-
-                _computer.Close();
-                _disposed = true;
             }
-
-            GC.SuppressFinalize(this);
         }
 
-        public float CpuPackagePower => _cpuPackagePower;
+        public float CpuTemperature
+        {
+            get
+            {
+                lock (_monitorLock)
+                {
+                    return _cpuTemperature;
+                }
+            }
+        }
 
-        public float CpuTemperature => _cpuTemperature;
-        public float CpuFreq => _cpuFreq;
+        public float CpuFreq
+        {
+            get
+            {
+                lock (_monitorLock)
+                {
+                    return _cpuFreq;
+                }
+            }
+        }
 
         private void Update()
         {
@@ -79,10 +109,20 @@ namespace RyzenTuner.Common.Hardware
 
         public void Monitor()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             try
             {
                 lock (_monitorLock)
                 {
+                    if (_disposed)
+                    {
+                        return;
+                    }
+
                     Update();
 
                     var cpuHardwareList = _computer
@@ -144,7 +184,6 @@ namespace RyzenTuner.Common.Hardware
             return float.NaN;
         }
 
-
         /// <summary>
         /// 获取 CPU 平均频率
         /// </summary>
@@ -154,6 +193,13 @@ namespace RyzenTuner.Common.Hardware
         {
             try
             {
+                // Build a dictionary keyed by sensor name for O(1) per-core lookups,
+                // avoiding repeated O(n) scans of the sensor list.
+                var clockSensors = cpuEnumerable
+                    .Where(s => s.SensorType == SensorType.Clock && s.Value != null)
+                    .GroupBy(s => s.Name)
+                    .ToDictionary(g => g.Key, g => g.First().Value!.Value);
+
                 var cpuCount = Environment.ProcessorCount;
 
                 float totalFreq = 0;
@@ -161,14 +207,10 @@ namespace RyzenTuner.Common.Hardware
 
                 for (var i = 1; i <= cpuCount; i++)
                 {
-                    var index = i;
-                    var freq = cpuEnumerable
-                        .Where(s => s.SensorType == SensorType.Clock && s.Name == $"Core #{index}" && s.Value != null)
-                        .Select(s => s.Value)
-                        .FirstOrDefault();
-                    if (freq is > MinReasonableFrequency)
+                    if (clockSensors.TryGetValue($"Core #{i}", out var freq) &&
+                        freq > MinReasonableFrequency)
                     {
-                        totalFreq += freq.Value;
+                        totalFreq += freq;
                         count++;
                     }
                 }

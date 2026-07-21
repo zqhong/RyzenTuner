@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using RyzenTuner.Common.Container;
 using RyzenTuner.Common.EnergyStar.Interop;
 using RyzenTuner.Common.Settings;
@@ -111,7 +112,7 @@ namespace RyzenTuner.Common.EnergyStar
         private readonly IntPtr _pThrottleOn;
         private readonly IntPtr _pThrottleOff;
         private readonly int _szControlBlock;
-        private bool _disposed;
+        private int _disposed;
 
         public EnergyManager()
         {
@@ -171,6 +172,12 @@ namespace RyzenTuner.Common.EnergyStar
         /// <param name="enable"></param>
         private void ToggleEfficiencyMode(IntPtr hProcess, bool enable)
         {
+            // 防止 Dispose 并发释放 _pThrottleOn / _pThrottleOff 后继续使用
+            if (Interlocked.CompareExchange(ref _disposed, 0, 0) != 0)
+            {
+                return;
+            }
+
             var logger = AppContainer.Logger();
 
             try
@@ -210,7 +217,7 @@ namespace RyzenTuner.Common.EnergyStar
             }
             catch (Exception e)
             {
-                AppContainer.Logger().LogException(e);
+                logger.LogException(e);
             }
         }
 
@@ -447,7 +454,7 @@ namespace RyzenTuner.Common.EnergyStar
 
         private void DisposeCore()
         {
-            if (_disposed)
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
             {
                 return;
             }
@@ -461,8 +468,6 @@ namespace RyzenTuner.Common.EnergyStar
             {
                 Marshal.FreeHGlobal(_pThrottleOff);
             }
-
-            _disposed = true;
         }
     }
 }
