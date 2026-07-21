@@ -16,7 +16,7 @@ namespace RyzenTuner.Common.EnergyStar
     {
         private const string UnknownProcessName = "Unknown-K7Ncy4PUIQBNyGTl.exe";
 
-        private readonly HashSet<string> _bypassProcessList = new(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> _hardcodedBypassList = new(StringComparer.OrdinalIgnoreCase)
         {
             // Edge 浏览器会自动调度
             "msedge.exe",
@@ -103,6 +103,8 @@ namespace RyzenTuner.Common.EnergyStar
             "RyzenTuner.exe",
         };
 
+        private readonly HashSet<string> _bypassProcessList = new(StringComparer.OrdinalIgnoreCase);
+
         private readonly IntPtr _pThrottleOn;
         private readonly IntPtr _pThrottleOff;
         private readonly int _szControlBlock;
@@ -112,6 +114,7 @@ namespace RyzenTuner.Common.EnergyStar
 
         public EnergyManager()
         {
+            _bypassProcessList.UnionWith(_hardcodedBypassList);
             var bypassSetting =
                 (AppSettings.Get("EnergyStarBypassProcessList") ?? "")
                     .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
@@ -381,6 +384,22 @@ namespace RyzenTuner.Common.EnergyStar
             {
                 AppContainer.Logger().LogException(e);
             }
+        }
+
+        /// <summary>
+        /// 从 AppSettings 重新加载 EnergyStarBypassProcessList 配置。
+        /// 调用后新设置立即生效，无需重启应用。
+        /// </summary>
+        public void ReloadBypassList()
+        {
+            var bypassSetting =
+                (AppSettings.Get("EnergyStarBypassProcessList") ?? "")
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim());
+
+            _bypassProcessList.Clear();
+            _bypassProcessList.UnionWith(_hardcodedBypassList);
+            _bypassProcessList.UnionWith(bypassSetting);
         }
 
         public void Dispose()

@@ -12,8 +12,9 @@ namespace RyzenTuner.Common.Processor
             Stapm = 1,
             Fast = 2,
         }
-        
+
         private IntPtr _ry;
+        private readonly object _lock = new();
 
         public bool CanChangeTdp { get; private set; }
         public RyzenFamily CpuFamily { get; private set; }
@@ -95,48 +96,51 @@ namespace RyzenTuner.Common.Processor
             _ry = IntPtr.Zero;
         }
         
-        public float GetStampLimit() => RyzenAdj.get_stapm_limit(_ry);
+        public float GetStampLimit() { lock (_lock) return RyzenAdj.get_stapm_limit(_ry); }
 
         /// <summary>
         /// 返回 Fast Limit（读取 SMU 寄存器的设定值）
         /// 部分 CPU 下会返回 NaN
         /// </summary>
-        public float GetFastLimit() => RyzenAdj.get_fast_limit(_ry);
+        public float GetFastLimit() { lock (_lock) return RyzenAdj.get_fast_limit(_ry); }
 
         /// <summary>
         /// 返回 Slow Limit（读取 SMU 寄存器的设定值）
         /// 部分 CPU 下会返回 NaN
         /// </summary>
-        public float GetSlowLimit() => RyzenAdj.get_slow_limit(_ry);
+        public float GetSlowLimit() { lock (_lock) return RyzenAdj.get_slow_limit(_ry); }
 
         /// <summary>
         /// 返回 Tctl Temp 限制（读取 SMU 寄存器的设定值）
         /// 部分 CPU 下会返回 NaN
         /// </summary>
-        public float GetTctlTempLimit() => RyzenAdj.get_tctl_temp(_ry);
+        public float GetTctlTempLimit() { lock (_lock) return RyzenAdj.get_tctl_temp(_ry); }
 
         /// <summary>
         /// 刷新 SMU 内部表数据，使后续 get_* 调用读取到最新值。
         /// 等效于 ryzenadj --info 中的 refresh_table 步骤。
         /// </summary>
-        public void RefreshTable() => RyzenAdj.refresh_table(_ry);
+        public void RefreshTable() { lock (_lock) RyzenAdj.refresh_table(_ry); }
 
         /// <summary>
         /// 返回 APU 皮肤温度限制值（SMU 寄存器设定值）
         /// 部分 CPU 下会返回 NaN
         /// </summary>
-        public float GetApuSkinTempLimit() => RyzenAdj.get_apu_skin_temp_limit(_ry);
+        public float GetApuSkinTempLimit() { lock (_lock) return RyzenAdj.get_apu_skin_temp_limit(_ry); }
 
         /// <summary>
         /// 返回 APU 皮肤温度当前值（SMU 测量值）
         /// 部分 CPU 下会返回 NaN
         /// </summary>
-        public float GetApuSkinTempValue() => RyzenAdj.get_apu_skin_temp_value(_ry);
+        public float GetApuSkinTempValue() { lock (_lock) return RyzenAdj.get_apu_skin_temp_value(_ry); }
 
         public bool SetTctlTemp(uint temp)
         {
-            var result = RyzenAdj.set_tctl_temp(_ry, temp);
-            return result == (int)ErrCode.AdjErrNone;
+            lock (_lock)
+            {
+                var result = RyzenAdj.set_tctl_temp(_ry, temp);
+                return result == (int)ErrCode.AdjErrNone;
+            }
         }
 
         private bool SetTdpLimit(PowerType type, double limit)
@@ -157,13 +161,17 @@ namespace RyzenTuner.Common.Processor
             if (limit > uint.MaxValue)
                 return false;
 
-            var result = type switch
+            int result;
+            lock (_lock)
             {
-                PowerType.Fast => RyzenAdj.set_fast_limit(_ry, (uint)limit),
-                PowerType.Slow => RyzenAdj.set_slow_limit(_ry, (uint)limit),
-                PowerType.Stapm => RyzenAdj.set_stapm_limit(_ry, (uint)limit),
-                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-            };
+                result = type switch
+                {
+                    PowerType.Fast => RyzenAdj.set_fast_limit(_ry, (uint)limit),
+                    PowerType.Slow => RyzenAdj.set_slow_limit(_ry, (uint)limit),
+                    PowerType.Stapm => RyzenAdj.set_stapm_limit(_ry, (uint)limit),
+                    _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+                };
+            }
 
             return result == (int)ErrCode.AdjErrNone;
         }
@@ -179,7 +187,12 @@ namespace RyzenTuner.Common.Processor
             if (!CanChangeTdp)
                 return false;
 
-            var result = RyzenAdj.set_apu_skin_temp_limit(_ry, temp);
+            int result;
+            lock (_lock)
+            {
+                result = RyzenAdj.set_apu_skin_temp_limit(_ry, temp);
+            }
+
             AppContainer.Logger().Debug("Call ryzenadj", $"AMDProcessor.SetApuSkinTemp: {temp}, result: {result}");
             return result == (int)ErrCode.AdjErrNone;
         }

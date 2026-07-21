@@ -96,6 +96,7 @@ namespace RyzenTuner.Common.Theme
         private static readonly Color D_DataGridBg = Color.FromArgb(30, 30, 30);
         private static readonly Color D_SelectionBg = Color.FromArgb(38, 79, 120);
         private static readonly Color D_SelectionFg = D_ControlText;
+        private static readonly Color D_HighlightRowBg = Color.FromArgb(30, 90, 40);
 
         // ================================================================
         // 公开属性
@@ -107,6 +108,8 @@ namespace RyzenTuner.Common.Theme
         public static Color NavHover => CurrentMode == ThemeMode.Dark ? D_NavHover : L_NavHover;
         public static Color IconPrimary => CurrentMode == ThemeMode.Dark ? D_IconPrimary : L_IconPrimary;
         public static Color IconSecondary => CurrentMode == ThemeMode.Dark ? D_IconSecondary : L_IconSecondary;
+        public static Color ControlText => CurrentMode == ThemeMode.Dark ? D_ControlText : Color.Black;
+        public static Color HighlightRowBg => CurrentMode == ThemeMode.Dark ? D_HighlightRowBg : Color.LightGreen;
 
         // ================================================================
         // 公共方法

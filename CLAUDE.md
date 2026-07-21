@@ -64,12 +64,11 @@ RyzenTuner/
 │   │   └── UpdateVisitor.cs      # 传感器数据更新访问器
 │   ├── Logger/                 # 日志系统
 │   │   ├── LogModels.cs          # 日志条目模型（LogEntry）
-│   │   ├── SimpleLogger.cs       # 文件日志器（旧）
 │   │   └── SqliteLogger.cs       # SQLite 日志器
 │   ├── Processor/              # RyzenAdj P/Invoke 绑定 + AMDProcessor 封装
 │   │   ├── AMDProcessor.cs       # ryzenadj 调用封装
 │   │   └── RyzenAdj.cs           # P/Invoke 声明
-│   ├── Settings/               # SQLite 设置存储（替代旧 user.config）
+│   ├── Settings/               # SQLite 设置存储
 │   │   ├── AppSettings.cs        # 静态 API：Get<T>() / Set()，缓存 + 即时持久化
 │   │   └── SettingsDatabase.cs   # DB 路径、迁移、连接字符串（含 WAL + BusyTimeout）
 │   ├── Theme/                  # 深色模式支持

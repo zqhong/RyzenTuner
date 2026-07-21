@@ -15,6 +15,8 @@ namespace RyzenTuner.Common.Settings
     public static class AppSettings
     {
         private static string? _connectionString;
+        private static SQLiteConnection? _connection;
+        private static readonly object _connectionLock = new();
         private static readonly Dictionary<string, string?> _cache = new(StringComparer.Ordinal);
 
         /// <summary>
@@ -107,13 +109,20 @@ namespace RyzenTuner.Common.Settings
 
             try
             {
-                using var conn = new SQLiteConnection(_connectionString);
-                conn.Open();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "INSERT OR REPLACE INTO settings (key, value) VALUES (@key, @value)";
-                cmd.Parameters.AddWithValue("@key", key);
-                cmd.Parameters.AddWithValue("@value", value);
-                cmd.ExecuteNonQuery();
+                lock (_connectionLock)
+                {
+                    if (_connection == null)
+                    {
+                        _connection = new SQLiteConnection(_connectionString);
+                        _connection.Open();
+                    }
+
+                    using var cmd = _connection.CreateCommand();
+                    cmd.CommandText = "INSERT OR REPLACE INTO settings (key, value) VALUES (@key, @value)";
+                    cmd.Parameters.AddWithValue("@key", key);
+                    cmd.Parameters.AddWithValue("@value", value);
+                    cmd.ExecuteNonQuery();
+                }
             }
             catch (Exception ex)
             {
@@ -137,5 +146,17 @@ namespace RyzenTuner.Common.Settings
             Set(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
+        /// <summary>
+        /// 关闭持久连接（应用退出时调用）。
+        /// </summary>
+        public static void CloseConnection()
+        {
+            lock (_connectionLock)
+            {
+                _connection?.Close();
+                _connection?.Dispose();
+                _connection = null;
+            }
+        }
     }
 }
