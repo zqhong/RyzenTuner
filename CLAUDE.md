@@ -171,10 +171,6 @@ RyzenTuner/
 
 - `-hide` — 启动时隐藏主窗口到托盘（用于开机自启）
 
-### 可用 Skill
-
-- `/check-fix` — 开发/修复 bug 后，持续 code-review + 编译修复，直到零错误
-
 ## 构建说明
 
 - 需要 .NET Framework 4.8 SDK 或对应 MSBuild
@@ -183,3 +179,20 @@ RyzenTuner/
 - 运行需要管理员权限（`requireAdministrator`），因为需要 SMU 通信和修改进程优先级
 - 原生 DLL 位于 `native/` 目录，构建时 MSBuild 自动复制到输出目录根目录（`<Link>` 展平）
 - 系统要求：Microsoft Visual C++ 2015-2022 Redistributable (x64)
+
+## git 说明
+
+### git commit
+
+Commit 消息格式
+
+```
+<type>[scope]: <中文描述>
+
+[可选的中文正文]
+
+[可选的中文页脚]
+```
+
+备注：
+不能使用 `@` 开头
