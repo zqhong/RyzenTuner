@@ -72,7 +72,7 @@ namespace RyzenTuner.Common.Processor
             _ry = IntPtr.Zero;
         }
         
-        public float GetStampLimit() { lock (_lock) return RyzenAdj.get_stapm_limit(_ry); }
+        public float GetStapmLimit() { lock (_lock) return RyzenAdj.get_stapm_limit(_ry); }
 
         /// <summary>
         /// 返回 Fast Limit（读取 SMU 寄存器的设定值）
@@ -156,7 +156,7 @@ namespace RyzenTuner.Common.Processor
 
         public bool SetSlowPpt(double limit) => SetTdpLimit(PowerType.Slow, limit);
 
-        public bool SetStampPpt(double limit) => SetTdpLimit(PowerType.Stapm, limit);
+        public bool SetStapmPpt(double limit) => SetTdpLimit(PowerType.Stapm, limit);
 
         public bool SetApuSkinTemp(uint temp)
         {

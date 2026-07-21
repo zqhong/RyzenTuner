@@ -1495,7 +1495,7 @@ namespace RyzenTuner.UI
                 labelFastLimitTitle.Left = c1; fastLimitLabel.Left = c1;
                 labelSlowLimitTitle.Left = c2; slowLimitLabel.Left = c2;
                 labelTctlLimitTitle.Left = c3; tctlTempLabel.Left = c3;
-                labelStampLimitTitle.Left = c1; stampLimitLabel.Left = c1;
+                labelStapmLimitTitle.Left = c1; stapmLimitLabel.Left = c1;
                 labelApuSkinTitle.Left = c2; apuSkinTempLabel.Left = c2;
             }
             pad = groupBoxOptions.Padding.Left;
@@ -1742,8 +1742,8 @@ namespace RyzenTuner.UI
                     ? Strings.TextNotAvailable
                     : string.Format(Strings.TextMonitorTempIntFormat, tctlTemp);
 
-                var stampLimit = proc.GetStampLimit();
-                stampLimitLabel.Text = float.IsNaN(stampLimit)
+                var stampLimit = proc.GetStapmLimit();
+                stapmLimitLabel.Text = float.IsNaN(stampLimit)
                     ? Strings.TextNotAvailable
                     : string.Format(Strings.TextMonitorPowerFormat, stampLimit);
 
@@ -1825,9 +1825,9 @@ namespace RyzenTuner.UI
                     applyErrors.Add($"SetSlowPpt({stampLimit:0.##}W)");
                 }
 
-                if (!processor.SetStampPpt(stampLimit))
+                if (!processor.SetStapmPpt(stampLimit))
                 {
-                    applyErrors.Add($"SetStampPpt({stampLimit:0.##}W)");
+                    applyErrors.Add($"SetStapmPpt({stampLimit:0.##}W)");
                 }
 
                 if (!processor.SetTctlTemp(tctlTemp))

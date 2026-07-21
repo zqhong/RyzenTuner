@@ -301,7 +301,7 @@ namespace RyzenTuner.Common.Benchmark
             var ok = true;
             ok &= processor.SetFastPpt(tdp);
             ok &= processor.SetSlowPpt(tdp);
-            ok &= processor.SetStampPpt(tdp);
+            ok &= processor.SetStapmPpt(tdp);
             return ok;
         }
 

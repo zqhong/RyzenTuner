@@ -47,7 +47,7 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         [DllImport("user32.dll")]
         public static extern int MessageBox(IntPtr hInstance, string lpText, string lpCaption, uint type);
 
-        // two message box releated constants
+        // two message box related constants
         public const int MbOk = 0x00000000;
         public const int MbIconError = 0x00000010;
 

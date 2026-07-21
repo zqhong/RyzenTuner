@@ -67,8 +67,8 @@ namespace RyzenTuner.UI
     this.slowLimitLabel = new Label();
     this.labelTctlLimitTitle = new Label();
     this.tctlTempLabel = new Label();
-    this.labelStampLimitTitle = new Label();
-    this.stampLimitLabel = new Label();
+    this.labelStapmLimitTitle = new Label();
+    this.stapmLimitLabel = new Label();
     this.labelApuSkinTitle = new Label();
     this.apuSkinTempLabel = new Label();
     this.groupBoxOptions = new GroupBox();
@@ -374,8 +374,8 @@ namespace RyzenTuner.UI
     this.groupBoxParams.Controls.Add(this.slowLimitLabel);
     this.groupBoxParams.Controls.Add(this.labelTctlLimitTitle);
     this.groupBoxParams.Controls.Add(this.tctlTempLabel);
-    this.groupBoxParams.Controls.Add(this.labelStampLimitTitle);
-    this.groupBoxParams.Controls.Add(this.stampLimitLabel);
+    this.groupBoxParams.Controls.Add(this.labelStapmLimitTitle);
+    this.groupBoxParams.Controls.Add(this.stapmLimitLabel);
     this.groupBoxParams.Controls.Add(this.labelApuSkinTitle);
     this.groupBoxParams.Controls.Add(this.apuSkinTempLabel);
     this.groupBoxParams.Location = new Point(16, 192);
@@ -413,15 +413,15 @@ namespace RyzenTuner.UI
     this.tctlTempLabel.Location = new Point(440, 44);
     this.tctlTempLabel.Text = "-- ℃";
 
-    this.labelStampLimitTitle.AutoSize = true;
-    this.labelStampLimitTitle.ForeColor = Color.Gray;
-    this.labelStampLimitTitle.Location = new Point(16, 80);
-    this.labelStampLimitTitle.Text = "STAPM Limit";
+    this.labelStapmLimitTitle.AutoSize = true;
+    this.labelStapmLimitTitle.ForeColor = Color.Gray;
+    this.labelStapmLimitTitle.Location = new Point(16, 80);
+    this.labelStapmLimitTitle.Text = "STAPM Limit";
 
-    this.stampLimitLabel.AutoSize = true;
-    this.stampLimitLabel.Font = new Font(this.Font.FontFamily, 18F, FontStyle.Bold);
-    this.stampLimitLabel.Location = new Point(16, 100);
-    this.stampLimitLabel.Text = "-- W";
+    this.stapmLimitLabel.AutoSize = true;
+    this.stapmLimitLabel.Font = new Font(this.Font.FontFamily, 18F, FontStyle.Bold);
+    this.stapmLimitLabel.Location = new Point(16, 100);
+    this.stapmLimitLabel.Text = "-- W";
 
     this.labelApuSkinTitle.AutoSize = true;
     this.labelApuSkinTitle.ForeColor = Color.Gray;
@@ -1159,8 +1159,8 @@ namespace RyzenTuner.UI
         private Label slowLimitLabel;
         private Label labelTctlLimitTitle;
         private Label tctlTempLabel;
-        private Label labelStampLimitTitle;
-        private Label stampLimitLabel;
+        private Label labelStapmLimitTitle;
+        private Label stapmLimitLabel;
         private Label labelApuSkinTitle;
         private Label apuSkinTempLabel;
         private GroupBox groupBoxOptions;
