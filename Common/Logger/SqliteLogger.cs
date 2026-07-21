@@ -110,12 +110,18 @@ namespace RyzenTuner.Common.Logger
                 return;
             _disposed = true;
 
-            System.Diagnostics.Debug.WriteLine("[SqliteLogger] Disposing, clearing all connection pools");
-            // 释放 SQLite 连接池中的句柄，防止反复重启时句柄残留导致 SQLITE_BUSY
-            SQLiteConnection.ClearAllPools();
+            // 等待所有进行中的数据库操作完成后再清空连接池，
+            // 避免 ClearAllPools() 与 WriteToDatabase/Cleanup/DeleteAll
+            // 中正在使用的连接发生竞态。
+            lock (_dbLock)
+            {
+                System.Diagnostics.Debug.WriteLine("[SqliteLogger] Disposing, clearing all connection pools");
+                // 释放 SQLite 连接池中的句柄，防止反复重启时句柄残留导致 SQLITE_BUSY
+                SQLiteConnection.ClearAllPools();
+            }
         }
 
-        public LogLevel ToLogLevel(string logLevel)
+        public static LogLevel ToLogLevel(string logLevel)
         {
             if (logLevel == null)
                 throw new ArgumentNullException(nameof(logLevel));
@@ -284,7 +290,7 @@ namespace RyzenTuner.Common.Logger
         /// </summary>
         public string[] GetAvailableLevels()
         {
-            if (!_dbInitialized)
+            if (!_dbInitialized || _disposed)
                 return Array.Empty<string>();
 
             try
@@ -313,7 +319,7 @@ namespace RyzenTuner.Common.Logger
         /// </summary>
         public long GetLogCount()
         {
-            if (!_dbInitialized)
+            if (!_dbInitialized || _disposed)
                 return 0;
 
             try
@@ -429,6 +435,9 @@ namespace RyzenTuner.Common.Logger
             {
                 lock (_dbLock)
                 {
+                    if (_disposed)
+                        return;
+
                     using var conn = CreateConnection();
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = @"

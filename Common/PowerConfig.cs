@@ -9,13 +9,13 @@ namespace RyzenTuner.Common
         private const uint Disabled = 0;
         private const uint Enabled = 1;
 
-        /**
-         * 获取当前激活的电源方案的 GUID
-         */
+        /// <summary>
+        /// 获取当前激活的电源方案的 GUID
+        /// </summary>
         private static Guid? GetActiveScheme()
         {
             var result = PowerGetActiveScheme(default, out var activeGuidHandle);
-            if (result != Win32Error.NO_ERROR)
+            if (result != Win32Error.NO_ERROR || activeGuidHandle.IsInvalid)
             {
                 return null;
             }
@@ -26,10 +26,10 @@ namespace RyzenTuner.Common
             }
         }
 
-        /**
-         * 检查是否开启了 Cpu Boost
-         * 返回值：true = 已启用，false = 已禁用，null = 读取失败（状态未知）
-         */
+        /// <summary>
+        /// 检查是否开启了 Cpu Boost
+        /// </summary>
+        /// <returns>true = 已启用，false = 已禁用，null = 读取失败（状态未知）</returns>
         public bool? IsCpuBoostEnabled()
         {
             var activeGuid = GetActiveScheme();
@@ -54,12 +54,12 @@ namespace RyzenTuner.Common
             if (acResult != Win32Error.NO_ERROR || dcResult != Win32Error.NO_ERROR)
                 return null;
 
-            return acValue == Enabled && dcValue == Enabled;
+            return acValue != Disabled && dcValue != Disabled;
         }
 
-        /**
-         * 写入 AC 和 DC 的 Cpu Boost 值，并激活电源方案
-         */
+        /// <summary>
+        /// 写入 AC 和 DC 的 Cpu Boost 值，并激活电源方案
+        /// </summary>
         private bool SetCpuBoost(uint value)
         {
             var activeGuid = GetActiveScheme();
@@ -86,17 +86,17 @@ namespace RyzenTuner.Common
             return writeAc == Win32Error.NO_ERROR && writeDc == Win32Error.NO_ERROR && activate == Win32Error.NO_ERROR;
         }
 
-        /**
-         * 启用 Cpu Boost
-         */
+        /// <summary>
+        /// 启用 Cpu Boost
+        /// </summary>
         public bool EnableCpuBoost()
         {
             return SetCpuBoost(Enabled);
         }
 
-        /**
-         * 关闭 Cpu Boost
-         */
+        /// <summary>
+        /// 关闭 Cpu Boost
+        /// </summary>
         public bool DisableCpuBoost()
         {
             return SetCpuBoost(Disabled);

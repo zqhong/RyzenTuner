@@ -20,7 +20,7 @@ namespace RyzenTuner.Common.Benchmark
     /// </summary>
     public class BenchmarkEngine : IDisposable
     {
-        private readonly CancellationTokenSource _cts = new();
+        private CancellationTokenSource _cts = new();
         private bool _isRunning;
         private bool _disposed;
 
@@ -48,6 +48,13 @@ namespace RyzenTuner.Common.Benchmark
         {
             if (_isRunning)
                 return;
+            if (_disposed)
+                return;
+
+            // 每次调用 RunAsync 重新创建 CancellationTokenSource，
+            // 避免上一次 Stop() 取消后 Token 永久处于取消状态，导致后续跑分无法运行。
+            var oldCts = Interlocked.Exchange(ref _cts, new CancellationTokenSource());
+            oldCts?.Dispose();
 
             var results = new List<BenchmarkTestPoint>();
             var processor = AppContainer.AmdProcessor();
@@ -66,9 +73,11 @@ namespace RyzenTuner.Common.Benchmark
                 Awake.KeepSystemAwake(true);
             }
 
+            // 在 try 之前设置 _isRunning，确保 Stop() 能正确识别运行状态
+            _isRunning = true;
+
             try
             {
-                _isRunning = true;
                 for (var i = 0; i < totalPoints; i++)
                 {
                     if (_cts.Token.IsCancellationRequested)
@@ -86,12 +95,12 @@ namespace RyzenTuner.Common.Benchmark
                     // 1. 设置 TDP 限制
                     if (!ApplyTdpLimit(processor, tdp))
                     {
-                        OnError?.Invoke($"设置 {tdp}W 失败，跳过此测试点");
+                        OnError?.Invoke($"设置 {tdp:F0}W 失败，跳过此测试点");
                         continue;
                     }
 
                     // 2. 等待系统稳定（用户设定秒数）
-                    OnStatusChanged?.Invoke($"正在稳定 {tdp}W...（{config.RestSeconds}秒）");
+                    OnStatusChanged?.Invoke($"正在稳定 {tdp:F0}W...（{config.RestSeconds}秒）");
                     await WaitStableAsync(config.RestSeconds * 1000, _cts.Token);
 
                     // 3. 启动跑分
@@ -166,7 +175,7 @@ namespace RyzenTuner.Common.Benchmark
                 // 始终恢复系统休眠状态（如果之前强制唤醒过）
                 if (!keepAwakeWas)
                 {
-                    Awake.AllowSysSleep();
+                    Awake.AllowSystemSleep();
                 }
 
                 _isRunning = false;

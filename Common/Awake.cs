@@ -28,9 +28,11 @@ namespace RyzenTuner.Common
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern ExecutionState SetThreadExecutionState(ExecutionState esFlags);
 
-        /**
-         * 保持操作系统清醒
-         */
+        /// <summary>
+        /// 保持操作系统清醒。
+        /// </summary>
+        /// <param name="keepDisplayOn">是否同时保持显示器开启。</param>
+        /// <returns>true 表示成功，false 表示失败。</returns>
         public static bool KeepSystemAwake(bool keepDisplayOn)
         {
             return keepDisplayOn
@@ -39,10 +41,11 @@ namespace RyzenTuner.Common
                 : SetAwakeState(ExecutionState.EsSystemRequired | ExecutionState.EsContinuous);
         }
 
-        /**
-         * 允许系统进入睡眠
-         */
-        public static bool AllowSysSleep()
+        /// <summary>
+        /// 允许系统进入睡眠。
+        /// </summary>
+        /// <returns>true 表示成功，false 表示失败。</returns>
+        public static bool AllowSystemSleep()
         {
             return SetAwakeState(ExecutionState.EsContinuous);
         }
@@ -51,7 +54,6 @@ namespace RyzenTuner.Common
         /// 使一个应用程序能够通知系统它正在使用中，从而防止系统在应用程序运行时进入睡眠状态或关闭显示器。
         ///
         /// 在没有ES_CONTINUOUS的情况下调用SetThreadExecutionState，只是简单地重置了空闲计时器；为了保持显示或系统处于工作状态，线程必须定期地调用SetThreadExecutionState。
-        /// 备注：这个函数不会阻止屏幕保护程序的执行
         /// </summary>
         /// <param name="state">Single or multiple ExecutionState entries.</param>
         /// <returns>true if successful, false if failed</returns>

@@ -56,7 +56,11 @@ namespace RyzenTuner.Common.Container
         /// <param name="factory">Factory function</param>
         /// <returns></returns>
         public IRegisteredType Register(Type @interface, Func<object> factory)
-            => RegisterType(@interface, _ => factory());
+        {
+            if (@interface == null) throw new ArgumentNullException(nameof(@interface));
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            return RegisterType(@interface, _ => factory());
+        }
 
         /// <summary>
         /// Registers an implementation type for the specified interface
@@ -65,10 +69,17 @@ namespace RyzenTuner.Common.Container
         /// <param name="implementation">Implementing type</param>
         /// <returns></returns>
         public IRegisteredType Register(Type @interface, Type implementation)
-            => RegisterType(@interface, FactoryFromType(implementation));
+        {
+            if (@interface == null) throw new ArgumentNullException(nameof(@interface));
+            if (implementation == null) throw new ArgumentNullException(nameof(implementation));
+            return RegisterType(@interface, FactoryFromType(implementation));
+        }
 
         private IRegisteredType RegisterType(Type itemType, Func<ILifetime, object> factory)
-            => new RegisteredType(itemType, f => _registeredTypes[itemType] = f, factory);
+        {
+            _registeredTypes[itemType] = factory;
+            return new RegisteredType(itemType, f => _registeredTypes[itemType] = f, factory);
+        }
 
         /// <summary>
         /// Returns the object registered for the given type, if registered
@@ -108,17 +119,25 @@ namespace RyzenTuner.Common.Container
         // ObjectCache provides common caching logic for lifetimes
         private abstract class ObjectCache
         {
-            // Instance cache
-            private readonly ConcurrentDictionary<Type, object> _instanceCache = new();
+            // Use Lazy<object> to ensure factory is called at most once per key under contention
+            private readonly ConcurrentDictionary<Type, Lazy<object>> _instanceCache = new();
 
             // Get from cache or create and cache object
             protected object GetCached(Type type, Func<ILifetime, object> factory, ILifetime lifetime)
-                => _instanceCache.GetOrAdd(type, _ => factory(lifetime));
+                => _instanceCache.GetOrAdd(type, _ => new Lazy<object>(() => factory(lifetime))).Value;
 
             public void Dispose()
             {
-                foreach (var obj in _instanceCache.Values)
-                    (obj as IDisposable)?.Dispose();
+                // Snapshot to avoid collection-modified exception from concurrent resolution
+                foreach (var kvp in _instanceCache.ToArray())
+                {
+                    if (kvp.Value.IsValueCreated && kvp.Value.Value is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                }
+
+                _instanceCache.Clear();
             }
         }
 
@@ -126,7 +145,7 @@ namespace RyzenTuner.Common.Container
         private class ContainerLifetime : ObjectCache, ILifetime
         {
             // Retrieves the factory function from the given type, provided by owning container
-            public Func<Type, Func<ILifetime, object>> GetFactory { get; private set; }
+            public Func<Type, Func<ILifetime, object>> GetFactory { get; }
 
             public ContainerLifetime(Func<Type, Func<ILifetime, object>> getFactory) => GetFactory = getFactory;
 
@@ -158,24 +177,21 @@ namespace RyzenTuner.Common.Container
 
         #region Container items
 
-        // Compiles a lambda that calls the given type's first constructor resolving arguments
+        // Compiles a lambda that calls the given type's greediest constructor resolving arguments
         private static Func<ILifetime, object> FactoryFromType(Type itemType)
         {
-            // Get first constructor for the type
-            var constructors = itemType.GetConstructors();
-            if (constructors.Length == 0)
-            {
-                // If no public constructor found, search for an internal constructor
-                constructors = itemType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic);
-            }
+            // Get all constructors (public and non-public)
+            var constructors = itemType.GetConstructors(
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
             if (constructors.Length == 0)
             {
                 throw new InvalidOperationException(
-                    $"Type {itemType.FullName} has no public or non-public constructors.");
+                    $"Type {itemType.FullName} has no constructors.");
             }
 
-            var constructor = constructors[0];
+            // Pick the constructor with the most parameters (greediest)
+            var constructor = constructors.OrderByDescending(c => c.GetParameters().Length).First();
 
             // Compile constructor call as a lambda expression
             var arg = Expression.Parameter(typeof(ILifetime));
@@ -206,8 +222,6 @@ namespace RyzenTuner.Common.Container
                 _itemType = itemType;
                 _registerFactory = registerFactory;
                 _factory = factory;
-
-                registerFactory(_factory);
             }
 
             public void AsSingleton()

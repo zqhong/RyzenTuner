@@ -16,7 +16,7 @@ namespace RyzenTuner
         private static Mutex? _instanceMutex;
 
         // 跟踪当前线程是否拥有 Mutex，避免对未拥有的 Mutex 调用 ReleaseMutex 崩溃
-        private static bool _ownsInstanceMutex;
+        private static volatile bool _ownsInstanceMutex;
 
         /// <summary>
         /// 释放单例 Mutex，供重启时调用（新进程启动前释放，避免冲突）
@@ -29,13 +29,25 @@ namespace RyzenTuner
             }
 
             var mutex = Interlocked.Exchange(ref _instanceMutex, null);
-            if (mutex != null)
+            if (mutex == null)
             {
-                mutex.ReleaseMutex();
-                mutex.Close();
+                return;
             }
 
-            _ownsInstanceMutex = false;
+            try
+            {
+                mutex.ReleaseMutex();
+            }
+            catch
+            {
+                // ReleaseMutex 是线程关联的：只有创建线程（Main 线程）才能释放。
+                // 从异常处理线程调用时跳过释放，由进程退出自动清理。
+            }
+            finally
+            {
+                mutex.Close();
+                _ownsInstanceMutex = false;
+            }
         }
 
         /// <summary>
@@ -158,7 +170,7 @@ namespace RyzenTuner
             MessageBox.Show(ex.Message, Properties.Strings.TextExceptionTitle,
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-            try { AppContainer.Logger().LogException(ex); } catch { /* 日志异常不掩盖原始错误 */ }
+            try { AppContainer.Logger()?.LogException(ex); } catch { /* 日志异常不掩盖原始错误 */ }
             AppContainer.Dispose();
 
             Application.Exit();

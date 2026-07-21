@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using LibreHardwareMonitor.Hardware;
 
 namespace RyzenTuner.Common.Hardware

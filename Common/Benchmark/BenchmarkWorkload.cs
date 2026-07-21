@@ -17,7 +17,7 @@ namespace RyzenTuner.Common.Benchmark
     ///   - 每个工作线程独立计算，无锁竞争
     ///   - AboveNormal 优先级 + 预留一个核心给 UI/采样，兼顾负载与响应
     /// </summary>
-    public class BenchmarkWorkload
+    public static class BenchmarkWorkload
     {
         /// <summary>
         /// 运行跑分，返回迭代次数。
@@ -39,7 +39,7 @@ namespace RyzenTuner.Common.Benchmark
                     TaskScheduler.Default);
             }
 
-            var results = await Task.WhenAll(tasks);
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
 
             long total = 0;
             foreach (var r in results)

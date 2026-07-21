@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using System.Drawing.Drawing2D;
 using RyzenTuner.Common;
 using RyzenTuner.Common.Benchmark;
+using RyzenTuner.Common.Logger;
 using RyzenTuner.Common.Container;
 using RyzenTuner.Common.Settings;
 using RyzenTuner.Common.Theme;
@@ -363,7 +364,7 @@ namespace RyzenTuner.UI
         {
             if (sender is Button btn)
             {
-                var pageId = "";
+                var pageId = string.Empty;
                 if (btn == navHome) pageId = "home";
                 else if (btn == navSettings) pageId = "settings";
                 else if (btn == navBenchmark) pageId = "benchmark";
@@ -547,7 +548,7 @@ namespace RyzenTuner.UI
             try
             {
                 AppContainer.Logger().DefaultLogLevel =
-                    AppContainer.Logger().ToLogLevel(logLevel);
+                    SqliteLogger.ToLogLevel(logLevel);
             }
             catch
             {
@@ -718,7 +719,7 @@ namespace RyzenTuner.UI
             try
             {
                 AppContainer.Logger().DefaultLogLevel =
-                    AppContainer.Logger().ToLogLevel(selectedLogLevel);
+                    SqliteLogger.ToLogLevel(selectedLogLevel);
             }
             catch (Exception logEx)
             {
@@ -1012,7 +1013,7 @@ namespace RyzenTuner.UI
             if (IsDisposed || !IsHandleCreated) return;
             try
             {
-                BeginInvoke(new Action(action));
+                BeginInvoke(action);
             }
             catch (ObjectDisposedException)
             {
@@ -1509,6 +1510,7 @@ namespace RyzenTuner.UI
                 cpuBoostCheckBox.Left = pad + colW + gap;
             }
         }
+
         private void mainFormTimer_Tick(object sender, EventArgs e)
         {
             if (DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime)
@@ -1603,7 +1605,7 @@ namespace RyzenTuner.UI
             }
             else
             {
-                Awake.AllowSysSleep();
+                Awake.AllowSystemSleep();
             }
         }
 
@@ -1658,9 +1660,8 @@ namespace RyzenTuner.UI
         {
             foreach (Control c in groupBoxMode.Controls)
             {
-                if (c.Tag != null && c.Tag.ToString() == AppSettings.Get("CurrentMode", "BalancedMode"))
+                if (c is RadioButton rb && rb.Tag?.ToString() == AppSettings.Get("CurrentMode", "BalancedMode"))
                 {
-                    var rb = (RadioButton)c;
                     rb.Checked = true;
                 }
             }
@@ -1799,6 +1800,10 @@ namespace RyzenTuner.UI
         // 功耗限制管理（与之前一致）
         // ================================================================
 
+        /// <summary>
+        /// 应用功率限制。
+        /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
+        /// </summary>
         private void DoPowerLimit()
         {
             if (_isApplyingPowerLimit || _isBenchmarkRunning)
@@ -1947,11 +1952,6 @@ namespace RyzenTuner.UI
                 sw.Stop();
             }
         }
-
-        /// <summary>
-        /// 应用功率限制。
-        /// SMU 寄存器值会被系统/BIOS 覆盖，因此每个周期都重新设置，不做"值未变则跳过"优化。
-        /// </summary>
 
         private void ReportPowerLimitApplyError(string errorText)
         {

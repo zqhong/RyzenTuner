@@ -113,13 +113,9 @@ namespace RyzenTuner.Common.Settings
             {
                 lock (_connectionLock)
                 {
-                    if (_connection == null)
-                    {
-                        _connection = new SQLiteConnection(_connectionString);
-                        _connection.Open();
-                    }
+                    var conn = EnsureConnection();
 
-                    using var cmd = _connection.CreateCommand();
+                    using var cmd = conn.CreateCommand();
                     cmd.CommandText = "INSERT OR REPLACE INTO settings (key, value) VALUES (@key, @value)";
                     cmd.Parameters.AddWithValue("@key", key);
                     cmd.Parameters.AddWithValue("@value", value);
@@ -132,12 +128,7 @@ namespace RyzenTuner.Common.Settings
             {
                 lock (_connectionLock)
                 {
-                    if (_connection != null)
-                    {
-                        _connection.Close();
-                        _connection.Dispose();
-                        _connection = null;
-                    }
+                    ResetConnection();
                 }
 
                 Debug.WriteLine($"[AppSettings] Set('{key}') failed: {ex.Message}");
@@ -169,13 +160,9 @@ namespace RyzenTuner.Common.Settings
             {
                 lock (_connectionLock)
                 {
-                    if (_connection == null)
-                    {
-                        _connection = new SQLiteConnection(_connectionString);
-                        _connection.Open();
-                    }
+                    var conn = EnsureConnection();
 
-                    using var cmd = _connection.CreateCommand();
+                    using var cmd = conn.CreateCommand();
                     cmd.CommandText = "DELETE FROM settings WHERE key = @key";
                     cmd.Parameters.AddWithValue("@key", key);
                     cmd.ExecuteNonQuery();
@@ -187,12 +174,7 @@ namespace RyzenTuner.Common.Settings
             {
                 lock (_connectionLock)
                 {
-                    if (_connection != null)
-                    {
-                        _connection.Close();
-                        _connection.Dispose();
-                        _connection = null;
-                    }
+                    ResetConnection();
                 }
 
                 Debug.WriteLine($"[AppSettings] Remove('{key}') failed: {ex.Message}");
@@ -208,6 +190,33 @@ namespace RyzenTuner.Common.Settings
             {
                 _connection?.Close();
                 _connection?.Dispose();
+                _connection = null;
+            }
+        }
+
+        /// <summary>
+        /// 确保持久连接已创建并打开，返回保证非 null 的连接引用。
+        /// </summary>
+        private static SQLiteConnection EnsureConnection()
+        {
+            if (_connection == null)
+            {
+                _connection = new SQLiteConnection(_connectionString);
+                _connection.Open();
+            }
+
+            return _connection;
+        }
+
+        /// <summary>
+        /// 重置断开的连接，下次操作时自动创建新连接重试。
+        /// </summary>
+        private static void ResetConnection()
+        {
+            if (_connection != null)
+            {
+                _connection.Close();
+                _connection.Dispose();
                 _connection = null;
             }
         }

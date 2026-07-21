@@ -16,6 +16,8 @@ namespace RyzenTuner.Common.Benchmark
     /// </summary>
     public class BenchmarkConfig
     {
+        private const double FloatingPointTolerance = 1e-6;
+
         /// <summary>
         /// 测试类型（单核 / 多核）
         /// </summary>
@@ -57,7 +59,7 @@ namespace RyzenTuner.Common.Benchmark
                     return 0;
 
                 // 加 epsilon 避免浮点精度导致的 off-by-one 错误
-                return (int)Math.Floor((EndTdp - StartTdp) / StepTdp + 1e-6) + 1;
+                return (int)Math.Floor((EndTdp - StartTdp) / StepTdp + FloatingPointTolerance) + 1;
             }
         }
 
@@ -79,6 +81,8 @@ namespace RyzenTuner.Common.Benchmark
     /// </summary>
     public class BenchmarkTestPoint
     {
+        private const float MinPowerThreshold = 0.01f;
+
         /// <summary>设定功耗（W）</summary>
         public float SetTdp { get; set; }
 
@@ -104,7 +108,7 @@ namespace RyzenTuner.Common.Benchmark
         public float CpuFreqAvg { get; set; }
 
         /// <summary>能效比 = Score / PowerAvg（使用 double 精度，避免大 Score 值时的精度损失）</summary>
-        public double Efficiency => PowerAvg > 0.01f ? (double)Score / PowerAvg : 0;
+        public double Efficiency => PowerAvg > MinPowerThreshold ? (double)Score / PowerAvg : 0;
 
         private double _capability;
 
@@ -112,7 +116,13 @@ namespace RyzenTuner.Common.Benchmark
         public double Capability
         {
             get => _capability;
-            set => _capability = Math.Max(0.0, Math.Min(1.0, value));
+            set
+            {
+                if (value < 0.0 || value > 1.0)
+                    throw new ArgumentOutOfRangeException(nameof(value), value,
+                        "Capability must be between 0 and 1");
+                _capability = value;
+            }
         }
 
     }

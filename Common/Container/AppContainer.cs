@@ -14,7 +14,7 @@ namespace RyzenTuner.Common.Container
     public static class AppContainer
     {
         private static readonly Container Container;
-        private static int _disposed;
+        private static volatile int _disposed;
 
         static AppContainer()
         {
@@ -35,7 +35,20 @@ namespace RyzenTuner.Common.Container
             Container.Register(() =>
                 {
                     var logger = new SqliteLogger();
-                    logger.DefaultLogLevel = logger.ToLogLevel(AppSettings.Get("LogLevel", "Warning"));
+
+                    // 安全解析日志级别：若设置值无效（例如人为篡改）则静默回退到 Warning，
+                    // 防止 ArgumentOutOfRangeException 在静态构造函数中传播导致 TypeInitializationException。
+                    try
+                    {
+                        var logLevelStr = AppSettings.Get("LogLevel", "Warning");
+                        logger.DefaultLogLevel = SqliteLogger.ToLogLevel(logLevelStr);
+                    }
+                    catch
+                    {
+                        // SqliteLogger 构造函数已将 DefaultLogLevel 初始化为 LogLevel.Warning，
+                        // 此处无需额外赋值。
+                    }
+
                     return logger;
                 })
                 .AsSingleton();

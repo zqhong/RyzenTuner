@@ -17,11 +17,6 @@ namespace RyzenTuner.Utils
         {
             powerLimit = 0;
 
-            if (mode == null)
-            {
-                return false;
-            }
-
             var value = AppSettings.Get(mode);
 
             if (string.IsNullOrWhiteSpace(value))
@@ -49,7 +44,7 @@ namespace RyzenTuner.Utils
         {
             if (string.IsNullOrEmpty(mode))
             {
-                return mode ?? string.Empty;
+                return string.Empty;
             }
 
             return Properties.Strings.ResourceManager.GetString(mode) ?? mode;

@@ -23,7 +23,6 @@ SOFTWARE.
 */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -106,7 +105,7 @@ namespace RyzenTuner.Common.Logger
             GC.SuppressFinalize(this);
         }
 
-        public LogLevel ToLogLevel(string logLevel)
+        public static LogLevel ToLogLevel(string logLevel)
         {
             if (logLevel == null)
                 throw new ArgumentNullException(nameof(logLevel));
@@ -182,13 +181,7 @@ namespace RyzenTuner.Common.Logger
             if (e == null)
                 return;
 
-            // Get stack trace for the exception with source file information
-            var st = new StackTrace(e, true);
-            // Get the top stack frame (may be null if stack trace is empty)
-            var frame = st.GetFrame(0);
-            var line = frame?.GetFileLineNumber() ?? 0;
-
-            Warning($"Exception: {e.Message}\nLine: {line}\nStackTrace: {st}");
+            Error($"Exception: {e.Message}\n{e}");
         }
 
         private void WriteLine(string text)

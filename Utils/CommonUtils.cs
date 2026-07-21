@@ -30,7 +30,19 @@ namespace RyzenTuner.Utils
             }
             catch (ArgumentException ex)
             {
-                AppContainer.Logger().Warning("CommonUtils", $"FontExists check failed for '{fontName}': {ex.Message}");
+                // Logger 可能在容器释放后不可用，隔离日志异常防止传播
+                // 参考: Program.cs 中的日志调用保护模式
+                try
+                {
+                    AppContainer.Logger().Warning("CommonUtils",
+                        $"FontExists check failed for '{fontName}': {ex.Message}");
+                }
+                catch
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[CommonUtils] FontExists check failed for '{fontName}': {ex.Message}");
+                }
+
                 return false;
             }
         }

@@ -15,6 +15,8 @@ namespace RyzenTuner.Common.EnergyStar
         : IDisposable
     {
         private const string UnknownProcessName = "Unknown-K7Ncy4PUIQBNyGTl.exe";
+        private const string UwpFrameHostApp = "ApplicationFrameHost.exe";
+        private const int MaxProcessPathChars = 2048;
 
         private static readonly HashSet<string> _hardcodedBypassList = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -111,8 +113,6 @@ namespace RyzenTuner.Common.EnergyStar
         private readonly int _szControlBlock;
         private bool _disposed;
 
-        private const string UwpFrameHostApp = "ApplicationFrameHost.exe";
-
         public EnergyManager()
         {
             _bypassProcessList.UnionWith(_hardcodedBypassList);
@@ -147,8 +147,16 @@ namespace RyzenTuner.Common.EnergyStar
             //     StateMask = Win32Api.ProcessorPowerThrottlingFlags.None,
             // };
 
-            Marshal.StructureToPtr(throttleState, _pThrottleOn, false);
-            Marshal.StructureToPtr(unThrottleState, _pThrottleOff, false);
+            try
+            {
+                Marshal.StructureToPtr(throttleState, _pThrottleOn, false);
+                Marshal.StructureToPtr(unThrottleState, _pThrottleOff, false);
+            }
+            catch
+            {
+                DisposeCore();
+                throw;
+            }
         }
 
         ~EnergyManager()
@@ -215,7 +223,7 @@ namespace RyzenTuner.Common.EnergyStar
         {
             try
             {
-                var capacity = 2048;
+                var capacity = MaxProcessPathChars;
                 var sb = new StringBuilder(capacity);
 
                 if (Win32Api.QueryFullProcessImageName(hProcess, 0, sb, ref capacity))
@@ -315,10 +323,9 @@ namespace RyzenTuner.Common.EnergyStar
         /// <returns></returns>
         private static IntPtr NativeOpenProcess(int processId)
         {
-            const uint processAccess = (uint)(
+            const Win32Api.ProcessAccessFlags processAccess =
                 Win32Api.ProcessAccessFlags.QueryLimitedInformation |
-                Win32Api.ProcessAccessFlags.SetInformation
-            );
+                Win32Api.ProcessAccessFlags.SetInformation;
             var handle = Win32Api.OpenProcess(processAccess, false, (uint)processId);
             if (handle == IntPtr.Zero)
             {
@@ -334,7 +341,7 @@ namespace RyzenTuner.Common.EnergyStar
         public void ThrottleAllUserBackgroundProcesses()
         {
             AppContainer.Logger().Debug("EnergyStar", "Throttle All User Background Processes");
-            _toggleAllBgProcessesMode(true);
+            ToggleAllBackgroundProcessesMode(true);
         }
 
         /// <summary>
@@ -343,10 +350,10 @@ namespace RyzenTuner.Common.EnergyStar
         public void BoostAllUserBackgroundProcesses()
         {
             AppContainer.Logger().Debug("EnergyStar", "Boost All User Background Processes");
-            _toggleAllBgProcessesMode(false);
+            ToggleAllBackgroundProcessesMode(false);
         }
 
-        private void _toggleAllBgProcessesMode(bool enable)
+        private void ToggleAllBackgroundProcessesMode(bool enable)
         {
             try
             {

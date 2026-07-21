@@ -91,14 +91,21 @@ namespace RyzenTuner.Common
 
         private static bool TaskMatchesCurrentExecutable(string taskXml)
         {
-            var document = XDocument.Parse(taskXml);
-            var taskNamespace = document.Root?.GetDefaultNamespace() ?? XNamespace.None;
+            try
+            {
+                var document = XDocument.Parse(taskXml);
+                var taskNamespace = document.Root?.GetDefaultNamespace() ?? XNamespace.None;
 
-            var command = document.Descendants(taskNamespace + "Command").FirstOrDefault()?.Value;
-            var arguments = document.Descendants(taskNamespace + "Arguments").FirstOrDefault()?.Value;
+                var command = document.Descendants(taskNamespace + "Command").FirstOrDefault()?.Value;
+                var arguments = document.Descendants(taskNamespace + "Arguments").FirstOrDefault()?.Value;
 
-            return string.Equals(NormalizePath(command), NormalizePath(Application.ExecutablePath), StringComparison.OrdinalIgnoreCase) &&
-                   string.Equals(arguments?.Trim() ?? string.Empty, StartupArgument, StringComparison.Ordinal);
+                return string.Equals(NormalizePath(command), NormalizePath(Application.ExecutablePath), StringComparison.OrdinalIgnoreCase) &&
+                       string.Equals(arguments?.Trim() ?? string.Empty, StartupArgument, StringComparison.Ordinal);
+            }
+            catch (System.Xml.XmlException)
+            {
+                return false;
+            }
         }
 
         private static string BuildTaskXml(string executablePath, string workingDirectory, string currentUserSid)
@@ -180,26 +187,49 @@ namespace RyzenTuner.Common
                     if (throwOnError)
                         throw new InvalidOperationException(errorMsg);
 
-                    return new SchtasksResult(-1, string.Empty, errorMsg);
+                    return new SchtasksResult(-1, string.Empty, string.Empty, "schtasks.exe failed to start (no error detail)");
                 }
+
+                // 同步读取 stdout（先读取，后 WaitForExit，避免管道缓冲区满导致死锁）
+                var standardOutput = process.StandardOutput.ReadToEnd();
+
+                if (!process.WaitForExit(30_000))
+                {
+                    process.Kill();
+                    var errorMsg = "schtasks.exe timed out after 30 seconds";
+                    if (throwOnError)
+                        throw new InvalidOperationException(errorMsg);
+
+                    return new SchtasksResult(-1, string.Empty, string.Empty, errorMsg);
+                }
+
+                var standardError = process.StandardError.ReadToEnd();
+
+                var errorMessage = BuildErrorMessage(standardOutput, standardError);
+                var result = new SchtasksResult(process.ExitCode, standardOutput, standardError, errorMessage);
+
+                if (throwOnError && result.ExitCode != 0)
+                {
+                    throw new InvalidOperationException(result.ErrorMessage);
+                }
+
+                return result;
             }
             catch (Exception ex) when (!throwOnError)
             {
-                return new SchtasksResult(-1, string.Empty, ex.Message);
+                if (!process.HasExited)
+                {
+                    try { process.Kill(); } catch { /* 清理资源，忽略异常 */ }
+                }
+
+                return new SchtasksResult(-1, string.Empty, string.Empty, ex.Message);
             }
+        }
 
-            // 同步读取 stdout（先读取，后 WaitForExit，避免管道缓冲区满导致死锁）
-            var standardOutput = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-            var standardError = process.StandardError.ReadToEnd();
-
-            var result = new SchtasksResult(process.ExitCode, standardOutput, standardError);
-            if (throwOnError && result.ExitCode != 0)
-            {
-                throw new InvalidOperationException(result.ErrorMessage);
-            }
-
-            return result;
+        private static string BuildErrorMessage(string standardOutput, string standardError)
+        {
+            var message = string.IsNullOrWhiteSpace(standardError) ? standardOutput : standardError;
+            return string.IsNullOrWhiteSpace(message) ? "schtasks.exe failed." : message.Trim();
         }
 
         private static bool TaskDoesNotExist(SchtasksResult result)
@@ -230,11 +260,12 @@ namespace RyzenTuner.Common
 
         private readonly struct SchtasksResult
         {
-            public SchtasksResult(int exitCode, string standardOutput, string standardError)
+            public SchtasksResult(int exitCode, string standardOutput, string standardError, string errorMessage)
             {
                 ExitCode = exitCode;
                 StandardOutput = standardOutput;
                 StandardError = standardError;
+                ErrorMessage = errorMessage;
             }
 
             public int ExitCode { get; }
@@ -243,14 +274,7 @@ namespace RyzenTuner.Common
 
             public string StandardError { get; }
 
-            public string ErrorMessage
-            {
-                get
-                {
-                    var message = string.IsNullOrWhiteSpace(StandardError) ? StandardOutput : StandardError;
-                    return string.IsNullOrWhiteSpace(message) ? "schtasks.exe failed." : message.Trim();
-                }
-            }
+            public string ErrorMessage { get; }
         }
     }
 }

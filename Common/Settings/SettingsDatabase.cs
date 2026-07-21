@@ -13,7 +13,7 @@ namespace RyzenTuner.Common.Settings
     {
         private const string DbFileName = "RyzenTuner.db";
         private static readonly object _lock = new object();
-        private static string? _cachedConnectionString;
+        private static volatile string? _cachedConnectionString;
 
         /// <summary>
         /// 新路径：%LocalAppData%\RyzenTuner\RyzenTuner.db
@@ -108,6 +108,8 @@ namespace RyzenTuner.Common.Settings
                     }
                 }
 
+                // 确保目录存在（首次运行时，defaultPath 目录还未创建）
+                EnsureDirectoryExists(defaultPath);
                 return defaultPath;
             }
         }

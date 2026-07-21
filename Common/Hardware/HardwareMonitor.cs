@@ -10,6 +10,9 @@ namespace RyzenTuner.Common.Hardware
     {
         private const string TcTtlDieSensorName = "Core (Tctl/Tdie)";
         private const string PackagePowerSensorName = "Package";
+        private const float MaxReasonableTemperature = 150f;
+        private const float MaxReasonablePower = 1000f;
+        private const float MinReasonableFrequency = 100f;
 
         private float _cpuPackagePower;
         private float _cpuTemperature;
@@ -38,28 +41,29 @@ namespace RyzenTuner.Common.Hardware
         // Finalizers / destructor
         ~HardwareMonitor()
         {
-            DisposeCore();
-        }
-
-        public void Dispose()
-        {
-            DisposeCore();
-            GC.SuppressFinalize(this);
-        }
-
-        private void DisposeCore()
-        {
             if (_disposed)
             {
                 return;
             }
 
-            if (_computer != null)
+            _computer.Close();
+            _disposed = true;
+        }
+
+        public void Dispose()
+        {
+            lock (_monitorLock)
             {
+                if (_disposed)
+                {
+                    return;
+                }
+
                 _computer.Close();
+                _disposed = true;
             }
 
-            _disposed = true;
+            GC.SuppressFinalize(this);
         }
 
         public float CpuPackagePower => _cpuPackagePower;
@@ -106,7 +110,7 @@ namespace RyzenTuner.Common.Hardware
                     .Where(s => s.SensorType == SensorType.Temperature && s.Name == TcTtlDieSensorName && s.Value != null)
                     .Select(s => s.Value)
                     .FirstOrDefault();
-                if (sensorValue is <= 150)
+                if (sensorValue is <= MaxReasonableTemperature)
                 {
                     return sensorValue.Value;
                 }
@@ -116,7 +120,7 @@ namespace RyzenTuner.Common.Hardware
                 AppContainer.Logger().LogException(e);
             }
 
-            return 0;
+            return float.NaN;
         }
 
         private static float FetchCpuPackage(IEnumerable<ISensor> cpuEnumerable)
@@ -127,7 +131,7 @@ namespace RyzenTuner.Common.Hardware
                     .Where(s => s.SensorType == SensorType.Power && s.Name == PackagePowerSensorName && s.Value != null)
                     .Select(s => s.Value)
                     .FirstOrDefault();
-                if (sensorValue is <= 1000)
+                if (sensorValue is <= MaxReasonablePower)
                 {
                     return sensorValue.Value;
                 }
@@ -137,7 +141,7 @@ namespace RyzenTuner.Common.Hardware
                 AppContainer.Logger().LogException(e);
             }
 
-            return 0;
+            return float.NaN;
         }
 
 
@@ -162,7 +166,7 @@ namespace RyzenTuner.Common.Hardware
                         .Where(s => s.SensorType == SensorType.Clock && s.Name == $"Core #{index}" && s.Value != null)
                         .Select(s => s.Value)
                         .FirstOrDefault();
-                    if (freq is > 100)
+                    if (freq is > MinReasonableFrequency)
                     {
                         totalFreq += freq.Value;
                         count++;
@@ -179,7 +183,7 @@ namespace RyzenTuner.Common.Hardware
                 AppContainer.Logger().LogException(e);
             }
 
-            return 0;
+            return float.NaN;
         }
     }
 }

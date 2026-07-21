@@ -514,14 +514,7 @@ namespace RyzenTuner.Common.Theme
         {
             foreach (Control ctrl in controls)
             {
-                if (!_originals.ContainsKey(ctrl))
-                {
-                    _originals[ctrl] = new OriginalColors
-                    {
-                        BackColor = ctrl.BackColor,
-                        ForeColor = ctrl.ForeColor,
-                    };
-                }
+                RecordIfNeeded(ctrl);
 
                 if (ctrl.HasChildren)
                 {

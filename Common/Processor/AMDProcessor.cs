@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using RyzenTuner.Common.Container;
 
 namespace RyzenTuner.Common.Processor
@@ -13,8 +14,10 @@ namespace RyzenTuner.Common.Processor
             Fast = 2,
         }
 
+        private const int WattsToMilliwatts = 1000;
+
         private IntPtr _ry;
-        private bool _disposed;
+        private int _disposed;
         private readonly object _lock = new();
 
         public bool CanChangeTdp { get; private set; }
@@ -22,14 +25,15 @@ namespace RyzenTuner.Common.Processor
 
         public void Dispose()
         {
-            if (_disposed)
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
                 return;
-            _disposed = true;
 
             lock (_lock)
             {
                 CleanupRy();
             }
+
+            GC.SuppressFinalize(this);
         }
 
         public AmdProcessor()
@@ -47,28 +51,25 @@ namespace RyzenTuner.Common.Processor
                 CpuFamily = RyzenAdj.get_cpu_family(_ry);
                 CanChangeTdp = CpuFamily != RyzenFamily.FamUnknown;
             }
-            catch (DllNotFoundException ex)
-            {
-                CleanupRy();
-                throw new InvalidOperationException(
-                    Properties.Strings.TextLibRyzenAdjLoadFailed.Replace("{message}", ex.Message), ex);
-            }
-            catch (BadImageFormatException ex)
-            {
-                CleanupRy();
-                throw new InvalidOperationException(Properties.Strings.TextLibRyzenAdjArchitectureMismatch, ex);
-            }
-            catch (EntryPointNotFoundException ex)
-            {
-                CleanupRy();
-                throw new InvalidOperationException(Properties.Strings.TextLibRyzenAdjTooOld, ex);
-            }
             catch (Exception ex)
             {
                 CleanupRy();
-                throw new InvalidOperationException(
-                    Properties.Strings.TextRyzenAdjInitFailedWithMessage.Replace("{message}", ex.Message), ex);
+                throw new InvalidOperationException(GetInitErrorMessage(ex), ex);
             }
+        }
+
+        private static string GetInitErrorMessage(Exception ex)
+        {
+            return ex switch
+            {
+                DllNotFoundException e => Properties.Strings.TextLibRyzenAdjLoadFailed
+                    .Replace("{message}", e.Message),
+                BadImageFormatException => Properties.Strings.TextLibRyzenAdjArchitectureMismatch,
+                EntryPointNotFoundException => Properties.Strings.TextLibRyzenAdjTooOld,
+                InvalidOperationException => Properties.Strings.TextRyzenAdjInitFailed,
+                _ => Properties.Strings.TextRyzenAdjInitFailedWithMessage
+                    .Replace("{message}", ex.Message),
+            };
         }
 
         private void CleanupRy()
@@ -80,6 +81,10 @@ namespace RyzenTuner.Common.Processor
             _ry = IntPtr.Zero;
         }
         
+        /// <summary>
+        /// 返回 STAPM Limit（读取 SMU 寄存器的设定值）
+        /// 部分 CPU 下会返回 NaN
+        /// </summary>
         public float GetStapmLimit()
         {
             lock (_lock)
@@ -186,7 +191,7 @@ namespace RyzenTuner.Common.Processor
             if (limit <= 0 || double.IsNaN(limit))
                 return false;
 
-            limit *= 1000;
+            limit *= WattsToMilliwatts;
 
             // 保护：防止 double→uint 溢出（uint.MaxValue = 4294967295）
             if (limit > uint.MaxValue)

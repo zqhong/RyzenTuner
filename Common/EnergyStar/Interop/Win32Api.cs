@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 
 namespace RyzenTuner.Common.EnergyStar.Interop
@@ -11,21 +10,22 @@ namespace RyzenTuner.Common.EnergyStar.Interop
     /// </summary>
     internal static class Win32Api
     {
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", SetLastError = true)]
         public static extern int GetProcessId([In] IntPtr handle);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool QueryFullProcessImageName([In] IntPtr hProcess, [In] int dwFlags,
+        public static extern bool QueryFullProcessImageName([In] IntPtr hProcess, [In] uint dwFlags,
             [Out] StringBuilder lpExeName, ref int lpdwSize);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr GetForegroundWindow();
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, uint processId);
+        public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle,
+            uint processId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetProcessInformation([In] IntPtr hProcess,
@@ -36,8 +36,6 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         public static extern bool SetPriorityClass([In] IntPtr handle, PriorityClass priorityClass);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        [SuppressUnmanagedCodeSecurity]
-        [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool CloseHandle(IntPtr hObject);
 
         /// <summary>
@@ -46,14 +44,14 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         /// <param name="hwnd">子窗口句柄。</param>
         /// <param name="lparam">应用程序定义的值。</param>
         /// <returns>true 继续枚举，false 停止枚举。</returns>
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate bool WindowEnumProc(IntPtr hwnd, IntPtr lparam);
 
         [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool EnumChildWindows(IntPtr hwnd, WindowEnumProc callback, IntPtr lParam);
 
         // We don’t need to bloat this app with WinForm/WPF to show a simple message box
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern int MessageBox(IntPtr hInstance, string lpText, string lpCaption, uint type);
 
         // two message box related constants
