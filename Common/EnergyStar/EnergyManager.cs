@@ -244,8 +244,7 @@ namespace RyzenTuner.Common.EnergyStar
                 var hwnd = Win32Api.GetForegroundWindow();
                 if (hwnd == IntPtr.Zero) return;
 
-                var windowThreadId = Win32Api.GetWindowThreadProcessId(hwnd, out var processId);
-                if (windowThreadId == 0 || processId == 0) return;
+                if (Win32Api.GetWindowThreadProcessId(hwnd, out var processId) == 0 || processId == 0) return;
 
                 processHandle = NativeOpenProcess((int)processId);
                 if (processHandle == IntPtr.Zero) return;

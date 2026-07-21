@@ -8,6 +8,9 @@ namespace RyzenTuner.Common.Hardware
 {
     public class HardwareMonitor : IDisposable
     {
+        private const string TcTtlDieSensorName = "Core (Tctl/Tdie)";
+        private const string PackagePowerSensorName = "Package";
+
         private float _cpuPackagePower;
         private float _cpuTemperature;
         private float _cpuFreq;
@@ -89,38 +92,27 @@ namespace RyzenTuner.Common.Hardware
 
         private static float FetchCpuTemperature(IEnumerable<ISensor> cpuEnumerable)
         {
-            //  CPU 温度
-            var linqCpuTemperature = cpuEnumerable
-                .Where(s => s.SensorType == SensorType.Temperature)
-                .Where(s => s.Name == "Core (Tctl/Tdie)")
-                .Where(s => s.Value != null)
+            var sensorValue = cpuEnumerable
+                .Where(s => s.SensorType == SensorType.Temperature && s.Name == TcTtlDieSensorName && s.Value != null)
                 .Select(s => s.Value)
                 .FirstOrDefault();
-            if (linqCpuTemperature is <= 150)
+            if (sensorValue is <= 150)
             {
-                return linqCpuTemperature.Value;
+                return sensorValue.Value;
             }
 
             return 0;
         }
 
-        /// <summary>
-        /// 获取 CPU 功耗
-        /// </summary>
-        /// <param name="cpuEnumerable"></param>
-        /// <returns></returns>
         private static float FetchCpuPackage(IEnumerable<ISensor> cpuEnumerable)
         {
-            //  
-            var linqCpuPackage = cpuEnumerable
-                .Where(s => s.SensorType == SensorType.Power)
-                .Where(s => s.Name == "Package")
-                .Where(s => s.Value != null)
+            var sensorValue = cpuEnumerable
+                .Where(s => s.SensorType == SensorType.Power && s.Name == PackagePowerSensorName && s.Value != null)
                 .Select(s => s.Value)
                 .FirstOrDefault();
-            if (linqCpuPackage is <= 1000)
+            if (sensorValue is <= 1000)
             {
-                return linqCpuPackage.Value;
+                return sensorValue.Value;
             }
 
             return 0;
@@ -134,34 +126,31 @@ namespace RyzenTuner.Common.Hardware
         /// <returns></returns>
         private static float FetchCpuFreq(IEnumerable<ISensor> cpuEnumerable)
         {
-            var cpuSensorList = cpuEnumerable.ToList();
             var cpuCount = Environment.ProcessorCount;
 
-            float tmpTotal = 0;
-            var tmpCount = 0;
+            float totalFreq = 0;
+            var count = 0;
 
             for (var i = 1; i <= cpuCount; i++)
             {
                 var index = i;
-                var linqCpuFreq = cpuSensorList
-                    .Where(s => s.SensorType == SensorType.Clock)
-                    .Where(s => s.Name == $"Core #{index}")
-                    .Where(s => s.Value != null)
+                var freq = cpuEnumerable
+                    .Where(s => s.SensorType == SensorType.Clock && s.Name == $"Core #{index}" && s.Value != null)
                     .Select(s => s.Value)
                     .FirstOrDefault();
-                if (linqCpuFreq is > 100)
+                if (freq is > 100)
                 {
-                    tmpTotal += linqCpuFreq.Value;
-                    tmpCount++;
+                    totalFreq += freq.Value;
+                    count++;
                 }
             }
 
-            if (tmpCount <= 0)
+            if (count <= 0)
             {
                 return 0;
             }
 
-            return tmpTotal / tmpCount;
+            return totalFreq / count;
         }
     }
 }

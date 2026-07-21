@@ -15,6 +15,8 @@ namespace RyzenTuner.Common
         private const string StartupArgument = "-hide";
         private const string TaskDelay = "PT15S";
 
+        private static readonly WindowsIdentity CurrentIdentity = WindowsIdentity.GetCurrent();
+
         public static bool IsEnabled()
         {
             var taskXml = QueryTaskXml();
@@ -36,7 +38,7 @@ namespace RyzenTuner.Common
         {
             var executablePath = Application.ExecutablePath;
             var workingDirectory = Path.GetDirectoryName(executablePath) ?? Environment.CurrentDirectory;
-            var currentUserSid = WindowsIdentity.GetCurrent().User?.Value;
+            var currentUserSid = CurrentIdentity.User?.Value;
 
             if (string.IsNullOrWhiteSpace(currentUserSid))
             {
@@ -104,12 +106,12 @@ namespace RyzenTuner.Common
             var escapedExecutablePath = SecurityElementEscape(executablePath);
             var escapedWorkingDirectory = SecurityElementEscape(workingDirectory);
             var escapedUserSid = SecurityElementEscape(currentUserSid);
-            var escapedAuthor = SecurityElementEscape(WindowsIdentity.GetCurrent().Name ?? "RyzenTuner");
+            var escapedAuthor = SecurityElementEscape(CurrentIdentity.Name ?? "RyzenTuner");
 
             return $"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
                    $"<Task version=\"1.2\" xmlns=\"http://schemas.microsoft.com/windows/2004/02/mit/task\">\r\n" +
                    "  <RegistrationInfo>\r\n" +
-                   $"    <Date>{DateTime.Now:s}</Date>\r\n" +
+                   $"    <Date>{DateTime.UtcNow:s}</Date>\r\n" +
                    $"    <Author>{escapedAuthor}</Author>\r\n" +
                    "    <Description>Launch RyzenTuner silently after user logon.</Description>\r\n" +
                    "  </RegistrationInfo>\r\n" +

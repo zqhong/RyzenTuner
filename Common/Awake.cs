@@ -32,18 +32,10 @@ namespace RyzenTuner.Common
          */
         public static bool KeepingSysAwake(bool keepDisplayOn)
         {
-            bool success;
-            if (keepDisplayOn)
-            {
-                success = SetAwakeState(ExecutionState.EsSystemRequired | ExecutionState.EsContinuous |
-                                        ExecutionState.EsDisplayRequired);
-            }
-            else
-            {
-                success = SetAwakeState(ExecutionState.EsSystemRequired | ExecutionState.EsContinuous);
-            }
-
-            return success;
+            return keepDisplayOn
+                ? SetAwakeState(ExecutionState.EsSystemRequired | ExecutionState.EsContinuous |
+                                ExecutionState.EsDisplayRequired)
+                : SetAwakeState(ExecutionState.EsSystemRequired | ExecutionState.EsContinuous);
         }
 
         /**

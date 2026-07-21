@@ -31,59 +31,35 @@ namespace RyzenTuner.Common.Processor
                 _ry = RyzenAdj.init_ryzenadj();
                 if (_ry == IntPtr.Zero)
                 {
-                    throw new Exception(Properties.Strings.TextRyzenAdjInitFailed);
+                    throw new InvalidOperationException(Properties.Strings.TextRyzenAdjInitFailed);
                 }
 
                 _ = RyzenAdj.get_table_ver(_ry);
 
                 CpuFamily = RyzenAdj.get_cpu_family(_ry);
-
-                switch (CpuFamily)
-                {
-                    default:
-                        CanChangeTdp = false;
-                        break;
-
-                    case RyzenFamily.FamRaven:
-                    case RyzenFamily.FamPicasso:
-                    case RyzenFamily.FamDali:
-                    case RyzenFamily.FamRenoir:
-                    case RyzenFamily.FamLucienne:
-                    case RyzenFamily.FamCezanne:
-                    case RyzenFamily.FamVangogh:
-                    case RyzenFamily.FamRembrandt:
-                    case RyzenFamily.FamMendocino:
-                    case RyzenFamily.FamPhoenix:
-                    case RyzenFamily.FamHawkPoint:
-                    case RyzenFamily.FamDragonRange:
-                    case RyzenFamily.FamKrackanPoint:
-                    case RyzenFamily.FamStrixPoint:
-                    case RyzenFamily.FamStrixHalo:
-                    case RyzenFamily.FamFireRange:
-                        CanChangeTdp = true;
-                        break;
-                }
-
+                CanChangeTdp = CpuFamily != RyzenFamily.FamUnknown;
             }
             catch (DllNotFoundException ex)
             {
                 CleanupRy();
-                throw new Exception(Properties.Strings.TextLibRyzenAdjLoadFailed.Replace("{message}", ex.Message), ex);
+                throw new InvalidOperationException(
+                    Properties.Strings.TextLibRyzenAdjLoadFailed.Replace("{message}", ex.Message), ex);
             }
             catch (BadImageFormatException ex)
             {
                 CleanupRy();
-                throw new Exception(Properties.Strings.TextLibRyzenAdjArchitectureMismatch, ex);
+                throw new InvalidOperationException(Properties.Strings.TextLibRyzenAdjArchitectureMismatch, ex);
             }
             catch (EntryPointNotFoundException ex)
             {
                 CleanupRy();
-                throw new Exception(Properties.Strings.TextLibRyzenAdjTooOld, ex);
+                throw new InvalidOperationException(Properties.Strings.TextLibRyzenAdjTooOld, ex);
             }
             catch (Exception ex)
             {
                 CleanupRy();
-                throw new Exception(Properties.Strings.TextRyzenAdjInitFailedWithMessage.Replace("{message}", ex.Message), ex);
+                throw new InvalidOperationException(
+                    Properties.Strings.TextRyzenAdjInitFailedWithMessage.Replace("{message}", ex.Message), ex);
             }
         }
 

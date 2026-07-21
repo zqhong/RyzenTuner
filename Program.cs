@@ -10,6 +10,8 @@ namespace RyzenTuner
 {
     internal static class Program
     {
+        private const string InstanceMutexName = "RyzenTuner-InstanceMutex";
+
         // 用于单例检测的 Mutex（替代 Process.GetProcessesByName，支持 Application.Restart）
         private static Mutex? _instanceMutex;
 
@@ -33,7 +35,7 @@ namespace RyzenTuner
         {
             try
             {
-                _instanceMutex = new Mutex(true, "RyzenTuner-InstanceMutex", out var isFirst);
+                _instanceMutex = new Mutex(true, InstanceMutexName, out var isFirst);
                 return isFirst;
             }
             catch
@@ -50,16 +52,11 @@ namespace RyzenTuner
                 Application.ThreadException += Application_ThreadException;
                 AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-                if (Environment.OSVersion.Version.Major >= 6)
-                {
-                    SetProcessDPIAware();
-                }
-
                 // 使用 Mutex 进行单例检测，支持重启场景
-                _instanceMutex = new Mutex(true, "RyzenTuner-InstanceMutex", out var isFirstInstance);
+                _instanceMutex = new Mutex(true, InstanceMutexName, out var isFirstInstance);
                 if (!isFirstInstance)
                 {
-                    throw new Exception(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
+                    throw new InvalidOperationException(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
                 }
 
                 // 在 Mutex 保护下初始化数据库和设置（确保不会与并发实例冲突）
@@ -95,7 +92,7 @@ namespace RyzenTuner
         }
         
         // 显示错误并退出的辅助方法
-        static void ShowErrorAndExit(string title, string message)
+        private static void ShowErrorAndExit(string title, string message)
         {
             ReleaseInstanceMutex();
             MessageBox.Show(message, title,
@@ -133,16 +130,16 @@ namespace RyzenTuner
 
         private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
-            _handleUnhandledException(e.Exception);
+            HandleUnhandledException(e.Exception);
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs arg)
         {
             var e = (Exception)arg.ExceptionObject;
-            _handleUnhandledException(e);
+            HandleUnhandledException(e);
         }
 
-        private static void _handleUnhandledException(Exception ex)
+        private static void HandleUnhandledException(Exception ex)
         {
             ReleaseInstanceMutex();
             MessageBox.Show(ex.Message, Properties.Strings.TextExceptionTitle,
@@ -169,7 +166,5 @@ namespace RyzenTuner
             return false;
         }
 
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern bool SetProcessDPIAware();
     }
 }

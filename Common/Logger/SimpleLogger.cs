@@ -95,7 +95,7 @@ namespace RyzenTuner.Common.Logger
                 "Warning" => LogLevel.Warning,
                 "Error" => LogLevel.Error,
                 "Fatal" => LogLevel.Fatal,
-                _ => throw new Exception($"不正确的 log level 类型：{logLevel}")
+                _ => throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, $"Unknown log level: {logLevel}")
             };
         }
 
@@ -167,7 +167,7 @@ namespace RyzenTuner.Common.Logger
             Warning($"Exception: {e.Message}\nLine: {line}\nStackTrace: {st}");
         }
 
-        private void WriteLine(string text, bool append = false)
+        private void WriteLine(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -190,18 +190,19 @@ namespace RyzenTuner.Common.Logger
                 return;
             }
 
-            var pretext = level switch
+            var timestamp = DateTime.Now.ToString(_datetimeFormat);
+            var label = level switch
             {
-                LogLevel.Trace => DateTime.Now.ToString(_datetimeFormat) + " [TRACE]   ",
-                LogLevel.Info => DateTime.Now.ToString(_datetimeFormat) + " [INFO]    ",
-                LogLevel.Debug => DateTime.Now.ToString(_datetimeFormat) + " [DEBUG]   ",
-                LogLevel.Warning => DateTime.Now.ToString(_datetimeFormat) + " [WARNING] ",
-                LogLevel.Error => DateTime.Now.ToString(_datetimeFormat) + " [ERROR]   ",
-                LogLevel.Fatal => DateTime.Now.ToString(_datetimeFormat) + " [FATAL]   ",
+                LogLevel.Trace => "[TRACE]",
+                LogLevel.Info => "[INFO]",
+                LogLevel.Debug => "[DEBUG]",
+                LogLevel.Warning => "[WARNING]",
+                LogLevel.Error => "[ERROR]",
+                LogLevel.Fatal => "[FATAL]",
                 _ => ""
             };
 
-            WriteLine(pretext + text, true);
+            WriteLine($"{timestamp} {label,-9} {text}");
         }
     }
 }

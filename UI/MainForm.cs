@@ -24,7 +24,7 @@ namespace RyzenTuner.UI
 {
     public partial class MainForm : Form
     {
-        private Int64 _tickCount;
+        private long _tickCount;
         private DateTime _lastLogCleanupTime = DateTime.MinValue;
         private string _lastPowerLimitApplyError = string.Empty;
         private bool? _lastCpuBoostEnabled;

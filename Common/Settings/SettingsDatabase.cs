@@ -35,8 +35,8 @@ namespace RyzenTuner.Common.Settings
         public static void EnsureDirectoryExists(string path)
         {
             var dir = Path.GetDirectoryName(path);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir); // CreateDirectory is idempotent
         }
 
         /// <summary>

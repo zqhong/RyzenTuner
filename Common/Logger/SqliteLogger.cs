@@ -123,7 +123,7 @@ namespace RyzenTuner.Common.Logger
                 "Warning" => LogLevel.Warning,
                 "Error" => LogLevel.Error,
                 "Fatal" => LogLevel.Fatal,
-                _ => throw new ArgumentException($"不正确的 log level 类型：{logLevel}")
+                _ => throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, $"Unknown log level: {logLevel}")
             };
         }
 

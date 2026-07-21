@@ -135,7 +135,7 @@ namespace RyzenTuner.Common.Benchmark
                     }
 
                     // 计算能力发挥（Capability）
-                    var finalMax = divisor > 0 ? maxScore / divisor : maxScore;
+                    var finalMax = maxScore / divisor;
                     foreach (var r in results)
                     {
                         r.Capability = finalMax > 0 ? (double)r.ScaledScore / finalMax : 0;
