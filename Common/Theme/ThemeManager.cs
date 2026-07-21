@@ -54,6 +54,14 @@ namespace RyzenTuner.Common.Theme
             public Color? SelectionFore;
             public Color? ColumnHeaderSelectionBack;
             public Color? ColumnHeaderSelectionFore;
+            // RowsDefaultCellStyle（与 AltRowBack/AltRowFore 分离存储）
+            public Color? RowDefaultBack;
+            public Color? RowDefaultFore;
+            // LinkLabel
+            public Color LinkColor;
+            public Color ActiveLinkColor;
+            public Color VisitedLinkColor;
+            public bool HasLinkColors;
         }
 
         // ================================================================
@@ -199,6 +207,14 @@ namespace RyzenTuner.Common.Theme
                 orig.MouseOverBackColor = btn.FlatAppearance.MouseOverBackColor;
             }
 
+            if (ctrl is LinkLabel ll)
+            {
+                orig.LinkColor = ll.LinkColor;
+                orig.ActiveLinkColor = ll.ActiveLinkColor;
+                orig.VisitedLinkColor = ll.VisitedLinkColor;
+                orig.HasLinkColors = true;
+            }
+
             if (ctrl is DataGridView dgv)
             {
                 orig.EnableHeadersVisualStyles = dgv.EnableHeadersVisualStyles;
@@ -221,12 +237,15 @@ namespace RyzenTuner.Common.Theme
                     orig.SelectionFore = dgv.DefaultCellStyle.SelectionForeColor;
                 }
 
+                // 先保存 RowsDefaultCellStyle（正常的行样式）
                 if (dgv.RowsDefaultCellStyle != null)
                 {
-                    orig.AltRowBack ??= dgv.RowsDefaultCellStyle.BackColor;
-                    orig.AltRowFore ??= dgv.RowsDefaultCellStyle.ForeColor;
+                    orig.RowDefaultBack = dgv.RowsDefaultCellStyle.BackColor;
+                    orig.RowDefaultFore = dgv.RowsDefaultCellStyle.ForeColor;
                 }
 
+                // 再保存 AlternatingRowsDefaultCellStyle（交替行样式），
+                // 使用独立的 AltRowBack/AltRowFore，不再覆盖 RowDefaultBack/RowDefaultFore
                 if (dgv.AlternatingRowsDefaultCellStyle != null)
                 {
                     orig.AltRowBack = dgv.AlternatingRowsDefaultCellStyle.BackColor;
@@ -270,6 +289,12 @@ namespace RyzenTuner.Common.Theme
                     btn.FlatAppearance.MouseOverBackColor = orig.MouseOverBackColor;
                     break;
 
+                case LinkLabel ll when orig.HasLinkColors:
+                    ll.LinkColor = orig.LinkColor;
+                    ll.ActiveLinkColor = orig.ActiveLinkColor;
+                    ll.VisitedLinkColor = orig.VisitedLinkColor;
+                    break;
+
                 case DataGridView dgv:
                     dgv.EnableHeadersVisualStyles = orig.EnableHeadersVisualStyles;
                     dgv.BackgroundColor = orig.DataGridBg ?? SystemColors.Control;
@@ -291,8 +316,9 @@ namespace RyzenTuner.Common.Theme
                         dgv.DefaultCellStyle.SelectionForeColor = orig.SelectionFore ?? SystemColors.HighlightText;
                     }
 
-                    SetIfNotNull(dgv.RowsDefaultCellStyle, orig.AltRowBack, orig.AltRowFore);
-                    SetIfNotNull(dgv.AlternatingRowsDefaultCellStyle, orig.AltRowBack, orig.AltRowFore);
+                    // 分别还原 RowsDefaultCellStyle 和 AlternatingRowsDefaultCellStyle
+                    SetIfNotNull(dgv.RowsDefaultCellStyle, orig.RowDefaultBack ?? orig.RowBack, orig.RowDefaultFore ?? orig.RowFore);
+                    SetIfNotNull(dgv.AlternatingRowsDefaultCellStyle, orig.AltRowBack ?? orig.RowBack, orig.AltRowFore ?? orig.RowFore);
                     break;
             }
         }
@@ -404,8 +430,8 @@ namespace RyzenTuner.Common.Theme
             // 这里只处理非导航的常规按钮（保存、取消、开始等）
             var name = btn.Name;
 
-            // 导航按钮 — 跳过，由 MainForm.SwitchPage() 管理
-            if (name is "navHome" or "navSettings" or "navBenchmark" or "navAbout" or "navLogs")
+            // 导航按钮 — 跳过，由 MainForm.SwitchPage() 和 RefreshThemeColors() 管理
+            if (name.StartsWith("nav", StringComparison.Ordinal))
                 return;
 
             btn.FlatStyle = FlatStyle.Flat;

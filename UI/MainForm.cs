@@ -260,10 +260,9 @@ namespace RyzenTuner.UI
             // 修复设计器遗漏：numericUpDownLogSaveDays.BeginInit() 后缺少 EndInit()
             ((ISupportInitialize)numericUpDownLogSaveDays).EndInit();
 
-            // 初始化导航按钮图标
-            InitializeNavIcons();
-
             // 运行时启动定时器
+            // （导航图标在 ApplySavedTheme -> RefreshThemeColors 中初始化，
+            //  避免在主题应用前用默认浅色创建、再重新创建）
             mainFormTimer.Enabled = true;
 
             _isInitializingOptions = true;
@@ -286,10 +285,12 @@ namespace RyzenTuner.UI
             // 若 EnergyStar 禁用，确保下次 DoProcessManage 提升后台进程（修复崩溃重启后进程被节流的问题）
             _needRunBoostAllBgProcesses = !checkBoxEnergyStar.Checked;
 
-            // 初始化设置页
+            // 初始化设置页（在 _isInitializingOptions 保护内，避免 CheckedChanged 误触发）
+            _isInitializingOptions = true;
             SettingsLoadValues();
+            _isInitializingOptions = false;
 
-            // 应用保存的主题
+            // 应用保存的主题（此时 ApplySavedTheme 会正确触发主题切换）
             ApplySavedTheme();
 
             // 初始化跑分页
@@ -371,9 +372,7 @@ namespace RyzenTuner.UI
             navAbout.BackColor = inactiveNavBg;
 
             // 当前主题的活动导航按钮背景色
-            var activeNavBg = ThemeManager.CurrentMode == ThemeMode.Dark
-                ? Color.FromArgb(62, 62, 66)
-                : Color.White;
+            var activeNavBg = ThemeManager.NavActiveBg;
 
             // 显示目标页面
             switch (pageId)
@@ -736,6 +735,7 @@ namespace RyzenTuner.UI
                 ThemeManager.SetTheme(ThemeMode.Dark, this);
             }
 
+            // 刷新侧边栏、导航按钮等顶级容器的颜色（同时初始化导航图标）
             RefreshThemeColors();
         }
 
@@ -744,31 +744,23 @@ namespace RyzenTuner.UI
         /// </summary>
         private void RefreshThemeColors()
         {
-            var isDark = ThemeManager.CurrentMode == ThemeMode.Dark;
-
-            // 侧边栏与内容区背景
-            panelSidebar.BackColor = isDark
-                ? Color.FromArgb(37, 37, 38)
-                : Color.FromArgb(234, 234, 234);
-
-            panelContent.BackColor = isDark
-                ? Color.FromArgb(45, 45, 48)
-                : Color.FromArgb(243, 243, 243);
+            // 侧边栏与内容区背景（使用 ThemeManager 公开属性，避免颜色常量重复）
+            panelSidebar.BackColor = ThemeManager.SidebarBg;
+            panelContent.BackColor = ThemeManager.ContentBg;
 
             // 导航按钮悬停色
-            var hoverColor = isDark
-                ? Color.FromArgb(40, 40, 43)
-                : Color.FromArgb(10, 0, 0, 0);
+            var hoverColor = ThemeManager.NavHover;
 
             foreach (var btn in new[] { navHome, navSettings, navBenchmark, navLogs, navAbout })
             {
                 btn.FlatAppearance.MouseOverBackColor = hoverColor;
+                btn.ForeColor = ThemeManager.CurrentMode == ThemeMode.Dark
+                    ? Color.FromArgb(224, 224, 224)
+                    : Color.Black;
             }
 
             // 更新活动导航按钮背景色（根据当前可见页面）
-            var activeNavBg = isDark
-                ? Color.FromArgb(62, 62, 66)
-                : Color.White;
+            var activeNavBg = ThemeManager.NavActiveBg;
 
             if (pageHome.Visible) navHome.BackColor = activeNavBg;
             else if (pageSettings.Visible) navSettings.BackColor = activeNavBg;
@@ -794,6 +786,25 @@ namespace RyzenTuner.UI
             var mode = rb.Tag?.ToString() == "Dark" ? ThemeMode.Dark : ThemeMode.Light;
             ThemeManager.SetTheme(mode, this);
             RefreshThemeColors();
+
+            // 刷新基准测试结果行的主题色（清除逐行覆盖，使用新的主题色重绘）
+            RefreshBenchmarkRowStyles();
+        }
+
+        /// <summary>
+        /// 清除 DataGridView 逐行 DefaultCellStyle 覆盖，重新应用当前主题色。
+        /// </summary>
+        private void RefreshBenchmarkRowStyles()
+        {
+            if (_allResults.Count == 0 || dataGridViewResults.Rows.Count == 0)
+                return;
+
+            foreach (DataGridViewRow row in dataGridViewResults.Rows)
+            {
+                row.DefaultCellStyle = null;
+            }
+
+            HighlightBestRow();
         }
 
         // ================================================================
@@ -1294,7 +1305,8 @@ namespace RyzenTuner.UI
 
             if (bestRowIndex >= 0)
             {
-                dataGridViewResults.Rows[bestRowIndex].DefaultCellStyle.BackColor = Color.LightGreen;
+                dataGridViewResults.Rows[bestRowIndex].DefaultCellStyle.BackColor =
+                    isDark ? Color.FromArgb(30, 90, 40) : Color.LightGreen;
             }
         }
 
