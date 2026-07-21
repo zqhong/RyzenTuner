@@ -5,12 +5,16 @@ using System.Text;
 
 namespace RyzenTuner.Common.EnergyStar.Interop
 {
+    /// <summary>
+    /// Win32 API P/Invoke 声明。
+    /// 包含进程管理、窗口枚举、电源节流等底层系统调用。
+    /// </summary>
     internal static class Win32Api
     {
         [DllImport("kernel32.dll")]
-        public static extern int GetProcessId(IntPtr handle);
+        public static extern int GetProcessId([In] IntPtr handle);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool QueryFullProcessImageName([In] IntPtr hProcess, [In] int dwFlags,
             [Out] StringBuilder lpExeName, ref int lpdwSize);
 
@@ -23,38 +27,49 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, uint processId);
 
-
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetProcessInformation([In] IntPtr hProcess,
             [In] ProcessInformationClass processInformationClass, IntPtr processInformation,
             uint processInformationSize);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool SetPriorityClass(IntPtr handle, PriorityClass priorityClass);
+        public static extern bool SetPriorityClass([In] IntPtr handle, PriorityClass priorityClass);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [SuppressUnmanagedCodeSecurity]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool CloseHandle(IntPtr hObject);
 
+        /// <summary>
+        /// 窗口枚举回调委托，由 EnumChildWindows 调用。
+        /// </summary>
+        /// <param name="hwnd">子窗口句柄。</param>
+        /// <param name="lparam">应用程序定义的值。</param>
+        /// <returns>true 继续枚举，false 停止枚举。</returns>
         public delegate bool WindowEnumProc(IntPtr hwnd, IntPtr lparam);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool EnumChildWindows(IntPtr hwnd, WindowEnumProc callback, IntPtr lParam);
 
-        // We don't need to bloat this app with WinForm/WPF to show a simple message box
-        [DllImport("user32.dll")]
+        // We don’t need to bloat this app with WinForm/WPF to show a simple message box
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern int MessageBox(IntPtr hInstance, string lpText, string lpCaption, uint type);
 
         // two message box related constants
         public const int MbOk = 0x00000000;
         public const int MbIconError = 0x00000010;
 
+        /// <summary>
+        /// 进程访问权限标志，用于 OpenProcess。
+        /// </summary>
         [Flags]
         public enum ProcessAccessFlags : uint
         {
+            /// <summary>设置进程信息所需的访问权限。</summary>
             SetInformation = 0x00000200,
+
+            /// <summary>查询受限进程信息所需的访问权限。</summary>
             QueryLimitedInformation = 0x00001000,
         }
 
@@ -68,6 +83,10 @@ namespace RyzenTuner.Common.EnergyStar.Interop
             ProcessPowerThrottling,
         }
 
+        /// <summary>
+        /// 进程电源节流标志。
+        /// 参考：https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setprocessinformation
+        /// </summary>
         [Flags]
         public enum ProcessorPowerThrottlingFlags : uint
         {
@@ -85,6 +104,7 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         }
 
         /// <summary>
+        /// 进程优先级类。
         /// 参考：https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setpriorityclass
         /// </summary>
         public enum PriorityClass : uint
@@ -96,6 +116,10 @@ namespace RyzenTuner.Common.EnergyStar.Interop
             BelowNormalPriorityClass = 0x4000,
         }
 
+        /// <summary>
+        /// 进程电源节流状态结构。
+        /// 参考：https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/ns-processthreadsapi-process_power_throttling_state
+        /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct ProcessPowerThrottlingState
         {

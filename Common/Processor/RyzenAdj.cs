@@ -28,7 +28,12 @@ namespace RyzenTuner.Common.Processor
     // 错误码，参考：https://github.com/FlyGoat/RyzenAdj/blob/master/lib/ryzenadj.h
     public enum ErrCode
     {
-        AdjErrNone = 0
+        AdjErrNone = 0,
+        AdjErrFamilyUnsupported = -1,
+        AdjErrSmuTimeout = -2,
+        AdjErrSmuUnsupported = -3,
+        AdjErrSmuRejected = -4,
+        AdjErrMemoryAccess = -5,
     }
 
     /**
@@ -60,19 +65,19 @@ namespace RyzenTuner.Common.Processor
         public static extern int refresh_table(IntPtr ry);
 
         [DllImport("libryzenadj.dll")]
-        public static extern int set_stapm_limit(IntPtr ry, [In] uint value);
+        public static extern int set_stapm_limit(IntPtr ry, uint value);
 
         [DllImport("libryzenadj.dll")]
-        public static extern int set_fast_limit(IntPtr ry, [In] uint value);
+        public static extern int set_fast_limit(IntPtr ry, uint value);
 
         [DllImport("libryzenadj.dll")]
-        public static extern int set_slow_limit(IntPtr ry, [In] uint value);
+        public static extern int set_slow_limit(IntPtr ry, uint value);
 
         [DllImport("libryzenadj.dll")]
-        public static extern int set_tctl_temp(IntPtr ry, [In] uint value);
+        public static extern int set_tctl_temp(IntPtr ry, uint value);
 
         [DllImport("libryzenadj.dll")]
-        public static extern int set_apu_skin_temp_limit(IntPtr ry, [In] uint value);
+        public static extern int set_apu_skin_temp_limit(IntPtr ry, uint value);
 
         [DllImport("libryzenadj.dll")]
         public static extern float get_stapm_limit(IntPtr ry);

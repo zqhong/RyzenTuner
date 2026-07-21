@@ -10,7 +10,7 @@ namespace RyzenTuner.Utils
         {
             return TryGetPowerLimitByMode(mode, out var powerLimit)
                 ? powerLimit
-                : throw new InvalidOperationException($"未找到功率限制设置: {mode}");
+                : throw new InvalidOperationException($"Power limit setting not found: {mode}");
         }
 
         public static bool TryGetPowerLimitByMode(string mode, out float powerLimit)
@@ -29,23 +29,29 @@ namespace RyzenTuner.Utils
                 return false;
             }
 
-            // 优先使用 InvariantCulture 解析（所有值均以 InvariantCulture 存储）
-            return float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out powerLimit) ||
-                   float.TryParse(value, NumberStyles.Float, CultureInfo.CurrentCulture, out powerLimit);
+            return float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out powerLimit);
         }
 
         public static string GetModeDetailText(string mode)
         {
-            if (TryGetPowerLimitByMode(mode, out var powerLimit))
+            if (string.IsNullOrEmpty(mode))
             {
-                return $"{GetLocalizedModeName(mode)}-{powerLimit}W";
+                return "?-?W";
             }
 
-            return $"{GetLocalizedModeName(mode)}-?W";
+            var modeName = GetLocalizedModeName(mode);
+            return TryGetPowerLimitByMode(mode, out var powerLimit)
+                ? $"{modeName}-{powerLimit}W"
+                : $"{modeName}-?W";
         }
 
         public static string GetLocalizedModeName(string mode)
         {
+            if (string.IsNullOrEmpty(mode))
+            {
+                return mode ?? string.Empty;
+            }
+
             return Properties.Strings.ResourceManager.GetString(mode) ?? mode;
         }
 

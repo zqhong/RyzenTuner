@@ -31,6 +31,9 @@ namespace RyzenTuner.Common.Logger
 {
     /**
      * Refer: https://gist.github.com/heiswayi/69ef5413c0f28b3a58d964447c275058
+     *
+     * Note: This logger has been superseded by SqliteLogger and is retained
+     * only as a file-based fallback reference.
      */
     public class SimpleLogger : IDisposable
     {
@@ -49,7 +52,7 @@ namespace RyzenTuner.Common.Logger
         private readonly string _datetimeFormat;
         private readonly string _logFilename;
         private StreamWriter? _writer;
-        private bool _disposed;
+        private volatile bool _disposed;
 
         public LogLevel DefaultLogLevel { get; set; }
 
@@ -61,8 +64,17 @@ namespace RyzenTuner.Common.Logger
         {
             _datetimeFormat = "yyyy-MM-dd HH:mm:ss";
             var logDir = AppDomain.CurrentDomain.BaseDirectory;
+            if (string.IsNullOrEmpty(logDir))
+                logDir = Environment.CurrentDirectory;
+
             _logFilename = Path.Combine(logDir,
                 System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + FileExt);
+
+            // Ensure the log directory exists
+            var dir = Path.GetDirectoryName(_logFilename);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
             DefaultLogLevel = LogLevel.Warning;
 
             // Prepend BOM for UTF-8 and keep writer open for the lifetime of the logger
@@ -72,21 +84,33 @@ namespace RyzenTuner.Common.Logger
             };
         }
 
-        public void Dispose()
+        protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
                 return;
             _disposed = true;
 
-            lock (_fileLock)
+            if (disposing)
             {
-                _writer?.Dispose();
-                _writer = null;
+                lock (_fileLock)
+                {
+                    _writer?.Dispose();
+                    _writer = null;
+                }
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public LogLevel ToLogLevel(string logLevel)
         {
+            if (logLevel == null)
+                throw new ArgumentNullException(nameof(logLevel));
+
             return logLevel switch
             {
                 "Trace" => LogLevel.Trace,

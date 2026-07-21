@@ -29,8 +29,8 @@ namespace RyzenTuner.Common.Logger
         private const string DateTimeFormat = "yyyy-MM-dd HH:mm:ss";
         private readonly string _dbPath;
         private readonly object _dbLock = new();
-        private bool _disposed;
-        private bool _dbInitialized;
+        private volatile bool _disposed;
+        private volatile bool _dbInitialized;
 
         public LogLevel DefaultLogLevel { get; set; }
 
@@ -87,8 +87,9 @@ namespace RyzenTuner.Common.Logger
                 testConn.Close();
                 _dbInitialized = true;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[SqliteLogger] Database initialization failed: {ex.Message}");
                 _dbInitialized = false;
             }
         }
@@ -109,12 +110,16 @@ namespace RyzenTuner.Common.Logger
                 return;
             _disposed = true;
 
+            System.Diagnostics.Debug.WriteLine("[SqliteLogger] Disposing, clearing all connection pools");
             // 释放 SQLite 连接池中的句柄，防止反复重启时句柄残留导致 SQLITE_BUSY
             SQLiteConnection.ClearAllPools();
         }
 
         public LogLevel ToLogLevel(string logLevel)
         {
+            if (logLevel == null)
+                throw new ArgumentNullException(nameof(logLevel));
+
             return logLevel switch
             {
                 "Trace" => LogLevel.Trace,
@@ -123,7 +128,7 @@ namespace RyzenTuner.Common.Logger
                 "Warning" => LogLevel.Warning,
                 "Error" => LogLevel.Error,
                 "Fatal" => LogLevel.Fatal,
-                _ => throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, $"Unknown log level: {logLevel}")
+                _ => throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, $"Unknown log level: '{logLevel}'")
             };
         }
 
@@ -163,6 +168,9 @@ namespace RyzenTuner.Common.Logger
 
         public void LogException(Exception e)
         {
+            if (e == null)
+                return;
+
             var st = new StackTrace(e, true);
             var frame = st.GetFrame(0);
             var line = frame?.GetFileLineNumber() ?? 0;
@@ -223,7 +231,7 @@ namespace RyzenTuner.Common.Logger
             table.Columns.Add("details", typeof(string));
             table.Columns.Add("elapsed_ms", typeof(string));
 
-            if (!_dbInitialized)
+            if (!_dbInitialized || _disposed)
                 return table;
 
             try
@@ -264,8 +272,9 @@ namespace RyzenTuner.Common.Logger
 
                 return table;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[SqliteLogger] QueryLogs failed: {ex.Message}");
                 return table;
             }
         }
@@ -292,8 +301,9 @@ namespace RyzenTuner.Common.Logger
                 }
                 return levels.ToArray();
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[SqliteLogger] GetAvailableLevels failed: {ex.Message}");
                 return Array.Empty<string>();
             }
         }
@@ -313,8 +323,9 @@ namespace RyzenTuner.Common.Logger
                 cmd.CommandText = "SELECT COUNT(*) FROM logs";
                 return (long)cmd.ExecuteScalar();
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[SqliteLogger] GetLogCount failed: {ex.Message}");
                 return 0;
             }
         }
@@ -328,7 +339,7 @@ namespace RyzenTuner.Common.Logger
         /// </summary>
         public void DeleteAll()
         {
-            if (!_dbInitialized)
+            if (!_dbInitialized || _disposed)
                 return;
 
             try
@@ -341,9 +352,9 @@ namespace RyzenTuner.Common.Logger
                     cmd.ExecuteNonQuery();
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // 删除失败时静默忽略
+                System.Diagnostics.Debug.WriteLine($"[SqliteLogger] DeleteAll failed: {ex.Message}");
             }
         }
 
@@ -352,7 +363,7 @@ namespace RyzenTuner.Common.Logger
         /// </summary>
         public void Cleanup(int retentionDays)
         {
-            if (!_dbInitialized || retentionDays <= 0)
+            if (!_dbInitialized || _disposed || retentionDays <= 0)
                 return;
 
             try
@@ -367,9 +378,9 @@ namespace RyzenTuner.Common.Logger
                     cmd.ExecuteNonQuery();
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // 删除失败时静默忽略
+                System.Diagnostics.Debug.WriteLine($"[SqliteLogger] Cleanup failed: {ex.Message}");
             }
         }
 
@@ -389,6 +400,9 @@ namespace RyzenTuner.Common.Logger
             if (!_dbInitialized)
                 return;
 
+            if (_disposed)
+                return;
+
             // Write to SQLite (UTC for timezone-invariant comparison)
             WriteToDatabase(new LogEntry
             {
@@ -396,7 +410,7 @@ namespace RyzenTuner.Common.Logger
                 Level = level.ToString(),
                 Action = action,
                 Details = text,
-                ElapsedMs = elapsedMs,
+                ElapsedMilliseconds = elapsedMs,
             });
         }
 
@@ -406,6 +420,9 @@ namespace RyzenTuner.Common.Logger
         private void WriteToDatabase(LogEntry entry)
         {
             if (!_dbInitialized)
+                return;
+
+            if (entry == null)
                 return;
 
             try
@@ -424,13 +441,13 @@ namespace RyzenTuner.Common.Logger
                     cmd.Parameters.AddWithValue("@action", entry.Action);
                     cmd.Parameters.AddWithValue("@details", entry.Details);
                     cmd.Parameters.AddWithValue("@elapsed_ms",
-                        (object?)entry.ElapsedMs ?? DBNull.Value);
+                        (object?)entry.ElapsedMilliseconds ?? DBNull.Value);
                     cmd.ExecuteNonQuery();
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // SQLite 写入失败时静默忽略（不走文件回退）
+                System.Diagnostics.Debug.WriteLine($"[SqliteLogger] WriteToDatabase failed: {ex.Message}");
             }
         }
     }

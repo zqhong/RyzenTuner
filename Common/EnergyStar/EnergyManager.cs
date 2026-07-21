@@ -319,7 +319,13 @@ namespace RyzenTuner.Common.EnergyStar
                 Win32Api.ProcessAccessFlags.QueryLimitedInformation |
                 Win32Api.ProcessAccessFlags.SetInformation
             );
-            return Win32Api.OpenProcess(processAccess, false, (uint)processId);
+            var handle = Win32Api.OpenProcess(processAccess, false, (uint)processId);
+            if (handle == IntPtr.Zero)
+            {
+                AppContainer.Logger().Debug("EnergyStar", $"NativeOpenProcess failed for PID {processId}");
+            }
+
+            return handle;
         }
 
         /// <summary>
@@ -354,19 +360,28 @@ namespace RyzenTuner.Common.EnergyStar
                     {
                         using (proc)
                         {
+                            // Skip processes that have already exited before accessing properties
+                            if (proc.HasExited)
+                            {
+                                continue;
+                            }
+
                             if (proc.SessionId != currentSessionId)
                             {
                                 continue;
                             }
 
                             var hProcess = NativeOpenProcess(proc.Id);
-                            try
+                            if (hProcess != IntPtr.Zero)
                             {
-                                ToggleEfficiencyMode(hProcess, enable);
-                            }
-                            finally
-                            {
-                                Win32Api.CloseHandle(hProcess);
+                                try
+                                {
+                                    ToggleEfficiencyMode(hProcess, enable);
+                                }
+                                finally
+                                {
+                                    Win32Api.CloseHandle(hProcess);
+                                }
                             }
                         }
                     }

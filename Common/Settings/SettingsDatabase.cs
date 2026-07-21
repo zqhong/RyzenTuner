@@ -12,16 +12,17 @@ namespace RyzenTuner.Common.Settings
     internal static class SettingsDatabase
     {
         private const string DbFileName = "RyzenTuner.db";
+        private static readonly object _lock = new object();
+        private static string? _cachedConnectionString;
 
         /// <summary>
         /// 新路径：%LocalAppData%\RyzenTuner\RyzenTuner.db
         /// 符合 Windows 约定，卸载后保留，且用户隔离。
         /// </summary>
-        public static string DefaultDbPath =>
-            Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "RyzenTuner",
-                DbFileName);
+        public static readonly string DefaultDbPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "RyzenTuner",
+            DbFileName);
 
         /// <summary>
         /// 旧路径：应用基目录（仅用于迁移）。
@@ -44,74 +45,94 @@ namespace RyzenTuner.Common.Settings
         /// </summary>
         public static string GetDbPath()
         {
-            var defaultPath = DefaultDbPath;
-            var legacyPath = LegacyDbPath;
-
-            // 新路径已存在 — 校验完整性
-            if (File.Exists(defaultPath))
+            lock (_lock)
             {
-                if (DbIntegrityCheck(defaultPath))
-                    return defaultPath;
+                var defaultPath = DefaultDbPath;
+                var legacyPath = LegacyDbPath;
 
-                // 文件损坏，删除后尝试从旧路径重新迁移
-                Debug.WriteLine("[SettingsDatabase] DB corruption detected, re-migrating from legacy path");
-                try { File.Delete(defaultPath); }
-                catch { return defaultPath; } // 删除失败，只能使用损坏文件
-            }
-
-            // 旧路径存在而新路径不存在（或已删除）时，执行一次迁移
-            if (File.Exists(legacyPath))
-            {
-                try
+                // 新路径已存在 — 校验完整性
+                if (File.Exists(defaultPath))
                 {
-                    EnsureDirectoryExists(defaultPath);
+                    if (CheckDbIntegrity(defaultPath))
+                        return defaultPath;
 
-                    // 原子迁移：先复制到 .tmp 文件，再重命名
-                    var tempPath = defaultPath + ".tmp";
-                    File.Copy(legacyPath, tempPath, overwrite: true);
-
-                    // 验证临时文件的完整性
-                    if (!DbIntegrityCheck(tempPath))
+                    // 文件损坏，删除后尝试从旧路径重新迁移
+                    Debug.WriteLine("[SettingsDatabase] DB corruption detected, re-migrating from legacy path");
+                    try { File.Delete(defaultPath); }
+                    catch (Exception ex)
                     {
-                        File.Delete(tempPath);
-                        return defaultPath; // 返回新路径（空 DB 比损坏的好）
+                        Debug.WriteLine($"[SettingsDatabase] Failed to delete corrupted DB: {ex.Message}");
+                        return defaultPath; // 删除失败，只能使用损坏文件
                     }
-
-                    // .NET Framework 4.8 的 File.Move 不支持 overwrite 参数
-                    if (File.Exists(defaultPath))
-                        File.Delete(defaultPath);
-                    File.Move(tempPath, defaultPath);
                 }
-                catch
+
+                // 旧路径存在而新路径不存在（或已删除）时，执行一次迁移
+                if (File.Exists(legacyPath))
                 {
-                    // 迁移失败时回退到旧路径
-                    return legacyPath;
-                }
-            }
+                    var tempPath = defaultPath + ".tmp";
+                    try
+                    {
+                        EnsureDirectoryExists(defaultPath);
 
-            return defaultPath;
+                        // 原子迁移：先复制到 .tmp 文件，再重命名
+                        File.Copy(legacyPath, tempPath, overwrite: true);
+
+                        // 验证临时文件的完整性
+                        if (!CheckDbIntegrity(tempPath))
+                        {
+                            File.Delete(tempPath);
+                            return defaultPath; // 返回新路径（空 DB 比损坏的好）
+                        }
+
+                        // .NET Framework 4.8 的 File.Move 不支持 overwrite 参数
+                        try { File.Delete(defaultPath); }
+                        catch (FileNotFoundException) { }
+                        File.Move(tempPath, defaultPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[SettingsDatabase] Migration failed: {ex.Message}");
+                        // 迁移失败时回退到旧路径
+                        return legacyPath;
+                    }
+                    finally
+                    {
+                        if (File.Exists(tempPath))
+                        {
+                            try { File.Delete(tempPath); }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"[SettingsDatabase] Failed to clean up temp file: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+
+                return defaultPath;
+            }
         }
 
         /// <summary>
         /// 使用 SQLite 的 integrity_check 验证数据库文件完整性。
         /// 返回 true 表示文件有效或文件尚不存在（首次运行）。
         /// </summary>
-        private static bool DbIntegrityCheck(string dbPath)
+        private static bool CheckDbIntegrity(string dbPath)
         {
             if (!File.Exists(dbPath))
                 return true;
 
             try
             {
-                using var conn = new SQLiteConnection($"Data Source={dbPath};Version=3;");
+                using var conn = new SQLiteConnection($"Data Source={dbPath};Version=3;Journal Mode=WAL;Busy Timeout=3000;");
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "PRAGMA integrity_check";
                 var result = (string)cmd.ExecuteScalar();
                 return result == "ok";
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[SettingsDatabase] integrity_check failed for {dbPath}: {ex.Message}");
                 return false;
             }
         }
@@ -121,8 +142,12 @@ namespace RyzenTuner.Common.Settings
         /// </summary>
         public static string GetConnectionString()
         {
-            var dbPath = GetDbPath();
-            return $"Data Source={dbPath};Version=3;Journal Mode=WAL;Busy Timeout=3000;";
+            if (_cachedConnectionString == null)
+            {
+                var dbPath = GetDbPath();
+                _cachedConnectionString = $"Data Source={dbPath};Version=3;Journal Mode=WAL;Busy Timeout=3000;";
+            }
+            return _cachedConnectionString;
         }
 
         public const string CreateSettingsTableSql = @"

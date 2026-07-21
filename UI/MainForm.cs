@@ -1054,7 +1054,7 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            var pointCount = config.GetTestPointCount();
+            var pointCount = config.TestPointCount;
             var totalMinutes = pointCount * (int)numericUpDownDuration.Value
                                + (int)Math.Ceiling(Math.Max(0, pointCount - 1) * (double)numericUpDownRestTime.Value / 60.0);
 
@@ -1338,7 +1338,7 @@ namespace RyzenTuner.UI
             if (_allResults.Count == 0 || dataGridViewResults.Rows.Count == 0)
                 return;
 
-            var bestEfficiency = float.MinValue;
+            var bestEfficiency = double.MinValue;
             var bestRowIndex = -1;
 
             // 直接从 _allResults 读取数据，避免字符串 → 浮点的往返转换
@@ -1516,32 +1516,39 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            _tickCount++;
-
-            // 根据用户配置的间隔控制 DoPowerLimit 的更新频率（默认 4 秒）
-            var interval = AppSettings.Get("PowerLimitUpdateInterval", 4);
-            if (interval < 1) interval = 1; // 防御：确保最小值为 1 秒
-            if (DateTime.UtcNow - _lastPowerLimitRunTime >= TimeSpan.FromSeconds(interval))
+            try
             {
-                _lastPowerLimitRunTime = DateTime.UtcNow;
-                DoPowerLimit();
+                _tickCount++;
+
+                // 根据用户配置的间隔控制 DoPowerLimit 的更新频率（默认 4 秒）
+                var interval = AppSettings.Get("PowerLimitUpdateInterval", 4);
+                if (interval < 1) interval = 1; // 防御：确保最小值为 1 秒
+                if (DateTime.UtcNow - _lastPowerLimitRunTime >= TimeSpan.FromSeconds(interval))
+                {
+                    _lastPowerLimitRunTime = DateTime.UtcNow;
+                    DoPowerLimit();
+                }
+
+                DoProcessManage();
+                UpdateMonitoringInfo();
+
+                // 每天自动清理过期日志（后台自动处理）
+                if (DateTime.UtcNow - _lastLogCleanupTime >= TimeSpan.FromHours(24))
+                {
+                    _lastLogCleanupTime = DateTime.UtcNow;
+                    try
+                    {
+                        AppContainer.Logger().Cleanup(AppSettings.Get("LogRetentionDays", 3));
+                    }
+                    catch
+                    {
+                        // 静默忽略后台清理失败
+                    }
+                }
             }
-
-            DoProcessManage();
-            UpdateMonitoringInfo();
-
-            // 每天自动清理过期日志（后台自动处理）
-            if (DateTime.UtcNow - _lastLogCleanupTime >= TimeSpan.FromHours(24))
+            catch (Exception ex)
             {
-                _lastLogCleanupTime = DateTime.UtcNow;
-                try
-                {
-                    AppContainer.Logger().Cleanup(AppSettings.Get("LogRetentionDays", 3));
-                }
-                catch
-                {
-                    // 静默忽略后台清理失败
-                }
+                AppContainer.Logger().Warning("MainLoop", $"定时器主循环异常: {ex.Message}");
             }
         }
 
@@ -1592,7 +1599,7 @@ namespace RyzenTuner.UI
 
             if (AppSettings.GetBool("KeepAwake"))
             {
-                Awake.KeepingSysAwake(true);
+                Awake.KeepSystemAwake(true);
             }
             else
             {
@@ -1681,11 +1688,17 @@ namespace RyzenTuner.UI
             try
             {
                 var isEnabled = AppContainer.PowerConfig().IsCpuBoostEnabled();
-                _lastCpuBoostEnabled = isEnabled;
-
-                if (AppSettings.GetBool("CpuBoostEnabled") != isEnabled)
+                if (!isEnabled.HasValue)
                 {
-                    AppSettings.Set("CpuBoostEnabled", isEnabled);
+                    // 读取失败时不更新缓存或设置
+                    return;
+                }
+
+                _lastCpuBoostEnabled = isEnabled.Value;
+
+                if (AppSettings.GetBool("CpuBoostEnabled") != isEnabled.Value)
+                {
+                    AppSettings.Set("CpuBoostEnabled", isEnabled.Value);
                 }
             }
             catch (Exception ex)
@@ -1721,9 +1734,15 @@ namespace RyzenTuner.UI
                 // ===== 当前状态（首页，仅非跑分时更新，避免显示过期数据） =====
                 if (!_isBenchmarkRunning)
                 {
-                    currentFreqLabel.Text = string.Format(Strings.TextMonitorFreqFormat, hw.CpuFreq);
-                    currentPowerLabel.Text = string.Format(Strings.TextMonitorPowerFormat, hw.CpuPackagePower);
-                    currentTempLabel.Text = string.Format(Strings.TextMonitorTempFormat, hw.CpuTemperature);
+                    currentFreqLabel.Text = float.IsNaN(hw.CpuFreq)
+                        ? Strings.TextNotAvailable
+                        : string.Format(Strings.TextMonitorFreqFormat, hw.CpuFreq);
+                    currentPowerLabel.Text = float.IsNaN(hw.CpuPackagePower)
+                        ? Strings.TextNotAvailable
+                        : string.Format(Strings.TextMonitorPowerFormat, hw.CpuPackagePower);
+                    currentTempLabel.Text = float.IsNaN(hw.CpuTemperature)
+                        ? Strings.TextNotAvailable
+                        : string.Format(Strings.TextMonitorTempFormat, hw.CpuTemperature);
                 }
 
                 // ===== 生效参数（首页） =====

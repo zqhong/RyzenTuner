@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using RyzenTuner.Common.Container;
 
 namespace RyzenTuner.Utils
 {
@@ -8,8 +9,13 @@ namespace RyzenTuner.Utils
         /// <summary>
         /// 检查字体是否存在
         /// </summary>
-        public static bool IsFontExists(string fontName)
+        public static bool FontExists(string fontName)
         {
+            if (string.IsNullOrEmpty(fontName))
+            {
+                return false;
+            }
+
             try
             {
                 const float fontSize = 12;
@@ -22,8 +28,9 @@ namespace RyzenTuner.Utils
 
                 return fontTester.Name.Equals(fontName, StringComparison.OrdinalIgnoreCase);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
+                AppContainer.Logger().Warning("CommonUtils", $"FontExists check failed for '{fontName}': {ex.Message}");
                 return false;
             }
         }

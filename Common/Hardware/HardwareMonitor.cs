@@ -16,6 +16,7 @@ namespace RyzenTuner.Common.Hardware
         private float _cpuFreq;
 
         private readonly Computer _computer;
+        private readonly object _monitorLock = new();
         private bool _disposed;
 
         public HardwareMonitor()
@@ -53,7 +54,11 @@ namespace RyzenTuner.Common.Hardware
                 return;
             }
 
-            _computer.Close();
+            if (_computer != null)
+            {
+                _computer.Close();
+            }
+
             _disposed = true;
         }
 
@@ -72,17 +77,20 @@ namespace RyzenTuner.Common.Hardware
         {
             try
             {
-                Update();
+                lock (_monitorLock)
+                {
+                    Update();
 
-                var cpuHardwareList = _computer
-                    .Hardware
-                    .Where(i => i.HardwareType == HardwareType.Cpu)
-                    .ToList();
+                    var cpuHardwareList = _computer
+                        .Hardware
+                        .Where(i => i.HardwareType == HardwareType.Cpu)
+                        .ToList();
 
-                var cpuSensorList = cpuHardwareList.SelectMany(s => s.Sensors).ToList();
-                _cpuPackagePower = FetchCpuPackage(cpuSensorList);
-                _cpuTemperature = FetchCpuTemperature(cpuSensorList);
-                _cpuFreq = FetchCpuFreq(cpuSensorList);
+                    var cpuSensorList = cpuHardwareList.SelectMany(s => s.Sensors).ToList();
+                    _cpuPackagePower = FetchCpuPackage(cpuSensorList);
+                    _cpuTemperature = FetchCpuTemperature(cpuSensorList);
+                    _cpuFreq = FetchCpuFreq(cpuSensorList);
+                }
             }
             catch (Exception e)
             {
@@ -92,13 +100,20 @@ namespace RyzenTuner.Common.Hardware
 
         private static float FetchCpuTemperature(IEnumerable<ISensor> cpuEnumerable)
         {
-            var sensorValue = cpuEnumerable
-                .Where(s => s.SensorType == SensorType.Temperature && s.Name == TcTtlDieSensorName && s.Value != null)
-                .Select(s => s.Value)
-                .FirstOrDefault();
-            if (sensorValue is <= 150)
+            try
             {
-                return sensorValue.Value;
+                var sensorValue = cpuEnumerable
+                    .Where(s => s.SensorType == SensorType.Temperature && s.Name == TcTtlDieSensorName && s.Value != null)
+                    .Select(s => s.Value)
+                    .FirstOrDefault();
+                if (sensorValue is <= 150)
+                {
+                    return sensorValue.Value;
+                }
+            }
+            catch (Exception e)
+            {
+                AppContainer.Logger().LogException(e);
             }
 
             return 0;
@@ -106,13 +121,20 @@ namespace RyzenTuner.Common.Hardware
 
         private static float FetchCpuPackage(IEnumerable<ISensor> cpuEnumerable)
         {
-            var sensorValue = cpuEnumerable
-                .Where(s => s.SensorType == SensorType.Power && s.Name == PackagePowerSensorName && s.Value != null)
-                .Select(s => s.Value)
-                .FirstOrDefault();
-            if (sensorValue is <= 1000)
+            try
             {
-                return sensorValue.Value;
+                var sensorValue = cpuEnumerable
+                    .Where(s => s.SensorType == SensorType.Power && s.Name == PackagePowerSensorName && s.Value != null)
+                    .Select(s => s.Value)
+                    .FirstOrDefault();
+                if (sensorValue is <= 1000)
+                {
+                    return sensorValue.Value;
+                }
+            }
+            catch (Exception e)
+            {
+                AppContainer.Logger().LogException(e);
             }
 
             return 0;
@@ -126,31 +148,38 @@ namespace RyzenTuner.Common.Hardware
         /// <returns></returns>
         private static float FetchCpuFreq(IEnumerable<ISensor> cpuEnumerable)
         {
-            var cpuCount = Environment.ProcessorCount;
-
-            float totalFreq = 0;
-            var count = 0;
-
-            for (var i = 1; i <= cpuCount; i++)
+            try
             {
-                var index = i;
-                var freq = cpuEnumerable
-                    .Where(s => s.SensorType == SensorType.Clock && s.Name == $"Core #{index}" && s.Value != null)
-                    .Select(s => s.Value)
-                    .FirstOrDefault();
-                if (freq is > 100)
+                var cpuCount = Environment.ProcessorCount;
+
+                float totalFreq = 0;
+                var count = 0;
+
+                for (var i = 1; i <= cpuCount; i++)
                 {
-                    totalFreq += freq.Value;
-                    count++;
+                    var index = i;
+                    var freq = cpuEnumerable
+                        .Where(s => s.SensorType == SensorType.Clock && s.Name == $"Core #{index}" && s.Value != null)
+                        .Select(s => s.Value)
+                        .FirstOrDefault();
+                    if (freq is > 100)
+                    {
+                        totalFreq += freq.Value;
+                        count++;
+                    }
+                }
+
+                if (count > 0)
+                {
+                    return totalFreq / count;
                 }
             }
-
-            if (count <= 0)
+            catch (Exception e)
             {
-                return 0;
+                AppContainer.Logger().LogException(e);
             }
 
-            return totalFreq / count;
+            return 0;
         }
     }
 }

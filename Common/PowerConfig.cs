@@ -9,17 +9,15 @@ namespace RyzenTuner.Common
         private const uint Disabled = 0;
         private const uint Enabled = 1;
 
-        private static readonly HKEY PowerKey = default;
-
         /**
          * 获取当前激活的电源方案的 GUID
          */
-        private static Guid GetActiveScheme()
+        private static Guid? GetActiveScheme()
         {
-            var result = PowerGetActiveScheme(PowerKey, out var activeGuidHandle);
+            var result = PowerGetActiveScheme(default, out var activeGuidHandle);
             if (result != Win32Error.NO_ERROR)
             {
-                throw new InvalidOperationException($"Failed to get active power scheme: {result}");
+                return null;
             }
 
             using (activeGuidHandle)
@@ -30,30 +28,31 @@ namespace RyzenTuner.Common
 
         /**
          * 检查是否开启了 Cpu Boost
+         * 返回值：true = 已启用，false = 已禁用，null = 读取失败（状态未知）
          */
-        public bool IsCpuBoostEnabled()
+        public bool? IsCpuBoostEnabled()
         {
             var activeGuid = GetActiveScheme();
+            if (activeGuid == null) return null;
 
             var acResult = PowerReadACValueIndex(
-                PowerKey,
-                activeGuid,
+                default,
+                activeGuid.Value,
                 GUID_PROCESSOR_SETTINGS_SUBGROUP,
                 GUID_PROCESSOR_PERF_BOOST_MODE,
                 out var acValue
             );
 
             var dcResult = PowerReadDCValueIndex(
-                PowerKey,
-                activeGuid,
+                default,
+                activeGuid.Value,
                 GUID_PROCESSOR_SETTINGS_SUBGROUP,
                 GUID_PROCESSOR_PERF_BOOST_MODE,
                 out var dcValue
             );
 
-            // 读取失败时保守地返回 false（视为已禁用），避免意外覆盖用户设置
             if (acResult != Win32Error.NO_ERROR || dcResult != Win32Error.NO_ERROR)
-                return false;
+                return null;
 
             return acValue == Enabled && dcValue == Enabled;
         }
@@ -64,24 +63,25 @@ namespace RyzenTuner.Common
         private bool SetCpuBoost(uint value)
         {
             var activeGuid = GetActiveScheme();
+            if (activeGuid == null) return false;
 
             var writeAc = PowerWriteACValueIndex(
-                PowerKey,
-                activeGuid,
+                default,
+                activeGuid.Value,
                 GUID_PROCESSOR_SETTINGS_SUBGROUP,
                 GUID_PROCESSOR_PERF_BOOST_MODE,
                 value
             );
 
             var writeDc = PowerWriteDCValueIndex(
-                PowerKey,
-                activeGuid,
+                default,
+                activeGuid.Value,
                 GUID_PROCESSOR_SETTINGS_SUBGROUP,
                 GUID_PROCESSOR_PERF_BOOST_MODE,
                 value
             );
 
-            var activate = PowerSetActiveScheme(PowerKey, activeGuid);
+            var activate = PowerSetActiveScheme(default, activeGuid.Value);
 
             return writeAc == Win32Error.NO_ERROR && writeDc == Win32Error.NO_ERROR && activate == Win32Error.NO_ERROR;
         }
@@ -91,11 +91,6 @@ namespace RyzenTuner.Common
          */
         public bool EnableCpuBoost()
         {
-            if (IsCpuBoostEnabled())
-            {
-                return true;
-            }
-
             return SetCpuBoost(Enabled);
         }
 
@@ -104,11 +99,6 @@ namespace RyzenTuner.Common
          */
         public bool DisableCpuBoost()
         {
-            if (!IsCpuBoostEnabled())
-            {
-                return true;
-            }
-
             return SetCpuBoost(Disabled);
         }
     }

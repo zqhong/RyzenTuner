@@ -98,7 +98,7 @@ namespace RyzenTuner.Common
             var arguments = document.Descendants(taskNamespace + "Arguments").FirstOrDefault()?.Value;
 
             return string.Equals(NormalizePath(command), NormalizePath(Application.ExecutablePath), StringComparison.OrdinalIgnoreCase) &&
-                   string.Equals(arguments?.Trim(), StartupArgument, StringComparison.Ordinal);
+                   string.Equals(arguments?.Trim() ?? string.Empty, StartupArgument, StringComparison.Ordinal);
         }
 
         private static string BuildTaskXml(string executablePath, string workingDirectory, string currentUserSid)
@@ -172,7 +172,21 @@ namespace RyzenTuner.Common
                 StandardErrorEncoding = Console.OutputEncoding,
             };
 
-            process.Start();
+            try
+            {
+                if (!process.Start())
+                {
+                    var errorMsg = "schtasks.exe failed to start (no error detail)";
+                    if (throwOnError)
+                        throw new InvalidOperationException(errorMsg);
+
+                    return new SchtasksResult(-1, string.Empty, errorMsg);
+                }
+            }
+            catch (Exception ex) when (!throwOnError)
+            {
+                return new SchtasksResult(-1, string.Empty, ex.Message);
+            }
 
             // 同步读取 stdout（先读取，后 WaitForExit，避免管道缓冲区满导致死锁）
             var standardOutput = process.StandardOutput.ReadToEnd();
@@ -209,9 +223,9 @@ namespace RyzenTuner.Common
             return $"\"{value}\"";
         }
 
-        private static string SecurityElementEscape(string value)
+        private static string SecurityElementEscape(string? value)
         {
-            return System.Security.SecurityElement.Escape(value) ?? string.Empty; // 可 null（未标注 nullable）
+            return System.Security.SecurityElement.Escape(value) ?? string.Empty;
         }
 
         private readonly struct SchtasksResult

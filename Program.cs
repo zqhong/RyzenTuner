@@ -15,17 +15,27 @@ namespace RyzenTuner
         // 用于单例检测的 Mutex（替代 Process.GetProcessesByName，支持 Application.Restart）
         private static Mutex? _instanceMutex;
 
+        // 跟踪当前线程是否拥有 Mutex，避免对未拥有的 Mutex 调用 ReleaseMutex 崩溃
+        private static bool _ownsInstanceMutex;
+
         /// <summary>
         /// 释放单例 Mutex，供重启时调用（新进程启动前释放，避免冲突）
         /// </summary>
         public static void ReleaseInstanceMutex()
         {
-            if (_instanceMutex != null)
+            if (!_ownsInstanceMutex)
             {
-                _instanceMutex.ReleaseMutex();
-                _instanceMutex.Close();
-                _instanceMutex = null;
+                return;
             }
+
+            var mutex = Interlocked.Exchange(ref _instanceMutex, null);
+            if (mutex != null)
+            {
+                mutex.ReleaseMutex();
+                mutex.Close();
+            }
+
+            _ownsInstanceMutex = false;
         }
 
         /// <summary>
@@ -36,10 +46,12 @@ namespace RyzenTuner
             try
             {
                 _instanceMutex = new Mutex(true, InstanceMutexName, out var isFirst);
+                _ownsInstanceMutex = isFirst;
                 return isFirst;
             }
-            catch
+            catch (Exception ex)
             {
+                try { AppContainer.Logger()?.Error("System", $"重新获取单例 Mutex 失败: {ex.Message}"); } catch { /* 日志异常不影响流程 */ }
                 return false;
             }
         }
@@ -54,6 +66,7 @@ namespace RyzenTuner
 
                 // 使用 Mutex 进行单例检测，支持重启场景
                 _instanceMutex = new Mutex(true, InstanceMutexName, out var isFirstInstance);
+                _ownsInstanceMutex = isFirstInstance;
                 if (!isFirstInstance)
                 {
                     throw new InvalidOperationException(Properties.Strings.TextExceptionOnlyOneProgramIsAllowedToRun);
@@ -120,12 +133,12 @@ namespace RyzenTuner
             }
 
             var culture = new CultureInfo(langCode);
-            // 设置默认语言（新线程生效）
-            CultureInfo.DefaultThreadCurrentCulture = culture;
-            CultureInfo.DefaultThreadCurrentUICulture = culture;
             // 设置当前线程语言（立即生效，确保 ResourceManager 使用正确语言）
             Thread.CurrentThread.CurrentCulture = culture;
             Thread.CurrentThread.CurrentUICulture = culture;
+            // 设置默认语言（新线程生效）
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
         }
 
         private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
@@ -145,7 +158,7 @@ namespace RyzenTuner
             MessageBox.Show(ex.Message, Properties.Strings.TextExceptionTitle,
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-            AppContainer.Logger().LogException(ex);
+            try { AppContainer.Logger().LogException(ex); } catch { /* 日志异常不掩盖原始错误 */ }
             AppContainer.Dispose();
 
             Application.Exit();
@@ -153,14 +166,15 @@ namespace RyzenTuner
 
         private static bool HasException<T>(Exception ex) where T : Exception
         {
-            while (ex != null)
+            var current = ex;
+            while (current != null)
             {
-                if (ex is T)
+                if (current is T)
                 {
                     return true;
                 }
 
-                ex = ex.InnerException;
+                current = current.InnerException;
             }
 
             return false;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -30,8 +31,11 @@ namespace RyzenTuner.Common.Theme
         /// <summary>
         /// 存储已记录的控件原始颜色，用于从深色切回浅色时恢复。
         /// </summary>
+        // TODO: 当前 Dictionary<Control, OriginalColors> 持有对 Control 的强引用，
+        //       可能导致控件无法被垃圾回收。若出现内存泄漏，可改为 ConditionalWeakTable。
         private static readonly Dictionary<Control, OriginalColors> _originals = new();
 
+        // TODO: 考虑改为 readonly struct 以明确表示不可变性
         private struct OriginalColors
         {
             public Color BackColor;
@@ -124,12 +128,13 @@ namespace RyzenTuner.Common.Theme
                 return;
 
             CurrentMode = mode;
-            ThemeChanged?.Invoke(mode);
 
             if (form != null)
             {
                 ApplyTheme(form);
             }
+
+            ThemeChanged?.Invoke(mode);
         }
 
         /// <summary>
@@ -139,6 +144,12 @@ namespace RyzenTuner.Common.Theme
         {
             if (form == null || form.IsDisposed)
                 return;
+
+            Debug.Assert(
+                Application.MessageLoop,
+                "ThemeManager 应在 UI 线程上调用");
+
+            form.BackColor = CurrentMode == ThemeMode.Dark ? D_ContentBg : L_ContentBg;
 
             ApplyThemeToControls(form.Controls);
         }
@@ -386,7 +397,8 @@ namespace RyzenTuner.Common.Theme
 
         private static void DarkenLabel(Label lbl)
         {
-            var orig = _originals[lbl];
+            if (!_originals.TryGetValue(lbl, out var orig))
+                return;
 
             // 判断原始 ForeColor 来确定该标签的角色
             var fg = orig.ForeColor;
@@ -433,8 +445,9 @@ namespace RyzenTuner.Common.Theme
             // 这里只处理非导航的常规按钮（保存、取消、开始等）
             var name = btn.Name;
 
+            // TODO: 基于字符串前缀的导航按钮检测较为脆弱，建议改为标记接口或 Tag 属性
             // 导航按钮 — 跳过，由 MainForm.SwitchPage() 和 RefreshThemeColors() 管理
-            if (name.StartsWith("nav", StringComparison.Ordinal))
+            if (name != null && name.StartsWith("nav", StringComparison.Ordinal))
                 return;
 
             btn.FlatStyle = FlatStyle.Flat;

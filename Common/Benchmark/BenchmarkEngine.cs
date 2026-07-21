@@ -54,7 +54,7 @@ namespace RyzenTuner.Common.Benchmark
             var hwMonitor = AppContainer.HardwareMonitor();
 
             // 保存原始设置在 try 之前，确保 finally 中可访问
-            var totalPoints = config.GetTestPointCount();
+            var totalPoints = config.TestPointCount;
             var keepAwakeWas = AppSettings.GetBool("KeepAwake");
             var currentModeWas = AppSettings.Get("CurrentMode", "BalancedMode");
             var originalTctlTemp = AppSettings.Get("TctlTemp", 100);
@@ -63,7 +63,7 @@ namespace RyzenTuner.Common.Benchmark
             // 测试期间阻止系统休眠
             if (!keepAwakeWas)
             {
-                Awake.KeepingSysAwake(true);
+                Awake.KeepSystemAwake(true);
             }
 
             try

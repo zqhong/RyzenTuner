@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace RyzenTuner.Common
@@ -30,7 +31,7 @@ namespace RyzenTuner.Common
         /**
          * 保持操作系统清醒
          */
-        public static bool KeepingSysAwake(bool keepDisplayOn)
+        public static bool KeepSystemAwake(bool keepDisplayOn)
         {
             return keepDisplayOn
                 ? SetAwakeState(ExecutionState.EsSystemRequired | ExecutionState.EsContinuous |
@@ -52,17 +53,25 @@ namespace RyzenTuner.Common
         /// 在没有ES_CONTINUOUS的情况下调用SetThreadExecutionState，只是简单地重置了空闲计时器；为了保持显示或系统处于工作状态，线程必须定期地调用SetThreadExecutionState。
         /// 备注：这个函数不会阻止屏幕保护程序的执行
         /// </summary>
-        /// <param name="state">Single or multiple EXECUTION_STATE entries.</param>
+        /// <param name="state">Single or multiple ExecutionState entries.</param>
         /// <returns>true if successful, false if failed</returns>
         private static bool SetAwakeState(ExecutionState state)
         {
             try
             {
                 var stateResult = SetThreadExecutionState(state);
-                return stateResult != 0;
+                if (stateResult == 0)
+                {
+                    Debug.WriteLine(
+                        $"[Awake.SetAwakeState] SetThreadExecutionState returned 0 (state={state}). LastError={Marshal.GetLastWin32Error()}");
+                    return false;
+                }
+
+                return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[Awake.SetAwakeState] Exception: {ex}");
                 return false;
             }
         }

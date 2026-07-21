@@ -47,14 +47,18 @@ namespace RyzenTuner.Common.Benchmark
         public int RestSeconds { get; set; } = 5;
 
         /// <summary>
-        /// 计算总共多少个测试点
+        /// 测试点总数
         /// </summary>
-        public int GetTestPointCount()
+        public int TestPointCount
         {
-            if (StepTdp <= 0 || EndTdp < StartTdp)
-                return 0;
+            get
+            {
+                if (StepTdp <= 0 || EndTdp < StartTdp)
+                    return 0;
 
-            return (int)Math.Floor((EndTdp - StartTdp) / StepTdp) + 1;
+                // 加 epsilon 避免浮点精度导致的 off-by-one 错误
+                return (int)Math.Floor((EndTdp - StartTdp) / StepTdp + 1e-6) + 1;
+            }
         }
 
         /// <summary>
@@ -62,6 +66,10 @@ namespace RyzenTuner.Common.Benchmark
         /// </summary>
         public float GetTdpAtIndex(int index)
         {
+            if (index < 0 || index >= TestPointCount)
+                throw new ArgumentOutOfRangeException(nameof(index), index,
+                    $"Index must be between 0 and {TestPointCount - 1}");
+
             return StartTdp + index * StepTdp;
         }
     }
@@ -95,11 +103,17 @@ namespace RyzenTuner.Common.Benchmark
         /// <summary>CPU 频率平均值（MHz）</summary>
         public float CpuFreqAvg { get; set; }
 
-        /// <summary>能效比 = Score / PowerAvg（使用原始 Score，不受缩放影响）</summary>
-        public float Efficiency => PowerAvg > 0.01f ? Score / PowerAvg : 0;
+        /// <summary>能效比 = Score / PowerAvg（使用 double 精度，避免大 Score 值时的精度损失）</summary>
+        public double Efficiency => PowerAvg > 0.01f ? (double)Score / PowerAvg : 0;
+
+        private double _capability;
 
         /// <summary>能力发挥 = 当前分数 / 所有测试点最高分（0~1），在全部测试完成后计算</summary>
-        public double Capability { get; set; }
+        public double Capability
+        {
+            get => _capability;
+            set => _capability = Math.Max(0.0, Math.Min(1.0, value));
+        }
 
     }
 }

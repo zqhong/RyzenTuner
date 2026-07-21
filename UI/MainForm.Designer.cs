@@ -202,7 +202,7 @@ namespace RyzenTuner.UI
     string[] tryFontArr = { "微软雅黑", "思源黑体", "Arial" };
     foreach (string loopFont in tryFontArr)
     {
-        if (CommonUtils.IsFontExists(loopFont))
+        if (CommonUtils.FontExists(loopFont))
         {
             this.Font = new Font(loopFont, 10F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(134)));
             break;
