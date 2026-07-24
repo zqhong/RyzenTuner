@@ -14,7 +14,7 @@ namespace RyzenTuner.Common.Container
     /// <summary>
     /// Inversion of control container handles dependency injection for registered types
     /// </summary>
-    public class Container : Container.IScope
+    public sealed class Container : Container.IScope
     {
         #region Public interfaces
 
@@ -39,7 +39,7 @@ namespace RyzenTuner.Common.Container
         #endregion
 
         // Map of registered types
-        private readonly Dictionary<Type, Func<ILifetime, object>> _registeredTypes = new();
+        private readonly ConcurrentDictionary<Type, Func<ILifetime, object>> _registeredTypes = new();
 
         // Lifetime management
         private readonly ContainerLifetime _lifetime;
@@ -76,12 +76,22 @@ namespace RyzenTuner.Common.Container
         {
             if (@interface == null) throw new ArgumentNullException(nameof(@interface));
             if (implementation == null) throw new ArgumentNullException(nameof(implementation));
+            if (!@interface.IsAssignableFrom(implementation))
+                throw new ArgumentException($"Type '{implementation.FullName}' does not implement interface '{@interface.FullName}'.", nameof(implementation));
             return RegisterType(@interface, FactoryFromType(implementation));
         }
 
         private IRegisteredType RegisterType(Type itemType, Func<ILifetime, object> factory)
         {
-            _registeredTypes[itemType] = factory;
+            if (_lifetime.IsDisposed)
+                throw new ObjectDisposedException(nameof(Container));
+
+            if (!_registeredTypes.TryAdd(itemType, factory))
+            {
+                throw new InvalidOperationException(
+                    $"Type \"{itemType.FullName}\" is already registered in the container.");
+            }
+
             return new RegisteredType(itemType, f => _registeredTypes[itemType] = f, factory);
         }
 
@@ -90,13 +100,17 @@ namespace RyzenTuner.Common.Container
         /// </summary>
         /// <param name="type">Type as registered with the container</param>
         /// <returns>Instance of the registered type, if registered; otherwise <see langword="null"/></returns>
-        public object GetService(Type type)
+        public object? GetService(Type type)
         {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
+            if (_lifetime.IsDisposed)
+                throw new ObjectDisposedException(nameof(Container));
+
             if (!_registeredTypes.TryGetValue(type, out var registeredType))
             {
-                // Returning null follows IServiceProvider convention for unregistered types;
-                // null! suppresses nullable warning to keep callers that assert non-null happy.
-                return null!;
+                // Returning null follows IServiceProvider convention for unregistered types.
+                return null;
             }
 
             return registeredType(_lifetime);
@@ -106,12 +120,20 @@ namespace RyzenTuner.Common.Container
         /// Creates a new scope
         /// </summary>
         /// <returns>Scope object</returns>
-        public IScope CreateScope() => new ScopeLifetime(_lifetime);
+        public IScope CreateScope()
+        {
+            if (_lifetime.IsDisposed)
+                throw new ObjectDisposedException(nameof(Container));
+            return new ScopeLifetime(_lifetime);
+        }
 
         /// <summary>
         /// Disposes any <see cref="IDisposable"/> objects owned by this container.
         /// </summary>
-        public void Dispose() => _lifetime.Dispose();
+        public void Dispose()
+        {
+            _lifetime.Dispose();
+        }
 
         #region Lifetime management
 
@@ -126,37 +148,89 @@ namespace RyzenTuner.Common.Container
         {
             // Use Lazy<object> to ensure factory is called at most once per key under contention
             private readonly ConcurrentDictionary<Type, Lazy<object>> _instanceCache = new();
+            private readonly object _disposeLock = new();
+            protected volatile bool _disposed;
 
             // Get from cache or create and cache object
             protected object GetCached(Type type, Func<ILifetime, object> factory, ILifetime lifetime)
-                => _instanceCache.GetOrAdd(type, _ => new Lazy<object>(() => factory(lifetime))).Value;
-
-            public void Dispose()
             {
-                // Snapshot to avoid collection-modified exception from concurrent resolution
-                var exceptions = new List<Exception>();
+                if (_disposed)
+                    throw new ObjectDisposedException(nameof(ObjectCache));
 
-                foreach (var kvp in _instanceCache.ToArray())
+                Lazy<object> lazy;
+                lock (_disposeLock)
                 {
-                    if (kvp.Value.IsValueCreated && kvp.Value.Value is IDisposable disposable)
+                    if (_disposed)
+                        throw new ObjectDisposedException(nameof(ObjectCache));
+
+                    lazy = _instanceCache.GetOrAdd(type, _ => new Lazy<object>(() =>
                     {
-                        try
-                        {
+                        if (_disposed)
+                            throw new ObjectDisposedException(nameof(ObjectCache));
+                        return factory(lifetime);
+                    }));
+                }
+
+                var instance = lazy.Value;
+
+                lock (_disposeLock)
+                {
+                    // Container disposed while factory was executing. Dispose()
+                    // may have already iterated the cache before this Lazy's
+                    // IsValueCreated became true, leaving this instance undisposed.
+                    // Dispose it now to prevent a resource leak.
+                    if (_disposed)
+                    {
+                        if (instance is IDisposable disposable)
                             disposable.Dispose();
-                        }
-                        catch (Exception ex)
-                        {
-                            exceptions.Add(ex);
-                        }
+                        throw new ObjectDisposedException(nameof(ObjectCache));
                     }
                 }
 
-                _instanceCache.Clear();
+                return instance;
+            }
 
-                if (exceptions.Count > 0)
+            public void Dispose()
+            {
+                lock (_disposeLock)
                 {
-                    throw new AggregateException(
-                        "One or more disposable services threw exceptions during disposal.", exceptions);
+                    if (_disposed)
+                        return;
+
+                    _disposed = true;
+
+                    foreach (var kvp in _instanceCache.ToArray())
+                    {
+                        if (!kvp.Value.IsValueCreated)
+                            continue;
+
+                        object instance;
+                        try
+                        {
+                            instance = kvp.Value.Value;
+                        }
+                        catch
+                        {
+                            // Lazy<object> may be in a faulted state (e.g. factory threw due
+                            // to disposal). Swallow so remaining entries are still disposed.
+                            continue;
+                        }
+
+                        if (instance is IDisposable disposable)
+                        {
+                            try
+                            {
+                                disposable.Dispose();
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine(
+                                    $"ObjectCache.Dispose: {ex}");
+                            }
+                        }
+                    }
+
+                    _instanceCache.Clear();
                 }
             }
         }
@@ -165,17 +239,27 @@ namespace RyzenTuner.Common.Container
         private class ContainerLifetime : ObjectCache, ILifetime
         {
             // Retrieves the factory function from the given type, provided by owning container
-            public Func<Type, Func<ILifetime, object>> GetFactory { get; }
+            public Func<Type, Func<ILifetime, object>?> GetFactory { get; }
 
-            public ContainerLifetime(Func<Type, Func<ILifetime, object>> getFactory) => GetFactory = getFactory;
-
-            public object GetService(Type type)
+            public ContainerLifetime(Func<Type, Func<ILifetime, object>?> getFactory)
             {
+                if (getFactory == null) throw new ArgumentNullException(nameof(getFactory));
+                GetFactory = getFactory;
+            }
+
+            public bool IsDisposed => _disposed;
+
+            public object? GetService(Type type)
+            {
+                if (type == null) throw new ArgumentNullException(nameof(type));
+
+                if (_disposed)
+                    throw new ObjectDisposedException(nameof(ContainerLifetime));
+
                 var factory = GetFactory(type);
                 if (factory == null)
                 {
-                    throw new InvalidOperationException(
-                        $"Type \"{type.FullName}\" is not registered in the container.");
+                    return null;
                 }
 
                 return factory(this);
@@ -193,17 +277,34 @@ namespace RyzenTuner.Common.Container
             // Singletons come from parent container's lifetime
             private readonly ContainerLifetime _parentLifetime;
 
-            public ScopeLifetime(ContainerLifetime parentContainer) => _parentLifetime = parentContainer;
-
-            public object GetService(Type type)
+            public ScopeLifetime(ContainerLifetime parentLifetime)
             {
+                _parentLifetime = parentLifetime ?? throw new ArgumentNullException(nameof(parentLifetime));
+            }
+
+            public object? GetService(Type type)
+            {
+                if (type == null) throw new ArgumentNullException(nameof(type));
+
+                if (_disposed)
+                    throw new ObjectDisposedException(nameof(ScopeLifetime));
+
+                // If the parent container has been disposed, reject all resolution
+                // attempts rather than silently succeeding for transient objects while
+                // singletons throw (the singleton path checks _parentLifetime._disposed
+                // via GetCached). Keeping behavior consistent avoids subtle bugs.
+                if (_parentLifetime.IsDisposed)
+                    throw new ObjectDisposedException(nameof(Container));
+
                 var factory = _parentLifetime.GetFactory(type);
                 if (factory == null)
                 {
-                    throw new InvalidOperationException(
-                        $"Type \"{type.FullName}\" is not registered in the container.");
+                    return null;
                 }
 
+                // Do not cache the result in the scope's own _instanceCache:
+                // singleton instances belong to the parent container's cache and
+                // would be prematurely disposed if the scope cached and later disposed them.
                 return factory(this);
             }
 
@@ -222,16 +323,27 @@ namespace RyzenTuner.Common.Container
         {
             // Get all constructors (public and non-public)
             var constructors = itemType.GetConstructors(
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                BindingFlags.Instance | BindingFlags.Public);
 
             if (constructors.Length == 0)
             {
                 throw new InvalidOperationException(
-                    $"Type {itemType.FullName} has no constructors.");
+                    $"Type {itemType.FullName} has no public constructors.");
             }
 
             // Pick the constructor with the most parameters (greediest)
-            var constructor = constructors.OrderByDescending(c => c.GetParameters().Length).First();
+            var maxParams = constructors.Max(c => c.GetParameters().Length);
+            var candidates = constructors.Where(c => c.GetParameters().Length == maxParams).ToArray();
+
+            if (candidates.Length > 1)
+            {
+                throw new InvalidOperationException(
+                    $"Type {itemType.FullName} has multiple constructors with " +
+                    $"{maxParams} parameters; " +
+                    "the constructor cannot be determined automatically.");
+            }
+
+            var constructor = candidates[0];
 
             // Compile constructor call as a lambda expression
             var arg = Expression.Parameter(typeof(ILifetime));
@@ -239,10 +351,16 @@ namespace RyzenTuner.Common.Container
                 Expression.New(constructor, constructor.GetParameters().Select(
                     param =>
                     {
-                        var resolve = new Func<ILifetime, object>(
-                            lifetime => lifetime.GetService(param.ParameterType));
+                        var resolve = new Func<ILifetime, object>(lifetime =>
+                        {
+                            var service = lifetime.GetService(param.ParameterType);
+                            if (service == null)
+                                throw new InvalidOperationException(
+                                    $"Cannot resolve parameter '{param.Name}' of type '{param.ParameterType}' for type '{itemType.FullName}'. Ensure the type is registered in the container.");
+                            return service;
+                        });
                         return Expression.Convert(
-                            Expression.Call(Expression.Constant(resolve.Target), resolve.Method, arg),
+                            Expression.Invoke(Expression.Constant(resolve), arg),
                             param.ParameterType);
                     })),
                 arg).Compile();
@@ -283,11 +401,16 @@ namespace RyzenTuner.Common.Container
         /// <param name="container">This container instance</param>
         /// <param name="factory">Factory method</param>
         /// <returns>IRegisteredType object</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="container"/> or <paramref name="factory"/> is null.</exception>
         /// <remarks>The null-forgiving operator (!) on <c>factory()!</c> suppresses nullable
         /// warnings -- the caller's factory is expected to return a non-null instance for valid
         /// registrations.</remarks>
         public static Container.IRegisteredType Register<T>(this Container container, Func<T> factory)
-            => container.Register(typeof(T), () => factory()!);
+        {
+            if (container == null) throw new ArgumentNullException(nameof(container));
+            if (factory == null) throw new ArgumentNullException(nameof(factory));
+            return container.Register(typeof(T), () => factory()!);
+        }
 
         /// <summary>
         /// Returns an implementation of the specified interface
@@ -295,8 +418,12 @@ namespace RyzenTuner.Common.Container
         /// <typeparam name="T">Interface type</typeparam>
         /// <param name="scope">This scope instance</param>
         /// <returns>Object implementing the interface</returns>
-        public static T Resolve<T>(this Container.IScope scope)
+        /// <exception cref="ArgumentNullException"><paramref name="scope"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Type <typeparamref name="T"/> is not registered in the container.</exception>
+        public static T Resolve<T>(this Container.IScope scope) where T : class
         {
+            if (scope == null) throw new ArgumentNullException(nameof(scope));
+
             var service = scope.GetService(typeof(T));
             if (service == null)
             {

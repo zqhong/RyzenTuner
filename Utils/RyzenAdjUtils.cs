@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using RyzenTuner.Common.Settings;
 
 namespace RyzenTuner.Utils
@@ -9,6 +10,11 @@ namespace RyzenTuner.Utils
         /// PPT 功率限制最小值（单位：W）。
         /// </summary>
         private const float MinPowerLimit = 1f;
+
+        /// <summary>
+        /// PPT 功率限制最大值（单位：W），与 UI 范围一致。
+        /// </summary>
+        private const float MaxPowerLimit = 100f;
 
         /// <summary>
         /// Tctl/Tdie 温度上限默认值（单位：C）。
@@ -35,37 +41,70 @@ namespace RyzenTuner.Utils
         /// </summary>
         private const int MaxApuSkinTemp = 100;
 
+        /// <summary>
+        /// 将整数值限定在 [min, max] 范围内。
+        /// </summary>
+        private static int Clamp(int value, int min, int max)
+        {
+            return Math.Max(min, Math.Min(max, value));
+        }
+
+        /// <summary>
+        /// 将浮点数值限定在 [min, max] 范围内。
+        /// NaN/Infinity 会触发回退到 min。
+        /// </summary>
+        private static float Clamp(float value, float min, float max)
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value))
+            {
+                return min;
+            }
+
+            return Math.Max(min, Math.Min(max, value));
+        }
+
         public static float GetPowerLimit()
         {
             var mode = AppSettings.Get("CurrentMode", "BalancedMode");
 
+            // 确保 mode 不为空，避免空模式名导致极端回退
+            if (string.IsNullOrWhiteSpace(mode))
+            {
+                Trace.WriteLine(
+                    $"[RyzenAdjUtils] GetPowerLimit: CurrentMode is empty/whitespace, using BalancedMode");
+                mode = "BalancedMode";
+            }
+
             // 先尝试获取已保存的功率限制，若未找到则回退到最小安全值
             if (!RyzenTunerUtils.TryGetPowerLimitByMode(mode, out var powerLimit))
             {
+                Trace.WriteLine(
+                    $"[RyzenAdjUtils] GetPowerLimit: TryGetPowerLimitByMode('{mode}') failed, falling back to {MinPowerLimit}W");
                 powerLimit = MinPowerLimit;
             }
 
-            // 数值修正：负值、0、NaN、Infinity 都视为无效，回退到最小安全值 1W
-            if (powerLimit <= 0 || float.IsNaN(powerLimit) || float.IsInfinity(powerLimit))
-            {
-                powerLimit = MinPowerLimit;
-            }
-
-            return powerLimit;
+            // 确保在 [MinPowerLimit, MaxPowerLimit] 范围内
+            return Clamp(powerLimit, MinPowerLimit, MaxPowerLimit);
         }
 
         public static uint GetTctlTemp()
         {
-            var value = AppSettings.Get("TctlTemp", DefaultTctlTemp);
-            value = Math.Max(MinTemperature, value);
-            return (uint)Math.Min(value, MaxTctlTemp);
+            var result = Clamp(
+                AppSettings.Get("TctlTemp", DefaultTctlTemp),
+                MinTemperature,
+                MaxTctlTemp);
+            Debug.Assert(result >= 0, "TctlTemp must be non-negative");
+            return (uint)result;
         }
 
         public static uint GetApuSkinTemp()
         {
-            var value = AppSettings.Get("ApuSkinTemp", DefaultApuSkinTemp);
-            value = Math.Max(MinTemperature, value);
-            return (uint)Math.Min(value, MaxApuSkinTemp);
+            var result = Clamp(
+                AppSettings.Get("ApuSkinTemp", DefaultApuSkinTemp),
+                MinTemperature,
+                MaxApuSkinTemp);
+            Debug.Assert(result >= 0, "ApuSkinTemp must be non-negative");
+            return (uint)result;
         }
     }
 }

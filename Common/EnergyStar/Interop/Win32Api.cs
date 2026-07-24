@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -10,53 +10,104 @@ namespace RyzenTuner.Common.EnergyStar.Interop
     /// </summary>
     internal static class Win32Api
     {
+        /// <summary>
+        /// 获取指定进程的进程 ID。
+        /// </summary>
+        /// <param name="processHandle">进程句柄。</param>
+        /// <returns>进程 ID。</returns>
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern int GetProcessId([In] IntPtr handle);
+        public static extern uint GetProcessId([In] IntPtr processHandle);
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool QueryFullProcessImageName([In] IntPtr hProcess, [In] uint dwFlags,
-            [Out] StringBuilder lpExeName, ref int lpdwSize);
+        /// <summary>
+        /// 获取指定进程的完整可执行文件路径。
+        /// </summary>
+        /// <param name="processHandle">进程句柄，需具有 PROCESS_QUERY_LIMITED_INFORMATION 权限。</param>
+        /// <param name="flags">0 表示使用本机格式（Win32 路径），PROCESS_NAME_WIN32 (1) 表示 Win32 路径格式。</param>
+        /// <param name="exeName">接收路径字符串的缓冲区。</param>
+        /// <param name="size">输入时为缓冲区大小（字符数），输出时为路径长度（字符数，含 null 终止符）。</param>
+        /// <returns>成功返回 true，失败返回 false。</returns>
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true,
+            EntryPoint = "QueryFullProcessImageNameW")]
+        public static extern bool QueryFullProcessImageName([In] IntPtr processHandle, uint flags,
+            [Out] StringBuilder exeName, ref uint size);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        /// <summary>
+        /// 获取当前前台窗口的句柄。
+        /// </summary>
+        /// <returns>前台窗口的 HWND，若无前台窗口则返回 IntPtr.Zero。</returns>
+        [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
 
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+        /// <summary>
+        /// 获取指定窗口的线程 ID 和创建该窗口的进程 ID。
+        /// </summary>
+        /// <param name="windowHandle">窗口句柄。</param>
+        /// <param name="processId">输出参数，接收进程 ID。</param>
+        /// <returns>创建窗口的线程 ID。</returns>
+        [DllImport("user32.dll")]
+        public static extern uint GetWindowThreadProcessId([In] IntPtr windowHandle, out uint processId);
 
+        /// <summary>
+        /// 打开一个已存在的进程对象。
+        /// </summary>
+        /// <param name="processAccess">进程访问权限标志。</param>
+        /// <param name="inheritHandle">返回的句柄是否可被子进程继承。</param>
+        /// <param name="processId">要打开的进程 ID。</param>
+        /// <returns>进程句柄，失败返回 IntPtr.Zero。</returns>
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle,
+        public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool inheritHandle,
             uint processId);
 
+        /// <summary>
+        /// 设置指定进程的信息（如电源节流策略）。
+        /// </summary>
+        /// <param name="processHandle">进程句柄，需具有 PROCESS_SET_INFORMATION 权限。</param>
+        /// <param name="processInformationClass">要设置的信息类。</param>
+        /// <param name="processInformation">指向信息数据的指针。</param>
+        /// <param name="processInformationSize">信息数据的大小（字节）。</param>
+        /// <returns>成功返回 true，失败返回 false。</returns>
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool SetProcessInformation([In] IntPtr hProcess,
-            [In] ProcessInformationClass processInformationClass, IntPtr processInformation,
+        public static extern bool SetProcessInformation([In] IntPtr processHandle,
+            ProcessInformationClass processInformationClass, [In] IntPtr processInformation,
             uint processInformationSize);
 
+        /// <summary>
+        /// 设置进程的优先级类。
+        /// </summary>
+        /// <param name="processHandle">进程句柄。</param>
+        /// <param name="priorityClass">优先级类。</param>
+        /// <returns>成功返回 true，失败返回 false。</returns>
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool SetPriorityClass([In] IntPtr handle, PriorityClass priorityClass);
+        public static extern bool SetPriorityClass([In] IntPtr processHandle, PriorityClass priorityClass);
 
+        /// <summary>
+        /// 关闭一个打开的对象句柄。
+        /// </summary>
+        /// <param name="handle">要关闭的句柄。</param>
+        /// <returns>成功返回 true，失败返回 false。</returns>
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool CloseHandle(IntPtr hObject);
+        public static extern bool CloseHandle([In] IntPtr handle);
 
         /// <summary>
         /// 窗口枚举回调委托，由 EnumChildWindows 调用。
         /// </summary>
-        /// <param name="hwnd">子窗口句柄。</param>
-        /// <param name="lparam">应用程序定义的值。</param>
+        /// <param name="handle">子窗口句柄。</param>
+        /// <param name="param">应用程序定义的值。</param>
         /// <returns>true 继续枚举，false 停止枚举。</returns>
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate bool WindowEnumProc(IntPtr hwnd, IntPtr lparam);
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public delegate bool WindowEnumProc([In] IntPtr handle, [In] IntPtr param);
 
+        /// <summary>
+        /// 枚举指定父窗口的所有子窗口。
+        /// </summary>
+        /// <param name="windowHandle">父窗口句柄。</param>
+        /// <param name="callback">回调函数，对每个子窗口调用。</param>
+        /// <param name="param">应用程序定义的值。</param>
+        /// <returns>成功返回 true，失败返回 false。</returns>
         [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool EnumChildWindows(IntPtr hwnd, WindowEnumProc callback, IntPtr lParam);
-
-        // We don’t need to bloat this app with WinForm/WPF to show a simple message box
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern int MessageBox(IntPtr hWnd, string lpText, string lpCaption, uint type);
-
-        // two message box related constants
-        public const int MbOk = 0x00000000;
-        public const int MbIconError = 0x00000010;
+        public static extern bool EnumChildWindows([In] IntPtr windowHandle, WindowEnumProc callback,
+            [In] IntPtr param);
 
         /// <summary>
         /// 进程访问权限标志，用于 OpenProcess。
@@ -76,9 +127,8 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         /// </summary>
         public enum ProcessInformationClass
         {
-            // The process information is represented by a PROCESS_POWER_THROTTLING_STATE structure.
-            // Allows applications to configure how the system should throttle the target process’s activity when managing power.
-            ProcessPowerThrottling,
+            /// <summary>The process information is represented by a PROCESS_POWER_THROTTLING_STATE structure. Allows applications to configure how the system should throttle the target process's activity when managing power.</summary>
+            ProcessPowerThrottling = 4,
         }
 
         /// <summary>
@@ -86,7 +136,7 @@ namespace RyzenTuner.Common.EnergyStar.Interop
         /// 参考：https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setprocessinformation
         /// </summary>
         [Flags]
-        public enum ProcessorPowerThrottlingFlags : uint
+        public enum ProcessPowerThrottlingFlags : uint
         {
             None = 0x0,
 
@@ -124,8 +174,8 @@ namespace RyzenTuner.Common.EnergyStar.Interop
             public const uint ProcessPowerThrottlingCurrentVersion = 1;
 
             public uint Version;
-            public ProcessorPowerThrottlingFlags ControlMask;
-            public ProcessorPowerThrottlingFlags StateMask;
+            public ProcessPowerThrottlingFlags ControlMask;
+            public ProcessPowerThrottlingFlags StateMask;
         }
     }
 }

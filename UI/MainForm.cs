@@ -18,6 +18,7 @@ using RyzenTuner.Common.Logger;
 using RyzenTuner.Common.Container;
 using RyzenTuner.Common.Settings;
 using RyzenTuner.Common.Theme;
+using RyzenTuner.Common.Processor;
 using RyzenTuner.Properties;
 using RyzenTuner.Utils;
 
@@ -28,18 +29,24 @@ namespace RyzenTuner.UI
         private long _tickCount;
         private DateTime _lastLogCleanupTime = DateTime.MinValue;
         private string _lastPowerLimitApplyError = string.Empty;
+        // 注意：不在字段初始化器中读取 AppSettings，否则 WinForms 设计器渲染时会抛出
+        // InvalidOperationException（AppSettings.Initialize() 仅在 Main() 中调用）。
+        // 延迟到 MainForm_Load 中通过 SyncCpuBoostSetting() 初始化。
         private bool? _lastCpuBoostEnabled;
         private DateTime _lastPowerLimitErrorShownAt = DateTime.MinValue;
         private DateTime _lastPowerLimitErrorTime = DateTime.MinValue;
         private DateTime _lastSuccessfulApplyTime = DateTime.MinValue;
-        private string _preErrorMode = MODE_BALANCED;
+        private string _previousErrorMode = string.Empty;
         private bool _isErrorRecoveryPending;
         private bool _isApplyingPowerLimit;
+        private static readonly Lazy<Icon> _cachedIcon = new Lazy<Icon>(CreateIcon);
+
         private bool _isChangingMode;
         private bool _isInitializingOptions;
         private DateTime _lastPowerLimitRunTime = DateTime.MinValue;
         private bool _isBenchmarkRunning;
         private bool _aboutInfoLoaded;
+        private readonly Button[] _navButtons;
 
         // --- 跑分引擎字段 ---
         private BenchmarkEngine? _engine;
@@ -82,7 +89,7 @@ namespace RyzenTuner.UI
             }
         }
 
-        private static readonly HotkeyModeDef[] HotkeyModes = new[]
+        private static readonly HotkeyModeDef[] _hotkeyModes = new[]
         {
             new HotkeyModeDef("PowerSave", "HotkeyPowerSaveMode", HOTKEY_ID_POWERSAVE),
             new HotkeyModeDef("Balanced", "HotkeyBalancedMode", HOTKEY_ID_BALANCED),
@@ -96,6 +103,8 @@ namespace RyzenTuner.UI
         private const string MODE_POWER_SAVE = "PowerSaveMode";
         private const string MODE_BALANCED = "BalancedMode";
         private const string MODE_PERFORMANCE = "PerformanceMode";
+        private const string CURRENT_MODE_KEY = "CurrentMode";
+        private const string THEME_DARK = "Dark";
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
@@ -155,6 +164,7 @@ namespace RyzenTuner.UI
         public MainForm()
         {
             InitializeComponent();
+            _navButtons = new[] { navHome!, navSettings!, navBenchmark!, navLogs!, navAbout! };
         }
 
         /// <summary>
@@ -162,20 +172,24 @@ namespace RyzenTuner.UI
         /// </summary>
         private static Icon GetIcon()
         {
-            if (_cachedIcon != null)
-                return _cachedIcon;
+            return _cachedIcon.Value;
+        }
+
+        private static Icon CreateIcon()
+        {
             try
             {
-                _cachedIcon = Icon.ExtractAssociatedIcon(
-                    Assembly.GetExecutingAssembly().Location);
+                return Icon.ExtractAssociatedIcon(
+                           Assembly.GetExecutingAssembly().Location)
+                       ?? SystemIcons.Application ?? SystemIcons.WinLogo;
             }
-            catch
+            catch (Exception iconEx)
             {
                 // 忽略图标提取失败
+                System.Diagnostics.Trace.WriteLine(
+                    $"[MainForm.GetIcon] Icon extraction failed: {iconEx.Message}");
+                return SystemIcons.Application ?? SystemIcons.WinLogo;
             }
-
-            _cachedIcon ??= SystemIcons.Application;
-            return _cachedIcon;
         }
 
         // ================================================================
@@ -195,17 +209,38 @@ namespace RyzenTuner.UI
 
             imageListNavIcons.Images.Clear();
 
-            imageListNavIcons.Images.Add("navHome", CreateNavIcon("navHome"));
-            imageListNavIcons.Images.Add("navSettings", CreateNavIcon("navSettings"));
-            imageListNavIcons.Images.Add("navBenchmark", CreateNavIcon("navBenchmark"));
-            imageListNavIcons.Images.Add("navLogs", CreateNavIcon("navLogs"));
-            imageListNavIcons.Images.Add("navAbout", CreateNavIcon("navAbout"));
+            try
+            {
+                void SafeAddNavIcon(string key)
+                {
+                    var bmp = CreateNavIcon(key);
+                    try { imageListNavIcons.Images.Add(key, bmp); }
+                    catch { bmp.Dispose(); throw; }
+                }
 
-            navHome.ImageKey = "navHome";
-            navSettings.ImageKey = "navSettings";
-            navBenchmark.ImageKey = "navBenchmark";
-            navLogs.ImageKey = "navLogs";
-            navAbout.ImageKey = "navAbout";
+                SafeAddNavIcon("navHome");
+                SafeAddNavIcon("navSettings");
+                SafeAddNavIcon("navBenchmark");
+                SafeAddNavIcon("navLogs");
+                SafeAddNavIcon("navAbout");
+
+                navHome.ImageKey = "navHome";
+                navSettings.ImageKey = "navSettings";
+                navBenchmark.ImageKey = "navBenchmark";
+                navLogs.ImageKey = "navLogs";
+                navAbout.ImageKey = "navAbout";
+            }
+            catch
+            {
+                // CreateNavIcon 可能抛出异常，此时可能已有部分新图片被添加到
+                // imageListNavIcons。清理这些部分添加的图片及其原生句柄，避免泄漏。
+                foreach (Image img in imageListNavIcons.Images)
+                {
+                    img.Dispose();
+                }
+                imageListNavIcons.Images.Clear();
+                throw;
+            }
         }
 
         /// <summary>
@@ -214,59 +249,67 @@ namespace RyzenTuner.UI
         private static Bitmap CreateNavIcon(string iconName)
         {
             var bmp = new Bitmap(24, 24);
-            using var g = Graphics.FromImage(bmp);
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-
-            var (primary, secondary) = ThemeManager.GetNavIconColors();
-            using var brush = new SolidBrush(primary);
-            using var bgBrush = new SolidBrush(secondary);
-
-            switch (iconName)
+            try
             {
-                case "navHome":
-                    // 房屋：屋顶 + 墙体 + 门
-                    g.FillPolygon(brush, new[] { new Point(12, 2), new Point(2, 9), new Point(22, 9) });
-                    g.FillRectangle(brush, 4, 9, 16, 13);
-                    g.FillRectangle(bgBrush, 10, 14, 4, 8);
-                    break;
+                using var g = Graphics.FromImage(bmp);
+                g.SmoothingMode = SmoothingMode.AntiAlias;
 
-                case "navSettings":
-                    // 齿轮：外圈 + 内孔 + 4 个齿
-                    g.FillEllipse(brush, 5, 5, 14, 14);
-                    g.FillEllipse(bgBrush, 8, 8, 8, 8);
-                    g.FillRectangle(brush, 10, 1, 4, 5);
-                    g.FillRectangle(brush, 10, 18, 4, 5);
-                    g.FillRectangle(brush, 1, 10, 5, 4);
-                    g.FillRectangle(brush, 18, 10, 5, 4);
-                    break;
+                var (primary, secondary) = ThemeManager.GetNavIconColors();
+                using var brush = new SolidBrush(primary);
+                using var bgBrush = new SolidBrush(secondary);
 
-                case "navBenchmark":
-                    // 柱状图：3 根递增柱
-                    g.FillRectangle(brush, 4, 11, 4, 9);
-                    g.FillRectangle(brush, 10, 6, 4, 14);
-                    g.FillRectangle(brush, 16, 2, 4, 18);
-                    break;
+                switch (iconName)
+                {
+                    case "navHome":
+                        // 房屋：屋顶 + 墙体 + 门
+                        g.FillPolygon(brush, new[] { new Point(12, 2), new Point(2, 9), new Point(22, 9) });
+                        g.FillRectangle(brush, 4, 9, 16, 13);
+                        g.FillRectangle(bgBrush, 10, 14, 4, 8);
+                        break;
 
-                case "navLogs":
-                    // 文档列表：矩形 + 横线
-                    g.FillRectangle(brush, 3, 2, 18, 20);
-                    g.FillRectangle(bgBrush, 6, 7, 12, 2);
-                    g.FillRectangle(bgBrush, 6, 12, 12, 2);
-                    g.FillRectangle(bgBrush, 6, 17, 8, 2);
-                    break;
+                    case "navSettings":
+                        // 齿轮：外圈 + 内孔 + 4 个齿
+                        g.FillEllipse(brush, 5, 5, 14, 14);
+                        g.FillEllipse(bgBrush, 8, 8, 8, 8);
+                        g.FillRectangle(brush, 10, 1, 4, 5);
+                        g.FillRectangle(brush, 10, 18, 4, 5);
+                        g.FillRectangle(brush, 1, 10, 5, 4);
+                        g.FillRectangle(brush, 18, 10, 5, 4);
+                        break;
 
-                case "navAbout":
-                    // 信息圆圈：圆圈 + "i" 点 + 竖线
-                    g.FillEllipse(brush, 2, 2, 20, 20);
-                    g.FillEllipse(bgBrush, 10, 6, 4, 4);
-                    g.FillRectangle(bgBrush, 11, 12, 2, 6);
-                    break;
+                    case "navBenchmark":
+                        // 柱状图：3 根递增柱
+                        g.FillRectangle(brush, 4, 11, 4, 9);
+                        g.FillRectangle(brush, 10, 6, 4, 14);
+                        g.FillRectangle(brush, 16, 2, 4, 18);
+                        break;
+
+                    case "navLogs":
+                        // 文档列表：矩形 + 横线
+                        g.FillRectangle(brush, 3, 2, 18, 20);
+                        g.FillRectangle(bgBrush, 6, 7, 12, 2);
+                        g.FillRectangle(bgBrush, 6, 12, 12, 2);
+                        g.FillRectangle(bgBrush, 6, 17, 8, 2);
+                        break;
+
+                    case "navAbout":
+                        // 信息圆圈：圆圈 + "i" 点 + 竖线
+                        g.FillEllipse(brush, 2, 2, 20, 20);
+                        g.FillEllipse(bgBrush, 10, 6, 4, 4);
+                        g.FillRectangle(bgBrush, 11, 12, 2, 6);
+                        break;
+                }
+
+                return bmp;
             }
-
-            return bmp;
+            catch
+            {
+                bmp.Dispose();
+                throw;
+            }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void MainForm_Load(object? sender, EventArgs e)
         {
             if (DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime)
             {
@@ -277,39 +320,32 @@ namespace RyzenTuner.UI
             Text += GetDebugBuildSuffix();
 #endif
 
-            // 修复设计器遗漏：pageLog.SuspendLayout() 后从未调用 ResumeLayout，
-            // 导致其内部控件的 Anchor/Dock 布局从未计算，表格始终为固定宽度。
-            // 必须在 Load 阶段立即恢复，延迟到 Resize 或页切换后再做已来不及。
-            pageLog.ResumeLayout(true);
-
-            // 同样修复：dataGridViewLogs.BeginInit() 后缺少对应的 EndInit()
-            ((ISupportInitialize)dataGridViewLogs).EndInit();
-
-            // 修复设计器遗漏：groupBoxLogSettings.SuspendLayout() 后缺少 ResumeLayout()
-            groupBoxLogSettings.ResumeLayout(false);
-
-            // 修复设计器遗漏：numericUpDownLogSaveDays.BeginInit() 后缺少 EndInit()
-            ((ISupportInitialize)numericUpDownLogSaveDays).EndInit();
-
             // 运行时启动定时器
             // （导航图标在 ApplySavedTheme -> RefreshThemeColors 中初始化，
             //  避免在主题应用前用默认浅色创建、再重新创建）
             mainFormTimer.Enabled = true;
 
             _isInitializingOptions = true;
-            checkBoxEnergyStar.Checked = AppSettings.GetBool("EnergyStar");
-            keepAwakeCheckBox.Checked = AppSettings.GetBool("KeepAwake");
-            launchAtLogonCheckBox.Checked = AppSettings.GetBool("LaunchAtLogon");
-            SyncLaunchAtLogonSetting();
-            SyncCpuBoostSetting();
-            // SyncCpuBoostSetting 可能更新了 AppSettings 但未更新 checkbox，同步显示状态
-            cpuBoostCheckBox.Checked = AppSettings.GetBool("CpuBoostEnabled");
-            SyncEnergyModeSelection();
+            try
+            {
+                checkBoxEnergyStar.Checked = AppSettings.GetBool("EnergyStar");
+                keepAwakeCheckBox.Checked = AppSettings.GetBool("KeepAwake");
+                launchAtLogonCheckBox.Checked = AppSettings.GetBool("LaunchAtLogon");
+                SyncLaunchAtLogonSetting();
+                // SyncLaunchAtLogonSetting 可能更新了 AppSettings 但未更新 checkbox，同步显示状态
+                launchAtLogonCheckBox.Checked = AppSettings.GetBool("LaunchAtLogon");
+                SyncCpuBoostSetting();
+                // SyncCpuBoostSetting 可能更新了 AppSettings 但未更新 checkbox，同步显示状态
+                cpuBoostCheckBox.Checked = AppSettings.GetBool("CpuBoostEnabled");
+                SyncEnergyModeSelection();
 
-            // 初始化语言选择（在 _isInitializingOptions 保护内，避免 SelectedIndexChanged 误触发）
-            InitLanguageSelection();
-
-            _isInitializingOptions = false;
+                // 初始化语言选择（在 _isInitializingOptions 保护内，避免 SelectedIndexChanged 误触发）
+                InitLanguageSelection();
+            }
+            finally
+            {
+                _isInitializingOptions = false;
+            }
 
             // 设置系统唤醒状态
             keepAwakeCheckBox_CheckedChanged(null, EventArgs.Empty);
@@ -319,8 +355,14 @@ namespace RyzenTuner.UI
 
             // 初始化设置页（在 _isInitializingOptions 保护内，避免 CheckedChanged 误触发）
             _isInitializingOptions = true;
-            SettingsLoadValues();
-            _isInitializingOptions = false;
+            try
+            {
+                SettingsLoadValues();
+            }
+            finally
+            {
+                _isInitializingOptions = false;
+            }
 
             // 应用保存的主题（此时 ApplySavedTheme 会正确触发主题切换）
             ApplySavedTheme();
@@ -353,7 +395,7 @@ namespace RyzenTuner.UI
             }
 
             // 初始化布局（关于页延迟到首次访问时加载）
-            // RecalcCardColumns 在 Form1_Shown 中调用，此时布局已最终确定
+            // RecalcCardColumns 在 MainForm_Shown 中调用，此时布局已最终确定
         }
 
         // ================================================================
@@ -364,12 +406,15 @@ namespace RyzenTuner.UI
         {
             if (sender is Button btn)
             {
-                var pageId = string.Empty;
-                if (btn == navHome) pageId = "home";
-                else if (btn == navSettings) pageId = "settings";
-                else if (btn == navBenchmark) pageId = "benchmark";
-                else if (btn == navLogs) pageId = "log";
-                else if (btn == navAbout) pageId = "about";
+                var pageId = btn switch
+                {
+                    _ when btn == navHome => "home",
+                    _ when btn == navSettings => "settings",
+                    _ when btn == navBenchmark => "benchmark",
+                    _ when btn == navLogs => "log",
+                    _ when btn == navAbout => "about",
+                    _ => string.Empty,
+                };
 
                 SwitchPage(pageId);
             }
@@ -490,8 +535,10 @@ namespace RyzenTuner.UI
 
                 return date.ToString("yyyy-MM-dd HH:mm:ss");
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[MainForm.LoadRyzenAdjDate] Failed: {ex.Message}");
                 return "N/A";
             }
         }
@@ -505,13 +552,14 @@ namespace RyzenTuner.UI
                     return "N/A";
 
                 var lastWriteTimeUtc = File.GetLastWriteTimeUtc(assemblyPath);
-                var chinaTz = TimeZoneInfo.FindSystemTimeZoneById("China Standard Time");
-                var chinaTime = TimeZoneInfo.ConvertTimeFromUtc(lastWriteTimeUtc, chinaTz);
+                var localTime = TimeZoneInfo.ConvertTimeFromUtc(lastWriteTimeUtc, TimeZoneInfo.Local);
 
-                return chinaTime.ToString("yyyy-MM-dd HH:mm:ss") + " +08:00";
+                return localTime.ToString("yyyy-MM-dd HH:mm:ss") + " " + TimeZoneInfo.Local.DisplayName;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[MainForm.LoadBuildTime] Failed: {ex.Message}");
                 return "N/A";
             }
         }
@@ -537,7 +585,7 @@ namespace RyzenTuner.UI
             var logLevel = AppSettings.Get("LogLevel", "Warning");
             for (var i = 0; i < comboBoxLogLevel.Items.Count; i++)
             {
-                if (comboBoxLogLevel.Items[i].ToString() == logLevel)
+                if (comboBoxLogLevel.Items[i] is string s && s == logLevel)
                 {
                     comboBoxLogLevel.SelectedIndex = i;
                     break;
@@ -550,17 +598,17 @@ namespace RyzenTuner.UI
                 AppContainer.Logger().DefaultLogLevel =
                     SqliteLogger.ToLogLevel(logLevel);
             }
-            catch
+            catch (Exception ex)
             {
-                // 忽略日志级别解析失败
+                AppContainer.Logger().Warning("Settings", $"解析日志级别失败: {ex.Message}");
             }
 
             numericUpDownLogSaveDays.Value = ClampNumeric(AppSettings.Get("LogRetentionDays", 3), numericUpDownLogSaveDays);
 
             // 加载主题设置（仅设置 RadioButton 选中状态，不应用颜色）
             var theme = AppSettings.Get("ThemeMode", "Light");
-            radioButtonThemeLight.Checked = theme != "Dark";
-            radioButtonThemeDark.Checked = theme == "Dark";
+            radioButtonThemeLight.Checked = theme != THEME_DARK;
+            radioButtonThemeDark.Checked = theme == THEME_DARK;
         }
 
         private static void TrySetNumericValue(NumericUpDown control, string mode)
@@ -589,131 +637,79 @@ namespace RyzenTuner.UI
 
         private void SettingsSave_Click(object? sender, EventArgs e)
         {
-            // ===== 收集新的快捷键值 =====
-            var newHotkeyPowerSave = GetHotkeyFromTextBox(textBoxHotkeyPowerSave);
-            var newHotkeyBalanced = GetHotkeyFromTextBox(textBoxHotkeyBalanced);
-            var newHotkeyPerformance = GetHotkeyFromTextBox(textBoxHotkeyPerformance);
-
-            // ===== 检查快捷键是否有变化 =====
-            var oldHotkeyPowerSave = AppSettings.Get("HotkeyPowerSaveMode", "");
-            var oldHotkeyBalanced = AppSettings.Get("HotkeyBalancedMode", "");
-            var oldHotkeyPerformance = AppSettings.Get("HotkeyPerformanceMode", "");
-
-            var hotkeyPowerSaveChanged = newHotkeyPowerSave != oldHotkeyPowerSave;
-            var hotkeyBalancedChanged = newHotkeyBalanced != oldHotkeyBalanced;
-            var hotkeyPerformanceChanged = newHotkeyPerformance != oldHotkeyPerformance;
-
-            // ===== 检查同一组合键是否被分配给多个模式 =====
-            var newHotkeyValues = new[] { newHotkeyPowerSave, newHotkeyBalanced, newHotkeyPerformance };
-            var duplicateGroups = newHotkeyValues
-                .Select((v, i) => new { Value = v, Mode = HotkeyModes[i].ModeName })
-                .Where(x => !string.IsNullOrEmpty(x.Value))
-                .GroupBy(x => x.Value)
-                .Where(g => g.Count() > 1)
-                .ToList();
-
-            if (duplicateGroups.Count > 0)
+            // ===== 验证并注册快捷键 =====
+            if (!TryValidateAndRegisterHotkeys(
+                    out var newHotkeyPowerSave,
+                    out var newHotkeyBalanced,
+                    out var newHotkeyPerformance))
             {
-                var conflictMsg = string.Join("\r\n",
-                    duplicateGroups.Select(g =>
-                    {
-                        var modes = string.Join(" / ", g.Select(x => x.Mode));
-                        return $"{GetHotkeyDisplayText(g.Key)} ({modes})";
-                    }));
-                MessageBox.Show(
-                    Strings.TextHotkeyConflict
-                        .Replace("{hotkey}", conflictMsg)
-                        .Replace("\n", "\r\n"),
-                    Strings.TextHotkeyConflictTitle,
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
                 return;
             }
 
-            // ===== 只有快捷键有变化时才验证冲突 =====
-            var hasHotkeyChanges = hotkeyPowerSaveChanged ||
-                                    hotkeyBalancedChanged ||
-                                    hotkeyPerformanceChanged;
-
-            if (hasHotkeyChanges)
+            // ===== 快捷键验证通过，保存所有设置（带事务保护） =====
+            var oldSettings = new Dictionary<string, string>(StringComparer.Ordinal)
             {
-                // 先注销旧的，再尝试注册新的
-                UnregisterAllHotkeys();
+                ["PowerSaveMode"] = AppSettings.Get("PowerSaveMode", "16"),
+                ["BalancedMode"] = AppSettings.Get("BalancedMode", "26"),
+                ["PerformanceMode"] = AppSettings.Get("PerformanceMode", "45"),
+                ["TctlTemp"] = AppSettings.Get("TctlTemp", "100"),
+                ["ApuSkinTemp"] = AppSettings.Get("ApuSkinTemp", "43"),
+                ["PowerLimitUpdateInterval"] = AppSettings.Get("PowerLimitUpdateInterval", "4"),
+                ["HotkeyPowerSaveMode"] = AppSettings.Get("HotkeyPowerSaveMode", ""),
+                ["HotkeyBalancedMode"] = AppSettings.Get("HotkeyBalancedMode", ""),
+                ["HotkeyPerformanceMode"] = AppSettings.Get("HotkeyPerformanceMode", ""),
+                ["LogLevel"] = AppSettings.Get("LogLevel", "Warning"),
+                ["LogRetentionDays"] = AppSettings.Get("LogRetentionDays", "3"),
+                ["ThemeMode"] = AppSettings.Get("ThemeMode", "Light"),
+            };
 
-                var conflictList = new List<string>();
-
-                // 尝试注册所有快捷键（包括未变更的，因为 UnregisterAllHotkeys 已注销全部）
-                var hotkeyRegData = new[]
-                {
-                    new { changed = hotkeyPowerSaveChanged, newV = newHotkeyPowerSave, oldV = oldHotkeyPowerSave, mode = HotkeyModes[0] },
-                    new { changed = hotkeyBalancedChanged, newV = newHotkeyBalanced, oldV = oldHotkeyBalanced, mode = HotkeyModes[1] },
-                    new { changed = hotkeyPerformanceChanged, newV = newHotkeyPerformance, oldV = oldHotkeyPerformance, mode = HotkeyModes[2] },
-                };
-
-                foreach (var r in hotkeyRegData)
-                {
-                    var hk = r.changed ? r.newV : r.oldV;
-                    if (!TryRegisterHotkey(hk, r.mode.Id))
-                        conflictList.Add(GetHotkeyDisplayText(hk));
-                }
-
-                if (conflictList.Count > 0)
-                {
-                    // 恢复旧的快捷键
-                    UnregisterAllHotkeys();
-
-                    var recoveryFailed = false;
-                    foreach (var r in hotkeyRegData)
-                    {
-                        if (!string.IsNullOrEmpty(r.oldV))
-                            recoveryFailed |= !TryRegisterHotkey(r.oldV, r.mode.Id);
-                    }
-
-                    // 恢复文本框显示
-                    SetHotkeyTextBox(textBoxHotkeyPowerSave, oldHotkeyPowerSave);
-                    SetHotkeyTextBox(textBoxHotkeyBalanced, oldHotkeyBalanced);
-                    SetHotkeyTextBox(textBoxHotkeyPerformance, oldHotkeyPerformance);
-
-                    var conflictMsg = string.Join("\r\n", conflictList);
-                    var fullMsg = Strings.TextHotkeyConflict
-                        .Replace("{hotkey}", conflictMsg)
-                        .Replace("\n", "\r\n");
-
-                    if (recoveryFailed)
-                    {
-                        fullMsg += "\r\n\r\n" + Strings.TextHotkeyConflictTitle +
-                                   ": " + Strings.TextHotkeyRecoveryFailed;
-                    }
-
-                    MessageBox.Show(
-                        fullMsg,
-                        Strings.TextHotkeyConflictTitle,
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-                    return;
-                }
-            }
-            // ===== 快捷键验证通过，保存所有设置 =====
-            AppSettings.Set("PowerSaveMode", numericUpDownPowerSaveMode.Value.ToString("F0", CultureInfo.InvariantCulture));
-            AppSettings.Set("BalancedMode", numericUpDownBalancedMode.Value.ToString("F0", CultureInfo.InvariantCulture));
-            AppSettings.Set("PerformanceMode", numericUpDownPerformanceMode.Value.ToString("F0", CultureInfo.InvariantCulture));
-
-            AppSettings.Set("TctlTemp", (int)numericUpDownTctlTemp.Value);
-            AppSettings.Set("ApuSkinTemp", (int)numericUpDownApuSkinTemp.Value);
-            AppSettings.Set("PowerLimitUpdateInterval", (int)numericUpDownPowerLimitUpdateInterval.Value);
-
-            // 保存快捷键设置（快捷键已经注册成功，只需保存值）
-            AppSettings.Set("HotkeyPowerSaveMode", newHotkeyPowerSave);
-            AppSettings.Set("HotkeyBalancedMode", newHotkeyBalanced);
-            AppSettings.Set("HotkeyPerformanceMode", newHotkeyPerformance);
-
-            // 保存日志设置
             var selectedLogLevel = comboBoxLogLevel.SelectedItem?.ToString() ?? "Warning";
-            AppSettings.Set("LogLevel", selectedLogLevel);
-            AppSettings.Set("LogRetentionDays", (int)numericUpDownLogSaveDays.Value);
 
-            // 保存主题设置
-            AppSettings.Set("ThemeMode", radioButtonThemeDark.Checked ? "Dark" : "Light");
+            try
+            {
+                AppSettings.Set("PowerSaveMode", numericUpDownPowerSaveMode.Value.ToString("F0", CultureInfo.InvariantCulture));
+                AppSettings.Set("BalancedMode", numericUpDownBalancedMode.Value.ToString("F0", CultureInfo.InvariantCulture));
+                AppSettings.Set("PerformanceMode", numericUpDownPerformanceMode.Value.ToString("F0", CultureInfo.InvariantCulture));
+
+                AppSettings.Set("TctlTemp", (int)numericUpDownTctlTemp.Value);
+                AppSettings.Set("ApuSkinTemp", (int)numericUpDownApuSkinTemp.Value);
+                AppSettings.Set("PowerLimitUpdateInterval", (int)numericUpDownPowerLimitUpdateInterval.Value);
+
+                // 保存快捷键设置（快捷键已经注册成功，只需保存值）
+                AppSettings.Set("HotkeyPowerSaveMode", newHotkeyPowerSave);
+                AppSettings.Set("HotkeyBalancedMode", newHotkeyBalanced);
+                AppSettings.Set("HotkeyPerformanceMode", newHotkeyPerformance);
+
+                // 保存日志设置
+                AppSettings.Set("LogLevel", selectedLogLevel);
+                AppSettings.Set("LogRetentionDays", (int)numericUpDownLogSaveDays.Value);
+
+                // 保存主题设置
+                AppSettings.Set("ThemeMode", radioButtonThemeDark.Checked ? THEME_DARK : "Light");
+            }
+            catch (Exception ex)
+            {
+                // 回滚所有设置到之前的值
+                foreach (var kv in oldSettings)
+                {
+                    try { AppSettings.Set(kv.Key, kv.Value); } catch (Exception rollbackEx) { System.Diagnostics.Trace.WriteLine($"[MainForm] 回滚设置 {kv.Key} 失败: {rollbackEx.Message}"); }
+                }
+
+                // 回滚快捷键注册：注销新注册的热键，重新注册旧值
+                UnregisterAllHotkeys();
+                foreach (var mode in _hotkeyModes)
+                {
+                    var oldHotkey = oldSettings.TryGetValue(mode.SettingKey, out var h) ? h : string.Empty;
+                    TryRegisterHotkey(oldHotkey, mode.Id);
+                }
+
+                MessageBox.Show(
+                    $"保存设置失败，已回滚到之前的值。\n\n{ex.Message}",
+                    Strings.TextExceptionTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
 
             // 应用日志级别到运行时日志记录器
             try
@@ -748,7 +744,7 @@ namespace RyzenTuner.UI
 
             // 立即重新应用功率限制
             DoPowerLimit();
-            notifyIcon1.Text = RyzenTunerUtils.GetLocalizedModeName(AppSettings.Get("CurrentMode", "BalancedMode"));
+            notifyIcon1.Text = RyzenTunerUtils.GetLocalizedModeName(AppSettings.Get(CURRENT_MODE_KEY, "BalancedMode"));
         }
 
         private void SettingsCancel_Click(object? sender, EventArgs e)
@@ -771,10 +767,8 @@ namespace RyzenTuner.UI
         private void ApplySavedTheme()
         {
             var savedTheme = AppSettings.Get("ThemeMode", "Light");
-            if (savedTheme == "Dark")
-            {
-                ThemeManager.SetTheme(ThemeMode.Dark, this);
-            }
+            var mode = savedTheme == THEME_DARK ? ThemeMode.Dark : ThemeMode.Light;
+            ThemeManager.SetTheme(mode, this);
 
             // 刷新侧边栏、导航按钮等顶级容器的颜色（同时初始化导航图标）
             RefreshThemeColors();
@@ -792,7 +786,7 @@ namespace RyzenTuner.UI
             // 导航按钮悬停色
             var hoverColor = ThemeManager.NavHover;
 
-            foreach (var btn in new[] { navHome, navSettings, navBenchmark, navLogs, navAbout })
+            foreach (var btn in _navButtons)
             {
                 btn.FlatAppearance.MouseOverBackColor = hoverColor;
                 btn.ForeColor = ThemeManager.ControlText;
@@ -822,7 +816,7 @@ namespace RyzenTuner.UI
             if (sender is not RadioButton rb || !rb.Checked)
                 return;
 
-            var mode = rb.Tag?.ToString() == "Dark" ? ThemeMode.Dark : ThemeMode.Light;
+            var mode = rb.Tag?.ToString() == THEME_DARK ? ThemeMode.Dark : ThemeMode.Light;
             ThemeManager.SetTheme(mode, this);
             RefreshThemeColors();
 
@@ -861,9 +855,10 @@ namespace RyzenTuner.UI
                 }
 
                 // 通过 Key 查找匹配项，避免魔数索引
-                foreach (KeyValuePair<string, string> item in comboBoxLanguage.Items)
+                foreach (var itemObj in comboBoxLanguage.Items)
                 {
-                    if (item.Key == currentLang)
+                    if (itemObj is KeyValuePair<string, string> item
+                        && string.Equals(item.Key, currentLang, StringComparison.OrdinalIgnoreCase))
                     {
                         comboBoxLanguage.SelectedItem = item;
                         return;
@@ -878,22 +873,26 @@ namespace RyzenTuner.UI
                 try
                 {
                     var fallback = RyzenTunerUtils.DetectDefaultLanguageCode();
-                    foreach (KeyValuePair<string, string> item in comboBoxLanguage.Items)
+                    foreach (var itemObj in comboBoxLanguage.Items)
                     {
-                        if (item.Key == fallback)
+                        if (itemObj is KeyValuePair<string, string> item
+                            && string.Equals(item.Key, fallback, StringComparison.OrdinalIgnoreCase))
                         {
                             comboBoxLanguage.SelectedItem = item;
                             return;
                         }
                     }
                 }
-                catch { /* 静默 — combo box 无选中项也可接受 */ }
+                catch (Exception fallbackEx)
+                {
+                    AppContainer.Logger().Warning("UI", $"InitLanguageSelection fallback failed: {fallbackEx.Message}");
+                }
             }
         }
 
         private void ComboBoxLanguage_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            // 初始化阶段不保存语言设置（由 AutoSelectLang 处理）
+            // 初始化阶段不保存语言设置（由 AutoSelectLanguage 处理）
             if (_isInitializingOptions)
                 return;
 
@@ -925,7 +924,7 @@ namespace RyzenTuner.UI
             Program.ReleaseInstanceMutex();
             try
             {
-                Process.Start(Application.ExecutablePath);
+                using (Process.Start(Application.ExecutablePath)) { }
                 Application.Exit();
             }
             catch (Exception ex)
@@ -1008,12 +1007,22 @@ namespace RyzenTuner.UI
         /// <summary>
         /// 线程安全的 BeginInvoke 包装：在窗体关闭竞态中安全地 marshal 到 UI 线程。
         /// </summary>
-        private void SafeBeginInvoke(Action action)
+        private void SafeInvoke(Action action)
         {
             if (IsDisposed || !IsHandleCreated) return;
             try
             {
-                BeginInvoke(action);
+                var asyncResult = BeginInvoke(action);
+                try
+                {
+                    EndInvoke(asyncResult);
+                }
+                catch (Exception ex)
+                {
+                    // EndInvoke 异常忽略，保证 BeginInvoke 资源被释放
+                    System.Diagnostics.Trace.WriteLine(
+                        $"[MainForm.SafeInvoke] Delegate exception: {ex}");
+                }
             }
             catch (ObjectDisposedException)
             {
@@ -1037,65 +1046,65 @@ namespace RyzenTuner.UI
                 return;
             }
 
-            var config = new BenchmarkConfig
-            {
-                TestType = comboBoxTestType.SelectedIndex == 0
-                    ? BenchmarkTestType.SingleCore
-                    : BenchmarkTestType.MultiCore,
-                StartTdp = (float)numericUpDownStartPower.Value,
-                StepTdp = (float)numericUpDownStep.Value,
-                EndTdp = (float)numericUpDownEndPower.Value,
-                DurationSeconds = (int)numericUpDownDuration.Value * 60,
-                RestSeconds = (int)numericUpDownRestTime.Value,
-            };
-
-            if (config.StartTdp > config.EndTdp)
-            {
-                MessageBox.Show(
-                    Strings.TextBenchmarkErrorNoData,
-                    Strings.TextBenchmarkTitle,
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-                return;
-            }
-
-            var pointCount = config.TestPointCount;
-            var totalMinutes = pointCount * (int)numericUpDownDuration.Value
-                               + (int)Math.Ceiling(Math.Max(0, pointCount - 1) * (double)numericUpDownRestTime.Value / 60.0);
-
-            var confirmMsg = Strings.TextBenchmarkConfirmStart
-                .Replace("{count}", pointCount.ToString())
-                .Replace("{time}", totalMinutes.ToString());
-
-            if (MessageBox.Show(confirmMsg,
-                    Strings.TextBenchmarkTitle,
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question) != DialogResult.Yes)
-            {
-                return;
-            }
-
-            _isBenchmarkRunning = true;
-            _benchmarkVersion++;
-            var capturedVersion = _benchmarkVersion;
-            _benchmarkTestType = config.TestType;
-            _allResults.Clear();
-            dataGridViewResults.Rows.Clear();
-            buttonExportCsv.Enabled = false;
-            progressBar.Visible = true;
-            progressBar.Maximum = pointCount;
-            progressBar.Value = 0;
-
-            EnableBenchmarkConfig(false);
-            labelStatus.Text = Strings.TextBenchmarkRunning;
-
             try
             {
+                var config = new BenchmarkConfig
+                {
+                    TestType = comboBoxTestType.SelectedIndex == 0
+                        ? BenchmarkTestType.SingleCore
+                        : BenchmarkTestType.MultiCore,
+                    StartTdp = (float)numericUpDownStartPower.Value,
+                    StepTdp = (float)numericUpDownStep.Value,
+                    EndTdp = (float)numericUpDownEndPower.Value,
+                    DurationSeconds = (int)numericUpDownDuration.Value * 60,
+                    RestSeconds = (int)numericUpDownRestTime.Value,
+                };
+
+                if (config.StartTdp > config.EndTdp)
+                {
+                    MessageBox.Show(
+                        Strings.TextBenchmarkErrorNoData,
+                        Strings.TextBenchmarkTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var pointCount = config.TestPointCount;
+                var totalMinutes = pointCount * (int)numericUpDownDuration.Value
+                                   + (int)Math.Ceiling(Math.Max(0, pointCount - 1) * (double)numericUpDownRestTime.Value / 60.0);
+
+                var confirmMsg = Strings.TextBenchmarkConfirmStart
+                    .Replace("{count}", pointCount.ToString())
+                    .Replace("{time}", totalMinutes.ToString());
+
+                if (MessageBox.Show(confirmMsg,
+                        Strings.TextBenchmarkTitle,
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question) != DialogResult.Yes)
+                {
+                    return;
+                }
+
+                _isBenchmarkRunning = true;
+                _benchmarkVersion++;
+                var capturedVersion = _benchmarkVersion;
+                _benchmarkTestType = config.TestType;
+                _allResults.Clear();
+                dataGridViewResults.Rows.Clear();
+                buttonExportCsv.Enabled = false;
+                progressBar.Visible = true;
+                progressBar.Maximum = pointCount;
+                progressBar.Value = 0;
+
+                EnableBenchmarkConfig(false);
+                labelStatus.Text = Strings.TextBenchmarkRunning;
+
                 using (_engine = new BenchmarkEngine())
                 {
                     _engine.OnProgressChanged += (current, total) =>
                     {
-                        SafeBeginInvoke(() =>
+                        SafeInvoke(() =>
                         {
                             progressBar.Value = Math.Min(current, total);
                         });
@@ -1103,7 +1112,7 @@ namespace RyzenTuner.UI
 
                     _engine.OnStatusChanged += (msg) =>
                     {
-                        SafeBeginInvoke(() =>
+                        SafeInvoke(() =>
                         {
                             labelStatus.Text = msg;
                         });
@@ -1111,7 +1120,7 @@ namespace RyzenTuner.UI
 
                     _engine.OnTestPointCompleted += (point) =>
                     {
-                        SafeBeginInvoke(() =>
+                        SafeInvoke(() =>
                         {
                             if (capturedVersion != _benchmarkVersion) return;
                             _allResults.Add(point);
@@ -1121,7 +1130,7 @@ namespace RyzenTuner.UI
 
                     _engine.OnCompleted += (_) =>
                     {
-                        SafeBeginInvoke(() =>
+                        SafeInvoke(() =>
                         {
                             if (capturedVersion != _benchmarkVersion) return;
                             if (_allResults.Count > 0)
@@ -1130,23 +1139,17 @@ namespace RyzenTuner.UI
                             }
 
                             buttonExportCsv.Enabled = _allResults.Count > 0;
-                            EnableBenchmarkConfig(true);
-                            progressBar.Visible = false;
-                            // _isBenchmarkRunning 和 _engine 由 finally 块统一清理
                         });
                     };
 
                     _engine.OnError += (error) =>
                     {
-                        SafeBeginInvoke(() =>
+                        AppContainer.Logger().Error("Benchmark", $"能效分析错误: {error}");
+                        SafeInvoke(() =>
                         {
-                            labelStatus.Text = error;
                             if (capturedVersion != _benchmarkVersion) return;
+                            labelStatus.Text = error;
                             buttonExportCsv.Enabled = _allResults.Count > 0;
-                            EnableBenchmarkConfig(true);
-                            progressBar.Visible = false;
-                            // _isBenchmarkRunning 和 _engine 由 finally 块统一清理
-                            AppContainer.Logger().Error("Benchmark", $"能效分析错误: {error}");
                         });
                     };
 
@@ -1156,6 +1159,7 @@ namespace RyzenTuner.UI
             catch (Exception ex)
             {
                 AppContainer.Logger().Error("Benchmark", $"跑分未处理异常: {ex}");
+                labelStatus.Text = Strings.TextNotAvailable;
             }
             finally
             {
@@ -1184,7 +1188,22 @@ namespace RyzenTuner.UI
 
             if (result == DialogResult.Yes)
             {
-                _engine.Stop();
+                // MessageBox 会泵送消息，在此期间跑分可能已完成并清理了 _engine
+                // （OnCompleted/OnError 回调通过 BeginInvoke 在 UI 线程上执行）。
+                // 二次检查防止 NullReferenceException。
+                if (_engine == null)
+                    return;
+
+                // 引擎可能在 MessageBox 泵送期间已完成并被 using 释放，
+                // 此时 _engine 不为 null 但已释放。Stop() 时静默忽略释放后的调用。
+                try
+                {
+                    _engine.Stop();
+                }
+                catch (ObjectDisposedException)
+                {
+                    return;
+                }
                 EnableBenchmarkConfig(true);
                 progressBar.Visible = false;
                 // 注意：不清除 _isBenchmarkRunning，避免 DoPowerLimit 在引擎 cleanup
@@ -1280,14 +1299,27 @@ namespace RyzenTuner.UI
             File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
         }
 
-        private static string EscapeCsvField(string field)
+        private static string EscapeCsvField(string? field)
         {
-            if (field.Contains(',') || field.Contains('"') || field.Contains('\n') || field.Contains('\r'))
+            if (field == null) return string.Empty;
+            // 先转义所有嵌入的双引号
+            var escaped = field.Replace("\"", "\"\"");
+
+            // 防御 CSV 公式注入：以 =, +, -, @ 开头的字段添加制表符前缀
+            // 注入保护必须在常规 CSV 转义之前应用，确保同时含有危险字符和
+            // 注入前缀的字段（如 "=SUM(A1:A10),value"）被正确包裹双引号。
+            if (field.Length > 0 && (field[0] == '=' || field[0] == '+' || field[0] == '-' || field[0] == '@'))
             {
-                return $"\"{field.Replace("\"", "\"\"")}\"";
+                escaped = "\t" + escaped;
             }
 
-            return field;
+            // 包含逗号、双引号、换行符时需要包裹双引号确保正确解析
+            if (escaped.Contains(',') || escaped.Contains('"') || escaped.Contains('\n') || escaped.Contains('\r'))
+            {
+                return $"\"{escaped}\"";
+            }
+
+            return escaped;
         }
 
         private void AddBenchmarkResultRow(BenchmarkTestPoint point)
@@ -1373,7 +1405,7 @@ namespace RyzenTuner.UI
                     FileName = "https://github.com/zqhong/RyzenTuner",
                     UseShellExecute = true,
                 };
-                Process.Start(psi);
+                using (Process.Start(psi)) { }
             }
             catch (Exception ex)
             {
@@ -1385,7 +1417,7 @@ namespace RyzenTuner.UI
         // 原有功能
         // ================================================================
 
-        private void Form1_Shown(object sender, EventArgs e)
+        private void MainForm_Shown(object? sender, EventArgs e)
         {
             if (DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime)
             {
@@ -1393,13 +1425,14 @@ namespace RyzenTuner.UI
             }
 
             RecalcCardColumns();
-            if (Environment.GetCommandLineArgs().Length > 1 && Environment.GetCommandLineArgs()[1] == "-hide")
+            var cmdArgs = Environment.GetCommandLineArgs();
+            if (cmdArgs.Length > 1 && cmdArgs[1] == "-hide")
             {
                 Hide();
             }
         }
 
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)
             {
@@ -1409,14 +1442,30 @@ namespace RyzenTuner.UI
                 return;
             }
 
+            // 停止正在运行的跑分引擎，让异步方法的 finally 块处理清理逻辑
+            if (_isBenchmarkRunning)
+            {
+                _engine?.Stop();
+            }
+
             // 真正退出时停止定时器并注销全局快捷键
             mainFormTimer.Enabled = false;
             UnregisterAllHotkeys();
-            AppSettings.CloseConnection();
+            try
+            {
+                AppSettings.CloseConnection();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"CloseConnection failed: {ex.Message}");
+            }
         }
 
         private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
+            // 确保窗体从最小化状态恢复到正常大小
+            // （Hide() 后 WindowState 仍为 Minimized，Show() 不会自动恢复）
+            WindowState = FormWindowState.Normal;
             Show();
         }
 
@@ -1427,7 +1476,7 @@ namespace RyzenTuner.UI
 
         private DateTime _lastResizeTime = DateTime.MinValue;
 
-        private void Form1_Resize(object sender, EventArgs e)
+        private void MainForm_Resize(object? sender, EventArgs e)
         {
             if (WindowState == FormWindowState.Minimized)
             {
@@ -1473,49 +1522,48 @@ namespace RyzenTuner.UI
         {
             if (pageHome == null || !pageHome.Visible) return;
             const int gap = 12;
-            int pad;
-            pad = groupBoxMode.Padding.Left;
+            var modePad = groupBoxMode.Padding.Left;
             int modeW = groupBoxMode.ClientSize.Width;
             if (modeW > 100) {
-                int colW = (modeW - pad * 2 - gap * 2) / 3;
+                int colW = (modeW - modePad * 2 - gap * 2) / 3;
                 if (colW < 50) return;
-                radioButton3.Left = pad; radioButton4.Left = pad + colW + gap; radioButton5.Left = pad + 2 * (colW + gap);
+                radioPowerSave.Left = modePad; radioBalanced.Left = modePad + colW + gap; radioPerformance.Left = modePad + 2 * (colW + gap);
             }
-            pad = groupBoxStatus.Padding.Left;
+            var statPad = groupBoxStatus.Padding.Left;
             int statW = groupBoxStatus.ClientSize.Width;
             if (statW > 100) {
-                int colW = (statW - pad * 2 - gap * 2) / 3;
+                int colW = (statW - statPad * 2 - gap * 2) / 3;
                 if (colW < 50) return;
-                int c1 = pad, c2 = pad + colW + gap, c3 = pad + 2 * (colW + gap);
+                int c1 = statPad, c2 = statPad + colW + gap, c3 = statPad + 2 * (colW + gap);
                 labelCpuFreqTitle.Left = c1; currentFreqLabel.Left = c1;
                 labelCpuPowerTitle.Left = c2; currentPowerLabel.Left = c2;
                 labelCpuTempTitle.Left = c3; currentTempLabel.Left = c3;
             }
-            pad = groupBoxParams.Padding.Left;
+            var paramPad = groupBoxParams.Padding.Left;
             int paramW = groupBoxParams.ClientSize.Width;
             if (paramW > 100) {
-                int colW = (paramW - pad * 2 - gap * 2) / 3;
+                int colW = (paramW - paramPad * 2 - gap * 2) / 3;
                 if (colW < 50) return;
-                int c1 = pad, c2 = pad + colW + gap, c3 = pad + 2 * (colW + gap);
+                int c1 = paramPad, c2 = paramPad + colW + gap, c3 = paramPad + 2 * (colW + gap);
                 labelFastLimitTitle.Left = c1; fastLimitLabel.Left = c1;
                 labelSlowLimitTitle.Left = c2; slowLimitLabel.Left = c2;
                 labelTctlLimitTitle.Left = c3; tctlTempLabel.Left = c3;
                 labelStapmLimitTitle.Left = c1; stapmLimitLabel.Left = c1;
                 labelApuSkinTitle.Left = c2; apuSkinTempLabel.Left = c2;
             }
-            pad = groupBoxOptions.Padding.Left;
+            var optPad = groupBoxOptions.Padding.Left;
             int optW = groupBoxOptions.ClientSize.Width;
             if (optW > 100) {
-                int colW = (optW - pad * 2 - gap) / 2;
+                int colW = (optW - optPad * 2 - gap) / 2;
                 if (colW < 50) return;
-                checkBoxEnergyStar.Left = pad;
-                keepAwakeCheckBox.Left = pad + colW + gap;
-                launchAtLogonCheckBox.Left = pad;
-                cpuBoostCheckBox.Left = pad + colW + gap;
+                checkBoxEnergyStar.Left = optPad;
+                keepAwakeCheckBox.Left = optPad + colW + gap;
+                launchAtLogonCheckBox.Left = optPad;
+                cpuBoostCheckBox.Left = optPad + colW + gap;
             }
         }
 
-        private void mainFormTimer_Tick(object sender, EventArgs e)
+        private void mainFormTimer_Tick(object? sender, EventArgs e)
         {
             if (DesignMode || LicenseManager.UsageMode == LicenseUsageMode.Designtime)
             {
@@ -1546,20 +1594,24 @@ namespace RyzenTuner.UI
                     {
                         AppContainer.Logger().Cleanup(AppSettings.Get("LogRetentionDays", 3));
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // 静默忽略后台清理失败
+                        AppContainer.Logger().Warning("LogCleanup", $"Daily log cleanup failed: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning("MainLoop", $"定时器主循环异常: {ex.Message}");
+                AppContainer.Logger().Error("MainLoop", $"定时器主循环异常: {ex}");
             }
         }
 
         private void ChangeEnergyMode(object? sender, EventArgs e)
         {
+            // 防止初始化阶段 SyncEnergyModeSelection 通过 CheckedChanged 触发非预期的 DoPowerLimit
+            if (_isInitializingOptions)
+                return;
+
             // 防止 SwitchToMode（快捷键触发）→ SyncEnergyModeSelection → CheckedChanged 循环
             if (_isChangingMode)
                 return;
@@ -1572,8 +1624,10 @@ namespace RyzenTuner.UI
             _isChangingMode = true;
             try
             {
-                AppSettings.Set("CurrentMode", checkedMode);
+                AppSettings.Set(CURRENT_MODE_KEY, checkedMode);
                 SyncEnergyModeSelection();
+                // 用户手动切换模式，清除错误恢复标志，避免 _previousErrorMode 陈旧
+                _isErrorRecoveryPending = false;
                 DoPowerLimit();
             }
             finally
@@ -1582,16 +1636,37 @@ namespace RyzenTuner.UI
             }
         }
 
-        private void checkBoxEnergyStar_CheckedChanged(object sender, EventArgs e)
+        private void checkBoxEnergyStar_CheckedChanged(object? sender, EventArgs e)
         {
             if (_isInitializingOptions)
             {
                 return;
             }
 
-            AppSettings.Set("EnergyStar", checkBoxEnergyStar.Checked);
+            var isChecked = checkBoxEnergyStar.Checked;
 
-            if (checkBoxEnergyStar.Checked)
+            try
+            {
+                AppSettings.Set("EnergyStar", isChecked);
+            }
+            catch (Exception ex)
+            {
+                // 持久化失败时回退复选框状态，保持 UI 与存储一致
+                try
+                {
+                    _isInitializingOptions = true;
+                    checkBoxEnergyStar.Checked = !isChecked;
+                }
+                finally
+                {
+                    _isInitializingOptions = false;
+                }
+
+                AppContainer.Logger().Warning("Settings", $"保存 EnergyStar 设置失败: {ex.Message}");
+                return;
+            }
+
+            if (isChecked)
             {
                 _needRunBoostAllBgProcesses = false;
             }
@@ -1612,15 +1687,21 @@ namespace RyzenTuner.UI
 
             if (AppSettings.GetBool("KeepAwake"))
             {
-                Awake.KeepSystemAwake(true);
+                if (!Awake.KeepSystemAwake(true))
+                {
+                    AppContainer.Logger().Warning("UI", "KeepSystemAwake 失败，系统可能进入休眠");
+                }
             }
             else
             {
-                Awake.AllowSystemSleep();
+                if (!Awake.AllowSystemSleep())
+                {
+                    AppContainer.Logger().Warning("UI", "AllowSystemSleep 失败");
+                }
             }
         }
 
-        private void launchAtLogonCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void launchAtLogonCheckBox_CheckedChanged(object? sender, EventArgs e)
         {
             if (_isInitializingOptions)
             {
@@ -1636,11 +1717,25 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                _isInitializingOptions = true;
-                launchAtLogonCheckBox.Checked = !isEnabled;
-                _isInitializingOptions = false;
+                var oldState = !isEnabled;
 
-                AppSettings.Set("LaunchAtLogon", !isEnabled);
+                // 回滚 UI 显示
+                try
+                {
+                    _isInitializingOptions = true;
+                    launchAtLogonCheckBox.Checked = oldState;
+                }
+                finally
+                {
+                    _isInitializingOptions = false;
+                }
+
+                // 回滚 StartupTaskScheduler（若 SetEnabled 成功但 AppSettings.Set 失败的情况）
+                try { StartupTaskScheduler.SetEnabled(oldState); } catch { }
+
+                // 回滚 AppSettings
+                AppSettings.Set("LaunchAtLogon", oldState);
+
                 MessageBox.Show($"{Strings.TextFailedToUpdateLaunchAtLogon}\n\n{ex.Message}",
                     Strings.TextExceptionTitle,
                     MessageBoxButtons.OK,
@@ -1648,7 +1743,7 @@ namespace RyzenTuner.UI
             }
         }
 
-        private void cpuBoostCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void cpuBoostCheckBox_CheckedChanged(object? sender, EventArgs e)
         {
             if (_isInitializingOptions)
             {
@@ -1662,16 +1757,16 @@ namespace RyzenTuner.UI
 
         private void RefreshModeLabels()
         {
-            radioButton3.Text = RyzenTunerUtils.GetModeDetailText("PowerSaveMode");
-            radioButton4.Text = RyzenTunerUtils.GetModeDetailText("BalancedMode");
-            radioButton5.Text = RyzenTunerUtils.GetModeDetailText("PerformanceMode");
+            radioPowerSave.Text = RyzenTunerUtils.GetModeDetailText("PowerSaveMode");
+            radioBalanced.Text = RyzenTunerUtils.GetModeDetailText("BalancedMode");
+            radioPerformance.Text = RyzenTunerUtils.GetModeDetailText("PerformanceMode");
         }
 
         private void SyncEnergyModeSelection()
         {
             foreach (Control c in groupBoxMode.Controls)
             {
-                if (c is RadioButton rb && rb.Tag?.ToString() == AppSettings.Get("CurrentMode", "BalancedMode"))
+                if (c is RadioButton rb && rb.Tag?.ToString() == AppSettings.Get(CURRENT_MODE_KEY, "BalancedMode"))
                 {
                     rb.Checked = true;
                 }
@@ -1702,7 +1797,10 @@ namespace RyzenTuner.UI
                 var isEnabled = AppContainer.PowerConfig().IsCpuBoostEnabled();
                 if (!isEnabled.HasValue)
                 {
-                    // 读取失败时不更新缓存或设置
+                    // 读取失败时使用 AppSettings 缓存值作为 fallback，
+                    // 确保 _lastCpuBoostEnabled 不为 null，否则 DoPowerLimit 中
+                    // CPU boost 变更（通过复选框触发的 SetCpuBoost 调用）将永远不会被执行。
+                    _lastCpuBoostEnabled = AppSettings.GetBool("CpuBoostEnabled");
                     return;
                 }
 
@@ -1715,12 +1813,22 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                // 不要用 AppSettings 的值覆盖 _lastCpuBoostEnabled — 保留 null 或上次成功值，
-                // 避免 DoPowerLimit 在状态未知时反复切换 CPU boost
-                AppContainer.Logger().Warning("System", $"Failed to query cpu boost status: {ex.Message}");
+                // _lastCpuBoostEnabled 可能为 null（字段初始化器移至 MainForm_Load 延迟初始化后，
+                // 首次 SyncCpuBoostSetting 失败时 _lastCpuBoostEnabled 仍是 null）。
+                // 回退到 AppSettings 缓存值，避免 DoPowerLimit 永久跳过 CPU boost 控制。
+                if (_lastCpuBoostEnabled == null)
+                {
+                    _lastCpuBoostEnabled = AppSettings.GetBool("CpuBoostEnabled");
+                    AppContainer.Logger().Warning("System",
+                        $"Failed to query cpu boost from system, fallback to AppSettings: {_lastCpuBoostEnabled}");
+                }
+                else
+                {
+                    AppContainer.Logger().Warning("System",
+                        $"Failed to query cpu boost status: {ex.Message}");
+                }
             }
         }
-
 
         /// <summary>
         /// 更新监控信息标签
@@ -1730,25 +1838,22 @@ namespace RyzenTuner.UI
             try
             {
                 var hw = AppContainer.HardwareMonitor();
-                // 跑分进行中时由 BenchmarkEngine 后台线程负责采集，避免竞争
+                var proc = AppContainer.AmdProcessor();
+
+                // 跑分进行中时由 BenchmarkEngine 后台线程负责采集和 SMU 写入，
+                // 跳过 Monitor 和 RefreshTable 以避免后台线程竞争
                 if (!_isBenchmarkRunning)
                 {
                     hw.Monitor();
-                }
-                var proc = AppContainer.AmdProcessor();
-
-                // 刷新 SMU 表后再读取（跑分进行中时由 BenchmarkEngine 后台线程负责写入，跳过以避免竞争）
-                if (!_isBenchmarkRunning)
-                {
                     proc.RefreshTable();
                 }
 
                 // ===== 当前状态（首页，仅非跑分时更新，避免显示过期数据） =====
                 if (!_isBenchmarkRunning)
                 {
-                    currentFreqLabel.Text = float.IsNaN(hw.CpuFreq)
+                    currentFreqLabel.Text = float.IsNaN(hw.CpuFrequency)
                         ? Strings.TextNotAvailable
-                        : string.Format(Strings.TextMonitorFreqFormat, hw.CpuFreq);
+                        : string.Format(Strings.TextMonitorFreqFormat, hw.CpuFrequency);
                     currentPowerLabel.Text = float.IsNaN(hw.CpuPackagePower)
                         ? Strings.TextNotAvailable
                         : string.Format(Strings.TextMonitorPowerFormat, hw.CpuPackagePower);
@@ -1768,15 +1873,15 @@ namespace RyzenTuner.UI
                     ? Strings.TextNotAvailable
                     : string.Format(Strings.TextMonitorPowerFormat, slowLimit);
 
-                var tctlTemp = proc.GetTctlTempLimit();
+                var tctlTemp = proc.GetTctlTemperature();
                 tctlTempLabel.Text = float.IsNaN(tctlTemp)
                     ? Strings.TextNotAvailable
                     : string.Format(Strings.TextMonitorTempIntFormat, tctlTemp);
 
-                var stampLimit = proc.GetStapmLimit();
-                stapmLimitLabel.Text = float.IsNaN(stampLimit)
+                var stapmLimit = proc.GetStapmLimit();
+                stapmLimitLabel.Text = float.IsNaN(stapmLimit)
                     ? Strings.TextNotAvailable
-                    : string.Format(Strings.TextMonitorPowerFormat, stampLimit);
+                    : string.Format(Strings.TextMonitorPowerFormat, stapmLimit);
 
                 try
                 {
@@ -1803,7 +1908,7 @@ namespace RyzenTuner.UI
             }
             catch (Exception ex)
             {
-                AppContainer.Logger().Warning("HardwareMonitor", $"更新监控信息失败: {ex.Message}");
+                AppContainer.Logger().Error("HardwareMonitor", $"更新监控信息失败: {ex.Message}");
             }
         }
 
@@ -1830,127 +1935,72 @@ namespace RyzenTuner.UI
             }
 
             var sw = Stopwatch.StartNew();
-            _isApplyingPowerLimit = true;
-
-            if (!_isErrorRecoveryPending)
-            {
-                _preErrorMode = AppSettings.Get("CurrentMode", "BalancedMode");
-            }
 
             try
             {
-                var processor = AppContainer.AmdProcessor();
+                _isApplyingPowerLimit = true;
 
-                var stampLimit = RyzenAdjUtils.GetPowerLimit();
+                if (!_isErrorRecoveryPending)
+                {
+                    _previousErrorMode = AppSettings.Get(CURRENT_MODE_KEY, "BalancedMode");
+                }
+
+                var processor = AppContainer.AmdProcessor();
+                var powerLimit = RyzenAdjUtils.GetPowerLimit();
                 var tctlTemp = RyzenAdjUtils.GetTctlTemp();
                 var apuSkinTemp = RyzenAdjUtils.GetApuSkinTemp();
                 var shouldEnableCpuBoost = AppSettings.GetBool("CpuBoostEnabled");
 
-                notifyIcon1.Text = RyzenTunerUtils.GetLocalizedModeName(AppSettings.Get("CurrentMode", "BalancedMode"));
+                notifyIcon1.Text = RyzenTunerUtils.GetLocalizedModeName(
+                    AppSettings.Get(CURRENT_MODE_KEY, "BalancedMode"));
 
-                var applyErrors = new List<string>();
-
-                if (!processor.SetFastPpt(stampLimit))
-                {
-                    applyErrors.Add($"SetFastPpt({stampLimit:0.##}W)");
-                }
-
-                if (!processor.SetSlowPpt(stampLimit))
-                {
-                    applyErrors.Add($"SetSlowPpt({stampLimit:0.##}W)");
-                }
-
-                if (!processor.SetStapmPpt(stampLimit))
-                {
-                    applyErrors.Add($"SetStapmPpt({stampLimit:0.##}W)");
-                }
-
-                if (!processor.SetTctlTemp(tctlTemp))
-                {
-                    applyErrors.Add($"SetTctlTemp({tctlTemp}C)");
-                }
-
-                if (!processor.SetApuSkinTemp(apuSkinTemp))
-                {
-                    applyErrors.Add($"SetApuSkinTemp({apuSkinTemp}C)");
-                }
-
-                if (_lastCpuBoostEnabled.HasValue && _lastCpuBoostEnabled.Value != shouldEnableCpuBoost)
-                {
-                    var boostApplied =
-                        shouldEnableCpuBoost
-                            ? AppContainer.PowerConfig().EnableCpuBoost()
-                            : AppContainer.PowerConfig().DisableCpuBoost();
-
-                    if (!boostApplied)
-                    {
-                        applyErrors.Add(shouldEnableCpuBoost ? "EnableCpuBoost()" : "DisableCpuBoost()");
-                    }
-                    else
-                    {
-                        _lastCpuBoostEnabled = shouldEnableCpuBoost;
-                    }
-                }
+                var applyErrors = ApplyAllPowerLimits(processor, powerLimit, tctlTemp, apuSkinTemp, shouldEnableCpuBoost);
 
                 if (applyErrors.Count > 0)
                 {
+                    _lastPowerLimitErrorTime = DateTime.UtcNow;
                     ReportPowerLimitApplyError(string.Join(", ", applyErrors));
                 }
                 else
                 {
-                    _lastPowerLimitApplyError = string.Empty;
-                }
-
-                if (applyErrors.Count == 0)
-                {
-                    _lastSuccessfulApplyTime = DateTime.UtcNow;
-
-                    // 记录成功应用耗时
-                    AppContainer.Logger().Debug("Call ryzenadj",
-                        $"设置功率限制完成: {stampLimit:0.##} W, Tctl {tctlTemp}°C, APU Skin {apuSkinTemp}°C",
-                        sw.ElapsedMilliseconds);
-
-                    if (_isErrorRecoveryPending)
-                    {
-                        _isErrorRecoveryPending = false;
-                        // 若恢复期间用户手动切换了模式，尊重用户选择，不覆盖
-                        if (AppSettings.Get("CurrentMode", "") == "PerformanceMode")
-                        {
-                            // catch 块设了 PerformanceMode，用户未干预 — 尝试还原原始模式
-                            SetCurrentMode(_preErrorMode);
-                        }
-                        // 否则用户已手动切换，保持用户的选择
-                    }
+                    HandlePowerLimitSuccess(sw, powerLimit, tctlTemp, apuSkinTemp);
                 }
             }
             catch (Exception e)
             {
                 _lastPowerLimitErrorTime = DateTime.UtcNow;
-                sw.Stop();
 
-                if (now - _lastPowerLimitErrorShownAt > TimeSpan.FromSeconds(30))
-                {
-                    _lastPowerLimitErrorShownAt = now;
-                    AppContainer.Logger().Error("Call ryzenadj", e.ToString(), sw.ElapsedMilliseconds);
-                    MessageBox.Show(e.Message,
-                        Strings.TextExceptionTitle,
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-                }
-                else
-                {
-                    AppContainer.Logger().Warning("Call ryzenadj", e.ToString(), sw.ElapsedMilliseconds);
-                }
-
-                _isErrorRecoveryPending = true;
-                // 直接设置模式状态，避免触发 CheckedChanged → ChangeEnergyMode 级联调用
-                _isChangingMode = true;
+                // 在可能阻塞的消息框之前锁定模式切换，防止用户在此期间通过快捷键修改模式。
                 try
                 {
-                    AppSettings.Set("CurrentMode", MODE_PERFORMANCE);
-                    SyncEnergyModeSelection();
-                    // 立即更新托盘图标，避免滞后显示旧模式
-                    notifyIcon1.Text = RyzenTunerUtils.GetLocalizedModeName(MODE_PERFORMANCE);
+                    _isChangingMode = true;
+
+                    if (DateTime.UtcNow - _lastPowerLimitErrorShownAt > TimeSpan.FromSeconds(30))
+                    {
+                        _lastPowerLimitErrorShownAt = DateTime.UtcNow;
+                        AppContainer.Logger().Error("Call ryzenadj", e.ToString(), sw.ElapsedMilliseconds);
+                        MessageBox.Show(e.Message,
+                            Strings.TextExceptionTitle,
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        AppContainer.Logger().Warning("Call ryzenadj", e.ToString(), sw.ElapsedMilliseconds);
+                    }
+
+                    // 在设置 CurrentMode 前，检查 _previousErrorMode 是否仍为当前用户选择的模式，
+                    // 避免覆盖用户在失败期间（如 MessageBox 泵送消息时）手动切换的选择
+                    var currentUserMode = AppSettings.Get(CURRENT_MODE_KEY, MODE_BALANCED);
+                    if (currentUserMode == _previousErrorMode)
+                    {
+                        _isErrorRecoveryPending = true;
+                        // 直接设置模式状态，避免触发 CheckedChanged → ChangeEnergyMode 级联调用
+                        AppSettings.Set(CURRENT_MODE_KEY, MODE_PERFORMANCE);
+                        SyncEnergyModeSelection();
+                        // 立即更新托盘图标，避免滞后显示旧模式
+                        notifyIcon1.Text = RyzenTunerUtils.GetLocalizedModeName(MODE_PERFORMANCE);
+                    }
                 }
                 finally
                 {
@@ -1961,6 +2011,72 @@ namespace RyzenTuner.UI
             {
                 _isApplyingPowerLimit = false;
                 sw.Stop();
+            }
+        }
+
+        /// <summary>
+        /// 执行所有 SMU 功率/温度限制写入，返回各操作的错误列表（空 = 全部成功）。
+        /// </summary>
+        private List<string> ApplyAllPowerLimits(
+            AmdProcessor processor,
+            float powerLimit,
+            uint tctlTemp,
+            uint apuSkinTemp,
+            bool shouldEnableCpuBoost)
+        {
+            var errors = new List<string>(6);
+
+            if (!processor.SetFastPpt(powerLimit))
+                errors.Add($"SetFastPpt({powerLimit:0.##}W)");
+
+            if (!processor.SetSlowPpt(powerLimit))
+                errors.Add($"SetSlowPpt({powerLimit:0.##}W)");
+
+            if (!processor.SetStapmPpt(powerLimit))
+                errors.Add($"SetStapmPpt({powerLimit:0.##}W)");
+
+            if (!processor.SetTctlTemp(tctlTemp))
+                errors.Add($"SetTctlTemp({tctlTemp}C)");
+
+            if (!processor.SetApuSkinTemp(apuSkinTemp))
+                errors.Add($"SetApuSkinTemp({apuSkinTemp}C)");
+
+            ApplyCpuBoostIfNeeded(shouldEnableCpuBoost, errors);
+
+            return errors;
+        }
+
+        /// <summary>
+        /// 处理功率限制应用成功的后续逻辑（日志、错误恢复）。
+        /// </summary>
+        private void HandlePowerLimitSuccess(Stopwatch sw, float powerLimit, uint tctlTemp, uint apuSkinTemp)
+        {
+            _lastPowerLimitApplyError = string.Empty;
+            _lastSuccessfulApplyTime = DateTime.UtcNow;
+
+            AppContainer.Logger().Debug("Call ryzenadj",
+                $"设置功率限制完成: {powerLimit:0.##} W, Tctl {tctlTemp}°C, APU Skin {apuSkinTemp}°C",
+                sw.ElapsedMilliseconds);
+
+            if (!_isErrorRecoveryPending)
+                return;
+
+            _isErrorRecoveryPending = false;
+            // 若恢复期间用户手动切换了模式，尊重用户选择，不覆盖
+            if (AppSettings.Get(CURRENT_MODE_KEY, "") != MODE_PERFORMANCE)
+                return;
+
+            // catch 块设了 PerformanceMode，用户未干预 — 尝试还原原始模式。
+            // 必须设置 _isChangingMode 防止 SyncEnergyModeSelection 触发
+            // ChangeEnergyMode 重入 DoPowerLimit。
+            _isChangingMode = true;
+            try
+            {
+                SetCurrentMode(_previousErrorMode);
+            }
+            finally
+            {
+                _isChangingMode = false;
             }
         }
 
@@ -1975,9 +2091,35 @@ namespace RyzenTuner.UI
             }
 
             _lastPowerLimitApplyError = message;
+            notifyIcon1.BalloonTipIcon = ToolTipIcon.Warning;
             notifyIcon1.BalloonTipTitle = Strings.TextAppName;
             notifyIcon1.BalloonTipText = message;
             notifyIcon1.ShowBalloonTip(3000);
+        }
+
+        /// <summary>
+        /// 应用 CPU Boost 设置（如果状态已变更）
+        /// </summary>
+        private void ApplyCpuBoostIfNeeded(bool shouldEnableCpuBoost, List<string> applyErrors)
+        {
+            if (!_lastCpuBoostEnabled.HasValue || _lastCpuBoostEnabled.Value == shouldEnableCpuBoost)
+            {
+                return;
+            }
+
+            var boostApplied =
+                shouldEnableCpuBoost
+                    ? AppContainer.PowerConfig().EnableCpuBoost()
+                    : AppContainer.PowerConfig().DisableCpuBoost();
+
+            if (!boostApplied)
+            {
+                applyErrors.Add(shouldEnableCpuBoost ? "EnableCpuBoost()" : "DisableCpuBoost()");
+            }
+            else
+            {
+                _lastCpuBoostEnabled = shouldEnableCpuBoost;
+            }
         }
 
         private void DoProcessManage()
@@ -1990,9 +2132,12 @@ namespace RyzenTuner.UI
             {
                 AppContainer.EnergyManager().HandleForeground();
 
+                // 每 ~30 秒（15 ticks @ 2048ms）首次执行后台节流，之后每 ~5 分钟（150 ticks）重复
+                const long tickCountInitialBgThrottle = 15;
+                const long tickCountPeriodicBgThrottle = 150;
                 if (
-                    _tickCount == 15 ||
-                    _tickCount % 150 == 0
+                    _tickCount == tickCountInitialBgThrottle ||
+                    _tickCount % tickCountPeriodicBgThrottle == 0
                 )
                 {
                     AppContainer.EnergyManager().ThrottleAllUserBackgroundProcesses();
@@ -2011,12 +2156,12 @@ namespace RyzenTuner.UI
 
         private void SetCurrentMode(string mode)
         {
-            if (mode == AppSettings.Get("CurrentMode", "BalancedMode"))
+            if (mode == AppSettings.Get(CURRENT_MODE_KEY, "BalancedMode"))
             {
                 return;
             }
 
-            AppSettings.Set("CurrentMode", mode);
+            AppSettings.Set(CURRENT_MODE_KEY, mode);
             SyncEnergyModeSelection();
         }
 
@@ -2066,14 +2211,16 @@ namespace RyzenTuner.UI
             if (_isBenchmarkRunning || _isChangingMode)
                 return;
 
-            if (mode == AppSettings.Get("CurrentMode", "BalancedMode"))
+            if (mode == AppSettings.Get(CURRENT_MODE_KEY, "BalancedMode"))
                 return;
 
             _isChangingMode = true;
             try
             {
-                AppSettings.Set("CurrentMode", mode);
+                AppSettings.Set(CURRENT_MODE_KEY, mode);
                 SyncEnergyModeSelection();
+                // 用户快捷键切换模式，清除错误恢复标志
+                _isErrorRecoveryPending = false;
                 DoPowerLimit();
             }
             finally
@@ -2091,7 +2238,7 @@ namespace RyzenTuner.UI
 
             var failedHotkeys = new List<string>();
 
-            foreach (var mode in HotkeyModes)
+            foreach (var mode in _hotkeyModes)
             {
                 var hotkey = AppSettings.Get(mode.SettingKey, "");
                 if (!TryRegisterHotkey(hotkey, mode.Id))
@@ -2102,6 +2249,7 @@ namespace RyzenTuner.UI
             {
                 AppContainer.Logger().Warning("HotkeyReg",
                     $"部分快捷键注册失败: {string.Join(", ", failedHotkeys)}");
+                notifyIcon1.BalloonTipIcon = ToolTipIcon.Warning;
                 notifyIcon1.BalloonTipTitle = Strings.TextHotkeyConflictTitle;
                 notifyIcon1.BalloonTipText = Strings.TextHotkeyConflict
                     .Replace("{hotkey}", string.Join(", ", failedHotkeys));
@@ -2197,6 +2345,7 @@ namespace RyzenTuner.UI
                 Keys.Return => "Enter",
                 Keys.Scroll => "ScrollLock",
                 Keys.Snapshot => "PrintScreen",
+                Keys.None => "",
                 _ => key.ToString(),
             };
 
@@ -2357,6 +2506,123 @@ namespace RyzenTuner.UI
         private static string GetHotkeyFromTextBox(TextBox tb)
         {
             return tb.Tag?.ToString() ?? "";
+        }
+
+        /// <summary>
+        /// 验证快捷键配置的合法性并尝试注册。
+        /// 返回 false 时调用方应中止保存流程。
+        /// </summary>
+        private bool TryValidateAndRegisterHotkeys(
+            out string newHotkeyPowerSave,
+            out string newHotkeyBalanced,
+            out string newHotkeyPerformance)
+        {
+            newHotkeyPowerSave = GetHotkeyFromTextBox(textBoxHotkeyPowerSave);
+            newHotkeyBalanced = GetHotkeyFromTextBox(textBoxHotkeyBalanced);
+            newHotkeyPerformance = GetHotkeyFromTextBox(textBoxHotkeyPerformance);
+
+            var oldHotkeyPowerSave = AppSettings.Get("HotkeyPowerSaveMode", "");
+            var oldHotkeyBalanced = AppSettings.Get("HotkeyBalancedMode", "");
+            var oldHotkeyPerformance = AppSettings.Get("HotkeyPerformanceMode", "");
+
+            var hotkeyPowerSaveChanged = newHotkeyPowerSave != oldHotkeyPowerSave;
+            var hotkeyBalancedChanged = newHotkeyBalanced != oldHotkeyBalanced;
+            var hotkeyPerformanceChanged = newHotkeyPerformance != oldHotkeyPerformance;
+
+            // ===== 检查同一组合键是否被分配给多个模式 =====
+            var newHotkeyValues = new[] { newHotkeyPowerSave, newHotkeyBalanced, newHotkeyPerformance };
+            var duplicateGroups = newHotkeyValues
+                .Select((v, i) => new { Value = v, Mode = _hotkeyModes[i].ModeName })
+                .Where(x => !string.IsNullOrEmpty(x.Value))
+                .GroupBy(x => x.Value)
+                .Where(g => g.Count() > 1)
+                .ToList();
+
+            if (duplicateGroups.Count > 0)
+            {
+                var conflictMsg = string.Join("\r\n",
+                    duplicateGroups.Select(g =>
+                    {
+                        var modes = string.Join(" / ", g.Select(x => x.Mode));
+                        return $"{GetHotkeyDisplayText(g.Key)} ({modes})";
+                    }));
+                MessageBox.Show(
+                    Strings.TextHotkeyConflict
+                        .Replace("{hotkey}", conflictMsg)
+                        .Replace("\n", "\r\n"),
+                    Strings.TextHotkeyConflictTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return false;
+            }
+
+            // ===== 只有快捷键有变化时才验证冲突 =====
+            var hasHotkeyChanges = hotkeyPowerSaveChanged ||
+                                    hotkeyBalancedChanged ||
+                                    hotkeyPerformanceChanged;
+
+            if (!hasHotkeyChanges)
+            {
+                return true;
+            }
+
+            // 先注销旧的，再尝试注册新的
+            UnregisterAllHotkeys();
+
+            var conflictList = new List<string>();
+
+            // 尝试注册所有快捷键（包括未变更的，因为 UnregisterAllHotkeys 已注销全部）
+            var hotkeyRegData = new[]
+            {
+                new { changed = hotkeyPowerSaveChanged, newV = newHotkeyPowerSave, oldV = oldHotkeyPowerSave, mode = _hotkeyModes[0] },
+                new { changed = hotkeyBalancedChanged, newV = newHotkeyBalanced, oldV = oldHotkeyBalanced, mode = _hotkeyModes[1] },
+                new { changed = hotkeyPerformanceChanged, newV = newHotkeyPerformance, oldV = oldHotkeyPerformance, mode = _hotkeyModes[2] },
+            };
+
+            foreach (var r in hotkeyRegData)
+            {
+                var hk = r.changed ? r.newV : r.oldV;
+                if (!TryRegisterHotkey(hk, r.mode.Id))
+                    conflictList.Add(GetHotkeyDisplayText(hk));
+            }
+
+            if (conflictList.Count == 0)
+            {
+                return true;
+            }
+
+            // 恢复旧的快捷键
+            UnregisterAllHotkeys();
+
+            var recoveryFailed = false;
+            foreach (var r in hotkeyRegData)
+            {
+                if (!string.IsNullOrEmpty(r.oldV))
+                    recoveryFailed |= !TryRegisterHotkey(r.oldV, r.mode.Id);
+            }
+
+            // 恢复文本框显示
+            SetHotkeyTextBox(textBoxHotkeyPowerSave, oldHotkeyPowerSave);
+            SetHotkeyTextBox(textBoxHotkeyBalanced, oldHotkeyBalanced);
+            SetHotkeyTextBox(textBoxHotkeyPerformance, oldHotkeyPerformance);
+
+            var conflictText = string.Join("\r\n", conflictList);
+            var fullMsg = Strings.TextHotkeyConflict
+                .Replace("{hotkey}", conflictText)
+                .Replace("\n", "\r\n");
+
+            if (recoveryFailed)
+            {
+                fullMsg += "\r\n\r\n" + Strings.TextHotkeyConflictTitle +
+                           ": " + Strings.TextHotkeyRecoveryFailed;
+            }
+
+            MessageBox.Show(
+                fullMsg,
+                Strings.TextHotkeyConflictTitle,
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return false;
         }
 
         // ================================================================
@@ -2549,5 +2815,3 @@ namespace RyzenTuner.UI
         }
     }
 }
-
-

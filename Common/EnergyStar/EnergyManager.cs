@@ -17,7 +17,7 @@ namespace RyzenTuner.Common.EnergyStar
     {
         private const string UnknownProcessName = "Unknown-K7Ncy4PUIQBNyGTl.exe";
         private const string UwpFrameHostApp = "ApplicationFrameHost.exe";
-        private const int MaxProcessPathChars = 2048;
+        private const int MaxProcessPathChars = 32767;
 
         private static readonly HashSet<string> _hardcodedBypassList = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -109,51 +109,64 @@ namespace RyzenTuner.Common.EnergyStar
         private readonly HashSet<string> _bypassProcessList = new(StringComparer.OrdinalIgnoreCase);
         private readonly object _bypassLock = new();
 
-        private readonly IntPtr _pThrottleOn;
-        private readonly IntPtr _pThrottleOff;
-        private readonly int _szControlBlock;
+        private IntPtr _throttleOnPtr;
+        private IntPtr _throttleOffPtr;
+        private readonly object _nativeLock = new();
+        private readonly int _controlBlockSize;
         private int _disposed;
+        // 由 HandleForeground 设置，供 ToggleAllBackgroundProcessesMode 使用
+        // 包含解析 UWP 子进程后的真实前台进程 ID，解决 UWP 前台应用被误节流的问题
+        private volatile uint _resolvedForegroundPid;
+        [ThreadStatic]
+        private static StringBuilder? _cachedSb;
 
         public EnergyManager()
         {
+            // 构造函数中无需加锁：对象尚未发布给其他线程
             _bypassProcessList.UnionWith(_hardcodedBypassList);
             _bypassProcessList.UnionWith(LoadBypassSetting());
 
-            _szControlBlock = Marshal.SizeOf<Win32Api.ProcessPowerThrottlingState>();
-            _pThrottleOn = Marshal.AllocHGlobal(_szControlBlock);
-            _pThrottleOff = Marshal.AllocHGlobal(_szControlBlock);
+            _controlBlockSize = Marshal.SizeOf<Win32Api.ProcessPowerThrottlingState>();
+
+            // 非托管内存分配：依次分配两块内存，利用 try-catch 保证首次分配成功但第二次失败时
+            // 不会泄漏已分配的内存。若在 try 块外直接分配，第二个 AllocHGlobal 抛异常时
+            // 第一个分配就会泄漏。DisposeCore() 统一清理已分配的 HGlobal。
+            try
+            {
+                _throttleOnPtr = Marshal.AllocHGlobal(_controlBlockSize);
+                _throttleOffPtr = Marshal.AllocHGlobal(_controlBlockSize);
+            }
+            catch (Exception)
+            {
+                // 使用 DisposeCore() 统一清理：释放所有已分配的 HGlobal 后置零字段，
+                // 并标记 _disposed = 1 阻止 ~EnergyManager 终结器对已释放指针执行 double-free。
+                DisposeCore();
+                throw;
+            }
 
             // 参考：https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setprocessinformation
             // EcoQoS：打开 ExecutionSpeed 节流功能
             var throttleState = new Win32Api.ProcessPowerThrottlingState
             {
                 Version = Win32Api.ProcessPowerThrottlingState.ProcessPowerThrottlingCurrentVersion,
-                ControlMask = Win32Api.ProcessorPowerThrottlingFlags.ProcessPowerThrottlingExecutionSpeed,
-                StateMask = Win32Api.ProcessorPowerThrottlingFlags.ProcessPowerThrottlingExecutionSpeed,
+                ControlMask = Win32Api.ProcessPowerThrottlingFlags.ProcessPowerThrottlingExecutionSpeed,
+                StateMask = Win32Api.ProcessPowerThrottlingFlags.ProcessPowerThrottlingExecutionSpeed,
             };
 
             // HighQoS：关闭 ExecutionSpeed 节流
             var unThrottleState = new Win32Api.ProcessPowerThrottlingState
             {
                 Version = Win32Api.ProcessPowerThrottlingState.ProcessPowerThrottlingCurrentVersion,
-                ControlMask = Win32Api.ProcessorPowerThrottlingFlags.ProcessPowerThrottlingExecutionSpeed,
-                StateMask = Win32Api.ProcessorPowerThrottlingFlags.None,
+                ControlMask = Win32Api.ProcessPowerThrottlingFlags.ProcessPowerThrottlingExecutionSpeed,
+                StateMask = Win32Api.ProcessPowerThrottlingFlags.None,
             };
-
-            // 如果想要让系统管理所有的功率节流，ControlMask 和 StateMask 设置为 Win32Api.ProcessorPowerThrottlingFlags.None
-            // var defaultThrottleState = new Win32Api.ProcessPowerThrottlingState
-            // {
-            //     Version = Win32Api.ProcessPowerThrottlingState.ProcessPowerThrottlingCurrentVersion,
-            //     ControlMask = Win32Api.ProcessorPowerThrottlingFlags.None,
-            //     StateMask = Win32Api.ProcessorPowerThrottlingFlags.None,
-            // };
 
             try
             {
-                Marshal.StructureToPtr(throttleState, _pThrottleOn, false);
-                Marshal.StructureToPtr(unThrottleState, _pThrottleOff, false);
+                Marshal.StructureToPtr(throttleState, _throttleOnPtr, false);
+                Marshal.StructureToPtr(unThrottleState, _throttleOffPtr, false);
             }
-            catch
+            catch (Exception)
             {
                 DisposeCore();
                 throw;
@@ -168,76 +181,94 @@ namespace RyzenTuner.Common.EnergyStar
         /// <summary>
         /// 如果 enable 为 true，则切换到【效率模式】（低优先级；低频率；高效核）；否则，则是普通模式。
         /// </summary>
-        /// <param name="hProcess"></param>
+        /// <param name="processHandle"></param>
         /// <param name="enable"></param>
-        private void ToggleEfficiencyMode(IntPtr hProcess, bool enable)
+        /// <param name="preResolvedName"></param>
+        private void ToggleEfficiencyMode(IntPtr processHandle, bool enable, string? preResolvedName = null)
         {
-            // 防止 Dispose 并发释放 _pThrottleOn / _pThrottleOff 后继续使用
-            if (Interlocked.CompareExchange(ref _disposed, 0, 0) != 0)
-            {
+            if (processHandle == IntPtr.Zero)
                 return;
-            }
-
-            var logger = AppContainer.Logger();
 
             try
             {
-                if (hProcess == IntPtr.Zero)
-                {
-                    return;
-                }
-
-                var processId = Win32Api.GetProcessId(hProcess);
-                var appName = GetProcessNameFromHandle(hProcess);
+                var processId = Win32Api.GetProcessId(processHandle);
+                var appName = preResolvedName ?? GetProcessNameFromHandle(processHandle);
 
                 if (appName == UnknownProcessName)
                 {
-                    logger.Warning($"ToggleEfficiencyMode: 获取进程名称失败。pid: {processId}");
+                    AppContainer.Logger().Warning("EnergyStar", $"ToggleEfficiencyMode: 获取进程名称失败。pid: {processId}");
                     return;
                 }
 
-                if (IsInBypassList(appName))
+                // 在锁内执行 SetProcessInformation，防止与 DisposeCore 的 FreeHGlobal 发生 TOCTOU 竞态
+                // （指针在使用期间被释放导致 use-after-free）
+                // 同时在锁内重新检查白名单，避免与 ReloadBypassList 的 TOCTOU 竞态
+                lock (_nativeLock)
                 {
-                    logger.Debug($"ToggleEfficiencyMode: 不处理白名单列表中的应用 {appName}");
-                    return;
+                    if (_disposed != 0)
+                        return;
+
+                    if (IsInBypassList(appName))
+                    {
+                        AppContainer.Logger().Debug("EnergyStar",
+                            $"ToggleEfficiencyMode: 不处理白名单列表中的应用 {appName}");
+                        return;
+                    }
+
+                    try
+                    {
+                        var throttleResult = Win32Api.SetProcessInformation(processHandle,
+                            Win32Api.ProcessInformationClass.ProcessPowerThrottling,
+                            enable ? _throttleOnPtr : _throttleOffPtr, (uint)_controlBlockSize);
+
+                        var priorityResult = Win32Api.SetPriorityClass(processHandle,
+                            enable
+                                ? Win32Api.PriorityClass.BelowNormalPriorityClass
+                                : Win32Api.PriorityClass.NormalPriorityClass);
+
+                        var actionText = enable ? "Throttle" : "Boost";
+                        AppContainer.Logger().Debug("EnergyStar",
+                            $"{actionText} {appName}. pid: {processId}, set process information and priority result: {throttleResult && priorityResult}");
+                    }
+                    catch (Exception e)
+                    {
+                        AppContainer.Logger().LogException(e);
+                    }
                 }
-
-                var r1 = Win32Api.SetProcessInformation(hProcess,
-                    Win32Api.ProcessInformationClass.ProcessPowerThrottling,
-                    enable ? _pThrottleOn : _pThrottleOff, (uint)_szControlBlock);
-
-                var r2 = Win32Api.SetPriorityClass(hProcess,
-                    enable
-                        ? Win32Api.PriorityClass.BelowNormalPriorityClass
-                        : Win32Api.PriorityClass.NormalPriorityClass);
-
-                var actionText = enable ? "Throttle" : "Boost";
-                logger.Debug(
-                    $"{actionText} {appName}. pid: {processId}, set process information and priority result: {r1 && r2}");
             }
             catch (Exception e)
             {
-                logger.LogException(e);
+                AppContainer.Logger().LogException(e);
             }
         }
 
         /// <summary>
-        /// 通过 hProcess 获取进程名称
+        /// 通过进程句柄获取进程名称
         /// </summary>
-        /// <param name="hProcess"></param>
+        /// <param name="processHandle"></param>
         /// <returns></returns>
-        private static string GetProcessNameFromHandle(IntPtr hProcess)
+        private static string GetProcessNameFromHandle(IntPtr processHandle)
         {
             try
             {
-                var capacity = MaxProcessPathChars;
-                var sb = new StringBuilder(capacity);
+                var sb = _cachedSb;
+                if (sb == null)
+                {
+                    sb = new StringBuilder(MaxProcessPathChars);
+                    _cachedSb = sb;
+                }
+                sb.Clear();
 
-                if (Win32Api.QueryFullProcessImageName(hProcess, 0, sb, ref capacity))
+                uint capacity = MaxProcessPathChars;
+
+                if (Win32Api.QueryFullProcessImageName(processHandle, 0, sb, ref capacity))
                 {
                     return Path.GetFileName(sb.ToString());
                 }
 
+                var win32Error = Marshal.GetLastWin32Error();
+                AppContainer.Logger().Warning("EnergyStar",
+                    $"QueryFullProcessImageName failed for process handle 0x{processHandle.ToInt64():X}, win32Error={win32Error}");
                 return UnknownProcessName;
             }
             catch (Exception e)
@@ -248,67 +279,34 @@ namespace RyzenTuner.Common.EnergyStar
         }
 
         /// <summary>
-        /// 处理前台进程
+        /// 处理前台进程：检测前台窗口，如果属于 UWP 框架则解析真实子进程，否则直接标记为前台（取消节流）。
         /// </summary>
         public void HandleForeground()
         {
+            uint resolvedPid = 0;
             IntPtr processHandle = IntPtr.Zero;
+            string appName = "";
 
             try
             {
-                var hwnd = Win32Api.GetForegroundWindow();
-                if (hwnd == IntPtr.Zero) return;
+                var windowHandle = Win32Api.GetForegroundWindow();
+                if (windowHandle == IntPtr.Zero) return;
 
-                if (Win32Api.GetWindowThreadProcessId(hwnd, out var processId) == 0 || processId == 0) return;
+                if (Win32Api.GetWindowThreadProcessId(windowHandle, out var processId) == 0 || processId == 0) return;
 
-                processHandle = NativeOpenProcess((int)processId);
+                processHandle = NativeOpenProcess(processId);
                 if (processHandle == IntPtr.Zero) return;
 
-                var appName = GetProcessNameFromHandle(processHandle);
-                if (appName == UwpFrameHostApp)
-                {
-                    var found = false;
-                    var enumResult = Win32Api.EnumChildWindows(hwnd, (innerHwnd, _) =>
-                    {
-                        if (found) return true;
-                        if (Win32Api.GetWindowThreadProcessId(innerHwnd, out var innerProcId) <= 0) return true;
-                        if (processId == innerProcId) return true;
+                appName = GetProcessNameFromHandle(processHandle);
 
-                        var innerProcHandle = NativeOpenProcess((int)innerProcId);
-                        if (innerProcHandle == IntPtr.Zero) return true;
+                // 尝试解析 UWP 子进程
+                TryResolveUwpChild(windowHandle, ref processHandle, ref processId, ref appName);
 
-                        try
-                        {
-                            var innerAppName = GetProcessNameFromHandle(innerProcHandle);
+                // 存储最终解析后的前台进程 ID（可能是 UWP 子进程），
+                // 供 ToggleAllBackgroundProcessesMode 跳过正确的前台进程
+                resolvedPid = processId;
 
-                            // Found. Set flag, reinitialize handles and call it a day
-                            found = true;
-                            Win32Api.CloseHandle(processHandle);
-                            processHandle = innerProcHandle;
-                            processId = innerProcId;
-                            appName = innerAppName;
-                            innerProcHandle = IntPtr.Zero;
-                        }
-                        finally
-                        {
-                            if (innerProcHandle != IntPtr.Zero)
-                            {
-                                Win32Api.CloseHandle(innerProcHandle);
-                            }
-                        }
-
-                        return false; // stop enumeration once found
-                    }, IntPtr.Zero);
-
-                    if (!enumResult)
-                    {
-                        AppContainer.Logger().Warning("EnergyStar",
-                            "EnumChildWindows failed while searching for UWP child process");
-                    }
-                }
-
-
-                ToggleEfficiencyMode(processHandle, false);
+                ToggleEfficiencyMode(processHandle, false, appName);
             }
             catch (Exception e)
             {
@@ -316,6 +314,9 @@ namespace RyzenTuner.Common.EnergyStar
             }
             finally
             {
+                // 在 finally 中写入字段，确保异常时不会提前置零导致误节流
+                _resolvedForegroundPid = resolvedPid;
+
                 if (processHandle != IntPtr.Zero)
                 {
                     Win32Api.CloseHandle(processHandle);
@@ -324,26 +325,137 @@ namespace RyzenTuner.Common.EnergyStar
         }
 
         /// <summary>
+        /// 如果前台窗口属于 ApplicationFrameHost，尝试枚举子窗口找到真正的 UWP 进程。
+        /// </summary>
+        private static void TryResolveUwpChild(IntPtr windowHandle, ref IntPtr processHandle,
+            ref uint processId, ref string appName)
+        {
+            if (!string.Equals(appName, UwpFrameHostApp, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var (found, enumFailed) = TryFindUwpChildWindow(windowHandle, processId,
+                ref processHandle, ref processId, ref appName);
+
+            if (found)
+                return;
+
+            AppContainer.Logger().Warning("EnergyStar",
+                enumFailed
+                    ? $"EnumChildWindows failed for ApplicationFrameHost window"
+                    : "No UWP child process found under ApplicationFrameHost window");
+        }
+
+        /// <summary>
+        /// 枚举 ApplicationFrameHost 的子窗口，查找真正的 UWP 子进程。
+        /// </summary>
+        /// <returns>(Found, EnumFailed) — Found 为 true 表示找到 UWP 子进程；
+        /// EnumFailed 表示 EnumChildWindows API 调用失败（仅当 Found 为 false 时有意义）。</returns>
+        private static (bool Found, bool EnumFailed) TryFindUwpChildWindow(IntPtr windowHandle, uint frameHostPid,
+            ref IntPtr capturedHandle, ref uint capturedPid, ref string capturedAppName)
+        {
+            // 将 ref 参数复制为局部变量供 lambda 捕获（C# 不允许 lambda 捕获 ref 参数）
+            var localHandle = capturedHandle;
+            var localPid = capturedPid;
+            var localAppName = capturedAppName;
+            var found = false;
+
+            var enumResult = Win32Api.EnumChildWindows(windowHandle, (innerWindowHandle, _) =>
+            {
+                try
+                {
+                    // 若已找到有效子进程（因异常导致回调未正确返回 false 而再次被调用），
+                    // 立即返回 false 停止枚举，避免对已关闭的 localHandle 执行 double-close。
+                    if (found)
+                        return false;
+
+                    if (Win32Api.GetWindowThreadProcessId(innerWindowHandle, out var innerProcId) == 0)
+                        return true;
+                    if (frameHostPid == innerProcId)
+                        return true;
+
+                    var innerProcHandle = NativeOpenProcess(innerProcId);
+                    if (innerProcHandle == IntPtr.Zero) return true;
+
+                    try
+                    {
+                        var innerAppName = GetProcessNameFromHandle(innerProcHandle);
+
+                        // Unknown process name is not resolvable — continue enumeration
+                        if (innerAppName == UnknownProcessName)
+                            return true;
+
+                        // Found. Reinitialize handles and stop enumeration
+                        found = true;
+                        if (!Win32Api.CloseHandle(localHandle))
+                        {
+                            AppContainer.Logger().Warning("EnergyStar",
+                                $"CloseHandle failed for ApplicationFrameHost, error={Marshal.GetLastWin32Error()}");
+                        }
+                        localHandle = innerProcHandle;
+                        localPid = innerProcId;
+                        localAppName = innerAppName;
+                        innerProcHandle = IntPtr.Zero;
+                    }
+                    finally
+                    {
+                        if (innerProcHandle != IntPtr.Zero)
+                        {
+                            Win32Api.CloseHandle(innerProcHandle);
+                        }
+                    }
+
+                    return false; // stop enumeration once found
+                }
+                catch (Exception ex)
+                {
+                    AppContainer.Logger().LogException(ex);
+                    return true; // continue enumeration on error
+                }
+            }, IntPtr.Zero);
+
+            // 将局部变量的结果写回 ref 参数
+            if (found)
+            {
+                capturedHandle = localHandle;
+                capturedPid = localPid;
+                capturedAppName = localAppName;
+                return (true, false);
+            }
+
+            if (!enumResult)
+            {
+                var enumError = Marshal.GetLastWin32Error();
+                AppContainer.Logger().Warning("EnergyStar",
+                    $"EnumChildWindows failed, error={enumError}");
+                return (false, true);
+            }
+
+            return (false, false);
+        }
+
+        /// <summary>
         /// 使用统一的 process access 参数调用 Win32Api.OpenProcess
         /// </summary>
         /// <param name="processId"></param>
         /// <returns></returns>
-        private static IntPtr NativeOpenProcess(int processId)
+        private static IntPtr NativeOpenProcess(uint processId)
         {
             const Win32Api.ProcessAccessFlags processAccess =
                 Win32Api.ProcessAccessFlags.QueryLimitedInformation |
                 Win32Api.ProcessAccessFlags.SetInformation;
-            var handle = Win32Api.OpenProcess(processAccess, false, (uint)processId);
+            var handle = Win32Api.OpenProcess(processAccess, false, processId);
             if (handle == IntPtr.Zero)
             {
-                AppContainer.Logger().Debug("EnergyStar", $"NativeOpenProcess failed for PID {processId}");
+                var win32Error = Marshal.GetLastWin32Error();
+                AppContainer.Logger().Debug("EnergyStar",
+                    $"NativeOpenProcess failed for PID {processId}, win32Error={win32Error}");
             }
 
             return handle;
         }
 
         /// <summary>
-        /// 将除了 PendingProcPid 和 BypassProcessList 外的所有进程，都切换到【效率模式】
+        /// 将除了前台进程和 BypassProcessList 外的所有进程，都切换到【效率模式】
         /// </summary>
         public void ThrottleAllUserBackgroundProcesses()
         {
@@ -352,7 +464,7 @@ namespace RyzenTuner.Common.EnergyStar
         }
 
         /// <summary>
-        /// 将除了 PendingProcPid 和 BypassProcessList 外的所有进程，都切换到【普通模式】
+        /// 将除了前台进程和 BypassProcessList 外的所有进程，都切换到【普通模式】
         /// </summary>
         public void BoostAllUserBackgroundProcesses()
         {
@@ -360,13 +472,34 @@ namespace RyzenTuner.Common.EnergyStar
             ToggleAllBackgroundProcessesMode(false);
         }
 
+        /// <summary>
+        /// 获取前台窗口的进程 ID。
+        /// </summary>
+        private static uint GetForegroundProcessId()
+        {
+            var windowHandle = Win32Api.GetForegroundWindow();
+            if (windowHandle == IntPtr.Zero) return 0;
+            // 检查 GetWindowThreadProcessId 返回值：0 表示失败，此时返回 0 让调用方跳过前台保护
+            if (Win32Api.GetWindowThreadProcessId(windowHandle, out var pid) == 0) return 0;
+            return pid;
+        }
+
         private void ToggleAllBackgroundProcessesMode(bool enable)
         {
             try
             {
-                var runningProcesses = Process.GetProcesses();
                 using var currentProcess = Process.GetCurrentProcess();
+                var runningProcesses = Process.GetProcesses();
                 var currentSessionId = currentProcess.SessionId;
+                // 使用 HandleForeground 解析后的前台进程 ID（含 UWP 子进程解析），
+                // 避免 UWP 前台应用被误节流。
+                // 若 HandleForeground 尚未运行（_resolvedForegroundPid == 0），
+                // 回退到 GetForegroundProcessId() 获取窗口所有者 PID。
+                var foregroundPid = _resolvedForegroundPid;
+                if (foregroundPid == 0)
+                {
+                    foregroundPid = GetForegroundProcessId();
+                }
 
                 foreach (var proc in runningProcesses)
                 {
@@ -374,27 +507,26 @@ namespace RyzenTuner.Common.EnergyStar
                     {
                         using (proc)
                         {
-                            // Skip processes that have already exited before accessing properties
-                            if (proc.HasExited)
-                            {
-                                continue;
-                            }
+                            if (proc.HasExited) continue;
+                            if (proc.SessionId != currentSessionId) continue;
+                            if (foregroundPid != 0 && (uint)proc.Id == foregroundPid) continue;
 
-                            if (proc.SessionId != currentSessionId)
-                            {
-                                continue;
-                            }
+                            // 使用 ProcessName 预检查白名单，避免为白名单进程打开句柄
+                            // ProcessName 不含扩展名和路径，拼接 ".exe" 后与 _bypassProcessList 匹配
+                            var processName = proc.ProcessName + ".exe";
+                            if (IsInBypassList(processName)) continue;
 
-                            var hProcess = NativeOpenProcess(proc.Id);
-                            if (hProcess != IntPtr.Zero)
+                            var processHandle = NativeOpenProcess((uint)proc.Id);
+                            if (processHandle != IntPtr.Zero)
                             {
                                 try
                                 {
-                                    ToggleEfficiencyMode(hProcess, enable);
+                                    // 传入预解析的进程名，避免 ToggleEfficiencyMode 中重复调用 QueryFullProcessImageName
+                                    ToggleEfficiencyMode(processHandle, enable, processName);
                                 }
                                 finally
                                 {
-                                    Win32Api.CloseHandle(hProcess);
+                                    Win32Api.CloseHandle(processHandle);
                                 }
                             }
                         }
@@ -417,11 +549,18 @@ namespace RyzenTuner.Common.EnergyStar
         /// </summary>
         public void ReloadBypassList()
         {
+            // 先构建新列表，若 LoadBypassSetting() 抛出异常，_bypassProcessList 保持原状态不变
+            var newList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // ReloadBypassList 仅获取 _bypassLock（不获取 _nativeLock），与约定顺序 _bypassLock → _nativeLock 不冲突。
+            // 详见 ToggleEfficiencyMode 中的锁顺序注释。
             lock (_bypassLock)
             {
+                newList.UnionWith(_hardcodedBypassList);
+                newList.UnionWith(LoadBypassSetting());
+
                 _bypassProcessList.Clear();
-                _bypassProcessList.UnionWith(_hardcodedBypassList);
-                _bypassProcessList.UnionWith(LoadBypassSetting());
+                _bypassProcessList.UnionWith(newList);
             }
         }
 
@@ -432,7 +571,8 @@ namespace RyzenTuner.Common.EnergyStar
         {
             return (AppSettings.Get("EnergyStarBypassProcessList") ?? "")
                 .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim());
+                .Select(x => x.Trim())
+                .Where(x => x.Length > 0);
         }
 
         /// <summary>
@@ -459,14 +599,25 @@ namespace RyzenTuner.Common.EnergyStar
                 return;
             }
 
-            if (_pThrottleOn != IntPtr.Zero)
+            // DisposeCore 仅获取 _nativeLock（不获取 _bypassLock），与约定顺序 _bypassLock → _nativeLock 不冲突。
+            // 详见 ToggleEfficiencyMode 中的锁顺序注释。
+            IntPtr throttleOn, throttleOff;
+            lock (_nativeLock)
             {
-                Marshal.FreeHGlobal(_pThrottleOn);
+                throttleOn = _throttleOnPtr;
+                throttleOff = _throttleOffPtr;
+                _throttleOnPtr = IntPtr.Zero;
+                _throttleOffPtr = IntPtr.Zero;
             }
 
-            if (_pThrottleOff != IntPtr.Zero)
+            if (throttleOn != IntPtr.Zero)
             {
-                Marshal.FreeHGlobal(_pThrottleOff);
+                Marshal.FreeHGlobal(throttleOn);
+            }
+
+            if (throttleOff != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(throttleOff);
             }
         }
     }

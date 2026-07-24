@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using RyzenTuner.Utils;
 
 namespace RyzenTuner.Common
 {
-    /**
-     * 参考：
-     * github.com\PowerToys\src\modules\awake\Awake\Core\NativeMethods.cs
-     * https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setthreadexecutionstate
-     * https://www.cnblogs.com/guorongtao/p/13918094.html
-     */
+    // 参考：
+    // https://github.com/microsoft/PowerToys/blob/main/src/modules/awake/Awake/Core/NativeMethods.cs
+    // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setthreadexecutionstate
+    // https://www.cnblogs.com/guorongtao/p/13918094.html
     public static class Awake
     {
         [Flags]
         private enum ExecutionState : uint
         {
+            None = 0,
+
             // 通知系统，被设置的状态应该保持有效，直到下一次使用ES_CONTINUOUS的调用和其他状态标志之一被清除
             EsContinuous = 0x80000000,
 
@@ -25,7 +26,7 @@ namespace RyzenTuner.Common
             EsSystemRequired = 0x00000001
         }
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("kernel32.dll", SetLastError = true)]
         private static extern ExecutionState SetThreadExecutionState(ExecutionState esFlags);
 
         /// <summary>
@@ -35,10 +36,11 @@ namespace RyzenTuner.Common
         /// <returns>true 表示成功，false 表示失败。</returns>
         public static bool KeepSystemAwake(bool keepDisplayOn)
         {
-            return keepDisplayOn
-                ? SetAwakeState(ExecutionState.EsSystemRequired | ExecutionState.EsContinuous |
-                                ExecutionState.EsDisplayRequired)
-                : SetAwakeState(ExecutionState.EsSystemRequired | ExecutionState.EsContinuous);
+            var flags = keepDisplayOn
+                ? ExecutionState.EsSystemRequired | ExecutionState.EsContinuous | ExecutionState.EsDisplayRequired
+                : ExecutionState.EsSystemRequired | ExecutionState.EsContinuous;
+
+            return SetAwakeState(flags);
         }
 
         /// <summary>
@@ -55,25 +57,46 @@ namespace RyzenTuner.Common
         ///
         /// 在没有ES_CONTINUOUS的情况下调用SetThreadExecutionState，只是简单地重置了空闲计时器；为了保持显示或系统处于工作状态，线程必须定期地调用SetThreadExecutionState。
         /// </summary>
-        /// <param name="state">Single or multiple ExecutionState entries.</param>
+        /// <param name="flags">Single or multiple ExecutionState entries.</param>
         /// <returns>true if successful, false if failed</returns>
-        private static bool SetAwakeState(ExecutionState state)
+        private static bool SetAwakeState(ExecutionState flags)
         {
             try
             {
-                var stateResult = SetThreadExecutionState(state);
-                if (stateResult == 0)
+                // SetThreadExecutionState returns 0 on failure, but the very first
+                // successful call also returns 0 when there is no previous execution
+                // state set for the calling thread.  Use GetLastError to distinguish:
+                // a non-zero error code means a real failure; errorCode == 0 means
+                // either success (first call) or a failure that did not set last error.
+                if (SetThreadExecutionState(flags) == 0)
                 {
-                    Debug.WriteLine(
-                        $"[Awake.SetAwakeState] SetThreadExecutionState returned 0 (state={state}). LastError={Marshal.GetLastWin32Error()}");
-                    return false;
+                    var errorCode = Marshal.GetLastWin32Error();
+                    if (errorCode != 0)
+                    {
+                        Trace.WriteLine(
+                            $"[Awake.SetAwakeState] SetThreadExecutionState failed (flags={flags}, errorCode={errorCode})");
+                        return false;
+                    }
+
+                    // Return value 0 with errorCode 0: likely first successful call
+                    // with no prior execution state.  Treat as success.
                 }
 
                 return true;
             }
-            catch (Exception ex)
+            catch (EntryPointNotFoundException ex)
             {
-                Debug.WriteLine($"[Awake.SetAwakeState] Exception: {ex}");
+                Trace.WriteLine($"[Awake.SetAwakeState] Entry point not found: {ex}");
+                return false;
+            }
+            catch (DllNotFoundException ex)
+            {
+                Trace.WriteLine($"[Awake.SetAwakeState] DLL not found: {ex}");
+                return false;
+            }
+            catch (Exception ex) when (!CommonUtils.IsFatalException(ex))
+            {
+                Trace.WriteLine($"[Awake.SetAwakeState] Unexpected exception: {ex}");
                 return false;
             }
         }

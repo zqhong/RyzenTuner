@@ -23,37 +23,30 @@ SOFTWARE.
 */
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
 namespace RyzenTuner.Common.Logger
 {
-    /**
-     * Refer: https://gist.github.com/heiswayi/69ef5413c0f28b3a58d964447c275058
-     *
-     * Note: This logger has been superseded by SqliteLogger and is retained
-     * only as a file-based fallback reference.
-     */
+    /// <summary>
+    /// Refer: https://gist.github.com/heiswayi/69ef5413c0f28b3a58d964447c275058
+    ///
+    /// Note: This logger has been superseded by SqliteLogger and is retained
+    /// only as a file-based fallback reference.
+    /// </summary>
+    [Obsolete("Superseded by SqliteLogger. Retained only as a file-based fallback reference.")]
     public class SimpleLogger : IDisposable
     {
-        public enum LogLevel
-        {
-            Trace = 0,
-            Debug,
-            Info,
-            Warning,
-            Error,
-            Fatal
-        }
-
         private const string FileExt = ".log";
+        private const string DateTimeFormat = "yyyy-MM-dd HH:mm:ss";
+        private const int LabelAlignmentWidth = 9;
         private readonly object _fileLock = new();
-        private readonly string _datetimeFormat;
         private readonly string _logFilename;
         private StreamWriter? _writer;
         private volatile bool _disposed;
 
-        public LogLevel DefaultLogLevel { get; set; }
+        public LogLevel DefaultLogLevel { get; set; } = LogLevel.Warning;
 
         /// <summary>
         /// Initiate an instance of SimpleLogger class constructor.
@@ -61,41 +54,66 @@ namespace RyzenTuner.Common.Logger
         /// </summary>
         public SimpleLogger()
         {
-            _datetimeFormat = "yyyy-MM-dd HH:mm:ss";
-            var logDir = AppDomain.CurrentDomain.BaseDirectory;
-            if (string.IsNullOrEmpty(logDir))
-                logDir = Environment.CurrentDirectory;
+            var logDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "RyzenTuner",
+                "logs");
 
             _logFilename = Path.Combine(logDir,
-                System.Reflection.Assembly.GetExecutingAssembly().GetName().Name + FileExt);
+                (System.Reflection.Assembly.GetExecutingAssembly().GetName().Name ?? "RyzenTuner") + FileExt);
 
             // Ensure the log directory exists
-            var dir = Path.GetDirectoryName(_logFilename);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
-            DefaultLogLevel = LogLevel.Warning;
+            try
+            {
+                var dir = Path.GetDirectoryName(_logFilename);
+                if (!string.IsNullOrEmpty(dir))
+                    Directory.CreateDirectory(dir);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[SimpleLogger] Failed to create log directory: {ex.Message}");
+            }
 
             // Prepend BOM for UTF-8 and keep writer open for the lifetime of the logger
-            _writer = new StreamWriter(_logFilename, true, Encoding.UTF8)
+            // 不启用 AutoFlush，由 Dispose() 统一刷入磁盘，避免每次写入都触发 FlushFileBuffers
+            try
             {
-                AutoFlush = true,
-            };
+                _writer = new StreamWriter(_logFilename, true, new UTF8Encoding(false));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[SimpleLogger] Failed to create log file '{_logFilename}': {ex.Message}");
+                _writer = null;
+            }
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (_disposed)
+            if (!disposing)
                 return;
-            _disposed = true;
 
-            if (disposing)
+            StreamWriter? writerToDispose;
+            lock (_fileLock)
             {
-                lock (_fileLock)
-                {
-                    _writer?.Dispose();
-                    _writer = null;
-                }
+                if (_disposed)
+                    return;
+                _disposed = true;
+                writerToDispose = _writer;
+                _writer = null;
+            }
+
+            // Dispose outside the lock to avoid holding it during I/O,
+            // and to ensure WriteLine under the lock always sees _writer == null.
+            try
+            {
+                writerToDispose?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine(
+                    $"[SimpleLogger] Dispose failed: {ex.Message}");
             }
         }
 
@@ -105,21 +123,23 @@ namespace RyzenTuner.Common.Logger
             GC.SuppressFinalize(this);
         }
 
-        public static LogLevel ToLogLevel(string logLevel)
+        /// <summary>
+        /// Forces any buffered log data to be written to the underlying file.
+        /// </summary>
+        public void Flush()
         {
-            if (logLevel == null)
-                throw new ArgumentNullException(nameof(logLevel));
-
-            return logLevel switch
+            lock (_fileLock)
             {
-                "Trace" => LogLevel.Trace,
-                "Debug" => LogLevel.Debug,
-                "Info" => LogLevel.Info,
-                "Warning" => LogLevel.Warning,
-                "Error" => LogLevel.Error,
-                "Fatal" => LogLevel.Fatal,
-                _ => throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, $"Unknown log level: {logLevel}")
-            };
+                try
+                {
+                    _writer?.Flush();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine(
+                        $"[SimpleLogger] Flush failed: {ex.Message}");
+                }
+            }
         }
 
         /// <summary>
@@ -176,38 +196,41 @@ namespace RyzenTuner.Common.Logger
             WriteFormattedLog(LogLevel.Warning, text);
         }
 
-        public void LogException(Exception e)
+        public void LogException(Exception? e)
         {
             if (e == null)
                 return;
 
-            Error($"Exception: {e.Message}\n{e}");
+            Error($"Exception: {e}");
         }
 
         private void WriteLine(string text)
         {
-            if (string.IsNullOrEmpty(text))
-            {
-                return;
-            }
-
             lock (_fileLock)
             {
                 if (_writer == null)
                     return;
 
-                _writer.WriteLine(text);
+                try
+                {
+                    _writer.WriteLine(text);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine(
+                        $"[SimpleLogger] WriteLine failed: {ex.Message}");
+                }
             }
         }
 
         private void WriteFormattedLog(LogLevel level, string text)
         {
-            if (_disposed || level < DefaultLogLevel)
+            if (_disposed || level < DefaultLogLevel || string.IsNullOrEmpty(text))
             {
                 return;
             }
 
-            var timestamp = DateTime.Now.ToString(_datetimeFormat);
+            var timestamp = DateTime.UtcNow.ToString(DateTimeFormat, CultureInfo.InvariantCulture) + "Z";
             var label = level switch
             {
                 LogLevel.Trace => "[TRACE]",
@@ -216,10 +239,10 @@ namespace RyzenTuner.Common.Logger
                 LogLevel.Warning => "[WARNING]",
                 LogLevel.Error => "[ERROR]",
                 LogLevel.Fatal => "[FATAL]",
-                _ => ""
+                _ => $"[{level}]"
             };
 
-            WriteLine($"{timestamp} {label,-9} {text}");
+            WriteLine($"{timestamp} {label,-LabelAlignmentWidth} {text}");
         }
     }
 }
